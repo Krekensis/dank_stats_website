@@ -97,11 +97,12 @@ const Navbar = () => {
           onMouseEnter={() => setHoveringSubmenu(true)}
           onMouseLeave={() => setHoveringSubmenu(false)}
         >
-          {["Overview", "Trends", "Comparisons"].map((label) => (
+          {["ItemValueHistory"].map((label) => (
             <NavCard
               key={label}
               heading="Item value history"
               description="Visualize how item values have evolved over time through clear, interactive graphs."
+              redirect="/item-value-history"
             />
           ))}
         </div>
