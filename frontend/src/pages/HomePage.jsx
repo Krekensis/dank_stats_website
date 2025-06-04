@@ -2,30 +2,37 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import itemData from "../assets/parsed_items3.json";
 
-const EMOJI_SIZE = 45;
-const NUM_EMOJIS = 200;
+const emojiSize = 45;
+const emojiNum = 200;
+
+// ================================================= [ Functions ] ==================================================
 
 const getRandomPosition = (maxWidth, maxHeight) => {
-  const x = Math.random() * (maxWidth - EMOJI_SIZE);
-  const y = Math.random() * (maxHeight - EMOJI_SIZE);
+  const x = Math.random() * (maxWidth - emojiSize);
+  const y = Math.random() * (maxHeight - emojiSize);
   return { x, y };
+};
+
+const getRandomRotation = () => {
+  return Math.random() * 60 - 30;
 };
 
 const isOverlapping = (pos1, pos2, margin = 10) => {
   const dx = pos1.x - pos2.x;
   const dy = pos1.y - pos2.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  return distance < EMOJI_SIZE + margin;
+  return distance < emojiSize + margin;
 };
 
-const getRandomRotation = () => Math.random() * 60 - 30;
-
-const titleCase = (str) =>
-  str
+const titleCase = (str) => {
+  return str
     .toLowerCase()
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+// ============================================== [ Main Component ] ===============================================
 
 const HomePage = () => {
   const [positions, setPositions] = useState([]);
@@ -44,7 +51,7 @@ const HomePage = () => {
     const maxHeight = window.innerHeight;
     let placed = [];
 
-    while (placed.length < NUM_EMOJIS && uniqueItems.length > 0) {
+    while (placed.length < emojiNum && uniqueItems.length > 0) {
       const item = uniqueItems[Math.floor(Math.random() * uniqueItems.length)];
       let pos;
       let tries = 0;
@@ -87,18 +94,18 @@ const HomePage = () => {
               position: "absolute",
               top: absorbing ? targetY : y,
               left: absorbing ? targetX : x,
-              width: EMOJI_SIZE,
-              height: EMOJI_SIZE,
+              width: emojiSize,
+              height: emojiSize,
               transform: absorbing
                 ? "scale(0.1) rotate(720deg)"
                 : hovered?.i === i
-                ? "scale(1.4) rotate(0deg)"
-                : `rotate(${rotation}deg) scale(1)`,
+                  ? "scale(1.4) rotate(0deg)"
+                  : `rotate(${rotation}deg) scale(1)`,
               transition: absorbing
                 ? "all 1.3s ease-in"
                 : hovered?.i === i
-                ? "transform 0.2s ease, opacity 0.2s ease"
-                : "transform 0.4s ease, opacity 0.4s ease",
+                  ? "transform 0.2s ease, opacity 0.2s ease"
+                  : "transform 0.4s ease, opacity 0.4s ease",
               opacity: absorbing ? 0 : hovered?.i === i ? 1 : 0.6,
               cursor: "pointer",
               zIndex: hovered?.i === i ? 10 : 1,
@@ -123,7 +130,7 @@ const HomePage = () => {
           style={{
             position: "absolute",
             top: Math.min(window.innerHeight - 60, hovered.y - 10),
-            left: Math.min(window.innerWidth - 200, hovered.x + EMOJI_SIZE + 10),
+            left: Math.min(window.innerWidth - 200, hovered.x + emojiSize + 10),
             background: "rgba(0,0,0,0.8)",
             color: "white",
             padding: "6px 10px",
@@ -147,9 +154,7 @@ const HomePage = () => {
             setAbsorbing(false);
           }, 1400);
         }}
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-          absorbing ? "animate-fast-spin" : "hover:scale-110"
-        }`}
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${absorbing ? "animate-fast-spin" : "hover:scale-110"}`}
       >
         <img
           src="https://cdn.discordapp.com/emojis/932395505382744106.png"

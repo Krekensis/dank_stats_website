@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import NavCard from "./navcard";
+import logo from "../assets/DankStats.png";
+import { Link } from "react-router-dom";
 
 const COLLAPSED_HEIGHT = 60;
 const COLLAPSE_DELAY_MS = 200; // delay before collapsing to avoid flicker
@@ -70,10 +72,16 @@ const Navbar = () => {
         style={{ height: `${containerHeight}px` }}
       >
         <div className="flex justify-between items-center">
-          <div className="text-[#6bff7a] text-3xl font-extrabold font-mono select-none">
-            Dank Stats
-          </div>
-          <div className="flex-1 flex justify-center text-[#c6ffcc] font-mono font-medium px-5 space-x-8">
+          {/* Logo + Text Grouped */}
+          <Link to="/" className="flex items-center space-x-3">
+            <img src={logo} alt="Dank Stats Logo" className="w-10 h-10 object-contain" />
+            <div className="text-[#6bff7a] text-3xl font-extrabold font-mono select-none leading-none">
+              Dank Stats
+            </div>
+          </Link>
+
+          {/* Navigation Links */}
+          <div className="flex-1 flex justify-center text-[#c6ffcc] font-mono font-medium space-x-8">
             <a
               href="#"
               className="hover:text-[#6bff7a] transition cursor-pointer"
@@ -82,7 +90,6 @@ const Navbar = () => {
             >
               Item Statistics
             </a>
-
             <a href="#" className="hover:text-[#6bff7a] transition">
               About
             </a>
@@ -91,9 +98,8 @@ const Navbar = () => {
 
         <div
           ref={submenuRef}
-          className={`mt-4 flex justify-center gap-x-6 transition-opacity duration-300 w-full px-10 ${
-            expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`mt-4 flex justify-center gap-x-6 transition-opacity duration-300 w-full px-10 ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
           onMouseEnter={() => setHoveringSubmenu(true)}
           onMouseLeave={() => setHoveringSubmenu(false)}
         >
