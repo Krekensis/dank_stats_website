@@ -4,8 +4,9 @@ import itemData from "../assets/parsed_items3.json";
 
 const emojiSize = 45;
 const emojiNum = 200;
+const emojiAbsorb = 40;
 
-// ================================================= [ Functions ] ==================================================
+// =============================== [ Utility Functions ] ===============================
 
 const getRandomPosition = (maxWidth, maxHeight) => {
   const x = Math.random() * (maxWidth - emojiSize);
@@ -13,9 +14,7 @@ const getRandomPosition = (maxWidth, maxHeight) => {
   return { x, y };
 };
 
-const getRandomRotation = () => {
-  return Math.random() * 60 - 30;
-};
+const getRandomRotation = () => Math.random() * 60 - 30;
 
 const isOverlapping = (pos1, pos2, margin = 10) => {
   const dx = pos1.x - pos2.x;
@@ -24,20 +23,19 @@ const isOverlapping = (pos1, pos2, margin = 10) => {
   return distance < emojiSize + margin;
 };
 
-const titleCase = (str) => {
-  return str
+const titleCase = (str) =>
+  str
     .toLowerCase()
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-};
 
-// ============================================== [ Main Component ] ===============================================
+// ==================================== [ Component ] ====================================
 
 const HomePage = () => {
   const [positions, setPositions] = useState([]);
   const [hovered, setHovered] = useState(null);
-  const [absorbing, setAbsorbing] = useState(false);
+  const [absorbingIds, setAbsorbingIds] = useState([]);
 
   useEffect(() => {
     const uniqueItems = itemData.filter((item) => item.emoji?.url);
@@ -67,6 +65,7 @@ const HomePage = () => {
           rotation: getRandomRotation(),
           name: item.name,
           latestValue: item.history?.[item.history.length - 1]?.value ?? "N/A",
+          id: crypto.randomUUID(), // Unique ID for tracking
         });
       } else {
         break;
@@ -76,37 +75,55 @@ const HomePage = () => {
     setPositions(placed);
   }, []);
 
+  const handleAbsorb = () => {
+    const remaining = positions.filter((p) => !absorbingIds.includes(p.id));
+    if (remaining.length === 0) return;
+
+    const toAbsorb = remaining
+      .sort(() => 0.5 - Math.random())
+      .slice(0, emojiAbsorb)
+      .map((p) => p.id);
+
+    setAbsorbingIds((prev) => [...prev, ...toAbsorb]);
+
+    setTimeout(() => {
+      setPositions((prev) => prev.filter((p) => !toAbsorb.includes(p.id)));
+      setAbsorbingIds((prev) => prev.filter((id) => !toAbsorb.includes(id)));
+    }, 800);
+  };
+
   return (
     <div className="min-h-screen bg-[#070e0c] relative overflow-hidden">
       <Navbar />
 
       {/* Emojis */}
-      {positions.map(({ x, y, url, rotation, name, latestValue }, i) => {
+      {positions.map(({ x, y, url, rotation, name, latestValue, id }, i) => {
+        const isAbsorbing = absorbingIds.includes(id);
         const targetX = window.innerWidth - 60;
         const targetY = window.innerHeight - 60;
 
         return (
           <div
-            key={i}
+            key={id}
             onMouseEnter={() => setHovered({ i, x, y, name, latestValue })}
             onMouseLeave={() => setHovered(null)}
             style={{
               position: "absolute",
-              top: absorbing ? targetY : y,
-              left: absorbing ? targetX : x,
+              top: isAbsorbing ? targetY : y,
+              left: isAbsorbing ? targetX : x,
               width: emojiSize,
               height: emojiSize,
-              transform: absorbing
+              transform: isAbsorbing
                 ? "scale(0.1) rotate(720deg)"
                 : hovered?.i === i
                   ? "scale(1.4) rotate(0deg)"
                   : `rotate(${rotation}deg) scale(1)`,
-              transition: absorbing
-                ? "all 1.3s ease-in"
+              transition: isAbsorbing
+                ? "all 0.8s ease-in"
                 : hovered?.i === i
                   ? "transform 0.2s ease, opacity 0.2s ease"
                   : "transform 0.4s ease, opacity 0.4s ease",
-              opacity: absorbing ? 0 : hovered?.i === i ? 1 : 0.6,
+              opacity: isAbsorbing ? 0 : hovered?.i === i ? 1 : 0.6,
               cursor: "pointer",
               zIndex: hovered?.i === i ? 10 : 1,
             }}
@@ -125,7 +142,8 @@ const HomePage = () => {
         );
       })}
 
-      {hovered && !absorbing && (
+      {/* Tooltip */}
+      {hovered && !absorbingIds.includes(positions[hovered.i]?.id) && (
         <div
           style={{
             position: "absolute",
@@ -146,15 +164,12 @@ const HomePage = () => {
         </div>
       )}
 
+      {/* Absorb Button */}
       <div
-        onClick={() => {
-          setAbsorbing(true);
-          setTimeout(() => {
-            setPositions([]);
-            setAbsorbing(false);
-          }, 1400);
-        }}
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${absorbing ? "animate-fast-spin" : "hover:scale-110"}`}
+        onClick={handleAbsorb}
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
+          absorbingIds.length > 0 ? "animate-fast-spin" : "hover:scale-110"
+        }`}
       >
         <img
           src="https://cdn.discordapp.com/emojis/932395505382744106.png"
