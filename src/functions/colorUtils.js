@@ -8,7 +8,7 @@ export const getEmojiColor = async (imageUrl) => {
         url: imageUrl.endsWith(".gif") ? imageUrl.replace(".gif", ".png") : imageUrl,
         models: "properties",
         api_user: "256690365",
-        api_secret: "DSZ9GksrgKuzP6XsfgCw",
+        api_secret: process.env.SIGHTENGINE,
       },
     });
     const hex = response.data.colors?.dominant?.hex;
