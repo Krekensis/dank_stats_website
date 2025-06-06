@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
+import ItemMultiSelect from "../components/itemmultiselect";
 import itemData from "../assets/parsed_items3.json";
 import { neonizeHex, getAverageColor } from "../functions/colorUtils";
 import { commas } from "../functions/stringUtils";
@@ -242,90 +243,12 @@ const ItemValueHistory = () => {
 
       <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
         {/* Multi-select dropdown */}
-        <div ref={dropdownRef} className="relative w-125">
-          <button
-            onClick={() => {
-              setDropdownOpen(!dropdownOpen);
-              setSearchTerm("");
-            }}
-            className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-[#6bff7a]" : "border-transparent"} text-[#a4bbb0] truncate`}
-            style={{ height: "40px" }}
-            type="button"
-          >
-            {selectedItems.length === 0
-              ? `Select upto ${MAX_SELECTED_ITEMS} items...`
-              : selectedItems.map(titleCase).join(", ")}
-          </button>
-
-          {dropdownOpen && (
-            <div className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto bg-[#111816] border-transparent rounded-md shadow-custom custom-scrollbar">
-              <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: #0d1311; border-radius: 6px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #2b473e; border-radius: 6px; border: 2px solid #0d1311; }
-              `}</style>
-              <div className="p-2">
-                <input
-                  type="text"
-                  placeholder="Type to search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-md px-3 py-1 bg-[#0d1311] font-mono text-[#a4bbb0] border-2 border-transparent focus:outline-none placeholder-[#a4bbb0] placeholder-opacity-100"
-                />
-              </div>
-              <div>
-                {filteredItems.length === 0 ? (
-                  <div className="px-4 py-2 font-mono text-[#a4bbb0]">No such item found.</div>
-                ) : (
-                  filteredItems.map((item) => {
-                    const checked = selectedItems.includes(item.name);
-                    const disabled = !checked && selectedItems.length >= MAX_SELECTED_ITEMS;
-                    return (
-                      <label
-                        key={item.name}
-                        className={`flex items-center space-x-2 px-4 py-2 hover:bg-[#1e2a27] cursor-pointer select-none ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleSelectItem(item.name)}
-                          disabled={disabled}
-                          className="hidden"
-                        />
-                        <div
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${checked ? "border-[#6bff7a]" : "border-[#2b473e]"} ${disabled ? "opacity-50" : ""}`}
-                          style={{ backgroundColor: "#0d1311" }}
-                          aria-hidden="true"
-                        >
-                          {checked && (
-                            <svg
-                              className="w-4 h-4 text-[#6bff7a]"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              viewBox="0 0 24 24"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                        <img
-                          src={item.emoji.url}
-                          alt={item.name}
-                          className="w-6 h-6"
-                          draggable={false}
-                        />
-                        <span className="font-mono">{titleCase(item.name)}</span>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <ItemMultiSelect
+          items={items}
+          selectedItems={selectedItems}
+          setSelectedItems={setSelectedItems}
+          maxSelected={MAX_SELECTED_ITEMS}
+        />
 
         {/* Date inputs */}
         <div className="relative">

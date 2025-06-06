@@ -1,15 +1,21 @@
-// src/components/ItemMultiSelect.js
 import React, { useState, useRef, useEffect } from "react";
+
+const titleCase = (str) =>
+  str
+    .toLowerCase()
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 
 const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const wrapperRef = useRef(null);
+  const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     };
@@ -22,98 +28,99 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Toggle select/deselect item
-  const toggleSelectItem = (itemName) => {
-    if (selectedItems.includes(itemName)) {
-      setSelectedItems(selectedItems.filter((name) => name !== itemName));
-    } else if (selectedItems.length < maxSelected) {
-      setSelectedItems([...selectedItems, itemName]);
+  const toggleSelectItem = (name) => {
+    if (selectedItems.includes(name)) {
+      setSelectedItems(selectedItems.filter((n) => n !== name));
+    } else {
+      if (selectedItems.length < maxSelected) {
+        setSelectedItems([...selectedItems, name]);
+      }
     }
   };
 
   return (
-    <div
-      className="relative font-mono"
-      ref={wrapperRef}
-      style={{ width: "235px" }}
-    >
-      {/* Dropdown toggle button */}
+    <div ref={dropdownRef} className="relative w-125">
       <button
+        onClick={() => {
+          setDropdownOpen(!dropdownOpen);
+          setSearchTerm("");
+        }}
+        className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${
+          dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
+        } text-[#a4bbb0] truncate`}
+        style={{ height: "40px" }}
         type="button"
-        onClick={() => setDropdownOpen((open) => !open)}
-        className="w-full bg-[#111816] text-[#a4bbb0] rounded-md p-2 flex justify-between items-center shadow-md focus:outline-none"
       >
-        <span>
-          {selectedItems.length === 0
-            ? "Select items..."
-            : selectedItems.join(", ")}
-        </span>
-        <svg
-          className={`w-4 h-4 ml-2 transform transition-transform ${
-            dropdownOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        {selectedItems.length === 0
+          ? `Select upto ${maxSelected} items...`
+          : selectedItems.map(titleCase).join(", ")}
       </button>
 
-      {/* Dropdown menu */}
       {dropdownOpen && (
-        <div
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-[#111816] shadow-lg ring-1 ring-black ring-opacity-5"
-          style={{ maxHeight: "240px" }}
-        >
-          {/* Search input */}
-          <input
-            type="text"
-            className="w-full px-3 py-2 bg-[#222926] text-[#a4bbb0] rounded-t-md focus:outline-none"
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            autoFocus
-          />
-
-          {/* Items list */}
-          <ul className="max-h-52 overflow-auto">
-            {filteredItems.length === 0 && (
-              <li className="px-3 py-2 text-[#777] italic">No items found</li>
+        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto bg-[#111816] border-transparent rounded-md shadow-custom custom-scrollbar">
+          <style>{`
+            .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: #0d1311; border-radius: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #2b473e; border-radius: 6px; border: 2px solid #0d1311; }
+          `}</style>
+          <div className="p-2">
+            <input
+              type="text"
+              placeholder="Type to search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-md px-3 py-1 bg-[#0d1311] font-mono text-[#a4bbb0] border-2 border-transparent focus:outline-none placeholder-[#a4bbb0] placeholder-opacity-100"
+            />
+          </div>
+          <div>
+            {filteredItems.length === 0 ? (
+              <div className="px-4 py-2 font-mono text-[#a4bbb0]">No such item found.</div>
+            ) : (
+              filteredItems.map((item) => {
+                const checked = selectedItems.includes(item.name);
+                const disabled = !checked && selectedItems.length >= maxSelected;
+                return (
+                  <label
+                    key={item.name}
+                    className={`flex items-center space-x-2 px-4 py-2 hover:bg-[#1e2a27] cursor-pointer select-none ${
+                      disabled ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleSelectItem(item.name)}
+                      disabled={disabled}
+                      className="hidden"
+                    />
+                    <div
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${
+                        checked ? "border-[#6bff7a]" : "border-[#2b473e]"
+                      } ${disabled ? "opacity-50" : ""}`}
+                      style={{ backgroundColor: "#0d1311" }}
+                      aria-hidden="true"
+                    >
+                      {checked && (
+                        <svg
+                          className="w-4 h-4 text-[#6bff7a]"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          viewBox="0 0 24 24"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <img src={item.emoji.url} alt={item.name} className="w-6 h-6" draggable={false} />
+                    <span className="font-mono">{titleCase(item.name)}</span>
+                  </label>
+                );
+              })
             )}
-            {filteredItems.map((item) => {
-              const isSelected = selectedItems.includes(item.name);
-              const isDisabled =
-                !isSelected && selectedItems.length >= maxSelected;
-              return (
-                <li
-                  key={item.name}
-                  className={`flex items-center px-3 py-2 cursor-pointer select-none ${
-                    isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-[#1e2a22]"
-                  }`}
-                  onClick={() => {
-                    if (!isDisabled) toggleSelectItem(item.name);
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    readOnly
-                    className="mr-2 cursor-pointer"
-                  />
-                  <img
-                    src={item.emoji.url}
-                    alt={item.name}
-                    className="w-5 h-5 mr-2 select-none pointer-events-none"
-                    draggable={false}
-                  />
-                  <span>{item.name}</span>
-                </li>
-              );
-            })}
-          </ul>
+          </div>
         </div>
       )}
     </div>
