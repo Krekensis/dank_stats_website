@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/HomePage";
-import ItemValueHistory from "./pages/ItemValueHistory";
+import ItemValueHistory from "./pages/ItemValueHistory2";
 
 const App = () => {
   return (
