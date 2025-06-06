@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import itemData from "../assets/parsed_items3.json";
-import { neonizeHex, getEmojiColor } from "../functions/colorUtils";
+import { neonizeHex, getAverageColor } from "../functions/colorUtils";
 import { commas } from "../functions/stringUtils";
 
 import {
@@ -89,6 +89,37 @@ const ItemValueHistory = () => {
       data: chartData,
       options: {
         responsive: true,
+        animation: {
+          duration: 0 // Disable global animation so custom per-point works better
+        },
+        animations: {
+          x: {
+            type: 'number',
+            easing: 'linear',
+            duration: 0 // No x movement animation
+          },
+          y: {
+            type: 'number',
+            easing: 'easeOutQuart', // Smooth vertical ease
+            duration: 2000,
+            from: (ctx) => ctx.chart.scales.y.getPixelForValue(0), // From y = 0
+            delay: (ctx) => ctx.index * 30 // Delay based on point index (left to right)
+          },
+          elements: {
+            line: {
+              type: 'number',
+              duration: 1200,
+              easing: 'easeInOutSine',
+              from: NaN
+            },
+            point: {
+              type: 'number',
+              duration: 400,
+              easing: 'easeOutQuart',
+              delay: (ctx) => ctx.index * 30
+            }
+          }
+        },
         scales: {
           x: {
             type: "time",
@@ -114,7 +145,8 @@ const ItemValueHistory = () => {
             },
           },
         },
-      },
+      }
+
     });
 
     // Cleanup on unmount or next effect run
@@ -146,7 +178,7 @@ const ItemValueHistory = () => {
     const datasets = await Promise.all(
       selectedItems.map(async (itemName) => {
         const item = items.find((i) => i.name === itemName);
-        const baseColor = await getEmojiColor(item.emoji.url);
+        const baseColor = await getAverageColor(item.emoji.url);
         const color = neonizeHex(baseColor);
 
         const dataPoints = item.history
@@ -160,7 +192,7 @@ const ItemValueHistory = () => {
           backgroundColor: color,
           pointRadius: 4,
           pointHoverRadius: 5,
-          tension: 0.3,
+          tension: 0.4,
           emoji: item.emoji.url,
         };
       })

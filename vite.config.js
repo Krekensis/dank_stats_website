@@ -8,5 +8,5 @@ export default defineConfig({
       react(), 
       tailwindcss(),
     ],
-  base: process.env.BASE || '/dank_stats_website',
+  base: process.env.BASE || '/',
 })

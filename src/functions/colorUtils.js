@@ -1,5 +1,31 @@
 // src/utils/colorUtils.js
 import axios from "axios";
+import { average } from 'color.js';
+
+export const rgbArrayToHex = ([r, g, b]) => {
+  // Clamp and convert each channel to two hex digits
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      })
+      .join('')
+  );
+}
+
+export const getAverageColor = async (imageUrl) => {
+  try {
+    const colorArray = await average(imageUrl); // returns [r, g, b]
+    // Convert [r,g,b] to hex string
+    const hex = rgbArrayToHex(colorArray);
+    return hex;
+  } catch (error) {
+    console.error('Error getting average color:', error);
+    return "6bff7a";
+  }
+}
 
 export const getEmojiColor = async (imageUrl) => {
   try {
@@ -93,3 +119,4 @@ export const neonizeHex = (hex) => {
   const { h } = hexToHSL(hex);
   return hslToHex(h, 100, 60);
 };
+
