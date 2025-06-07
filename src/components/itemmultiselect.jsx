@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 const titleCase = (str) =>
   str
@@ -10,6 +10,7 @@ const titleCase = (str) =>
 const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortedItems, setSortedItems] = useState(items);
   const dropdownRef = useRef(null);
 
   // Close dropdown on outside click
@@ -23,10 +24,47 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter items by search term (case-insensitive)
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Preload emoji images for better performance
+  useEffect(() => {
+    items.forEach(item => {
+      if (item.emoji?.url) {
+        const img = new Image();
+        img.src = item.emoji.url;
+      }
+    });
+  }, [items]);
+
+  // Sort items only when dropdown opens (not when selections change)
+  useEffect(() => {
+    if (dropdownOpen) {
+      const selected = [];
+      const unselected = [];
+      
+      items.forEach(item => {
+        if (selectedItems.includes(item.name)) {
+          selected.push(item);
+        } else {
+          unselected.push(item);
+        }
+      });
+
+      // Sort selected items by their selection order
+      selected.sort((a, b) => {
+        const indexA = selectedItems.indexOf(a.name);
+        const indexB = selectedItems.indexOf(b.name);
+        return indexA - indexB;
+      });
+
+      setSortedItems([...selected, ...unselected]);
+    }
+  }, [dropdownOpen, items]); // Removed selectedItems dependency
+
+  // Memoized filtered items (only filters, doesn't sort during selection)
+  const filteredItems = useMemo(() => {
+    return sortedItems.filter((item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sortedItems, searchTerm]);
 
   const toggleSelectItem = (name) => {
     if (selectedItems.includes(name)) {
@@ -114,7 +152,17 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
                         </svg>
                       )}
                     </div>
-                    <img src={item.emoji.url} alt={item.name} className="w-6 h-6" draggable={false} />
+                    <img 
+                      src={item.emoji.url} 
+                      alt={item.name} 
+                      className="w-6 h-6" 
+                      draggable={false}
+                      loading="lazy"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        e.target.style.display = 'none';
+                      }}
+                    />
                     <span className="font-mono">{titleCase(item.name)}</span>
                   </label>
                 );

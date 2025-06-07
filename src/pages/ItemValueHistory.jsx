@@ -21,18 +21,20 @@ import "chartjs-adapter-date-fns";
 
 ChartJS.register(zoomPlugin, LineController, LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, CategoryScale);
 
-const MAX_SELECTED_ITEMS = 5;
+const MAX_SELECTED_ITEMS = 15;
 const titleCase = (str) => str.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
 const ItemValueHistory = () => {
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [displayedItems, setDisplayedItems] = useState([]); // New state for displayed items
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateError, setDateError] = useState(false);
   const [chartData, setChartData] = useState(null);
+  const [datasetSpan, setDatasetSpan] = useState({ oldest: null, latest: null });
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -41,6 +43,24 @@ const ItemValueHistory = () => {
   useEffect(() => {
     const filtered = itemData.filter((item) => item.emoji?.url).sort((a, b) => a.name.localeCompare(b.name));
     setItems(filtered);
+
+    // Calculate dataset span
+    if (filtered.length > 0) {
+      let allDates = [];
+      filtered.forEach(item => {
+        if (item.history && item.history.length > 0) {
+          item.history.forEach(entry => {
+            allDates.push(new Date(entry.timestamp));
+          });
+        }
+      });
+
+      if (allDates.length > 0) {
+        const oldest = new Date(Math.min(...allDates));
+        const latest = new Date(Math.max(...allDates));
+        setDatasetSpan({ oldest, latest });
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -79,7 +99,17 @@ const ItemValueHistory = () => {
         scales: {
           x: {
             type: "time",
-            time: { tooltipFormat: "dd/MM/yyyy", unit: "day" },
+            time: {
+              tooltipFormat: "dd/MM/yy",
+              displayFormats: {
+                day: "dd/MM/yy",
+                week: "dd/MM/yy",
+                month: "dd/MM/yy",
+                quarter: "dd/MM/yy",
+                year: "dd/MM/yy"
+              },
+              unit: "day"
+            },
             title: { display: false },
             ticks: { color: "#a4bbb0", maxTicksLimit: 10 },
             grid: { display: false },
@@ -94,18 +124,18 @@ const ItemValueHistory = () => {
           legend: { display: false },
           tooltip: {
             enabled: false,
-            external: function(context) {
+            external: function (context) {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
                 div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px;`;
-                
+
                 // Create triangle pointer
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
                 triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #6bff7a;`;
                 div.appendChild(triangle);
-                
+
                 document.body.appendChild(div);
                 return div;
               })();
@@ -122,22 +152,22 @@ const ItemValueHistory = () => {
                 const dataset = context.chart.data.datasets[point.datasetIndex];
                 const date = new Date(point.parsed.x);
                 const value = point.parsed.y;
-                
+
                 tooltipEl.style.borderColor = dataset.borderColor;
-                
+
                 // Update triangle color to match dataset
                 const triangle = tooltipEl.querySelector('.tooltip-triangle');
                 if (triangle) {
                   triangle.style.borderTopColor = dataset.borderColor;
                 }
-                
+
                 let changeText = '';
                 if (point.dataIndex > 0) {
                   const prevValue = dataset.data[point.dataIndex - 1].y;
                   const change = ((value - prevValue) / prevValue * 100).toFixed(2);
                   changeText = `<div style="color: #a4bbb0; font-size: 12px;">${change > 0 ? '+' : ''}${change}%</div>`;
                 }
-                
+
                 tooltipEl.innerHTML = `
                   <div style="display: flex; gap: 0; align-items: center;">
                     <div style="flex: 1;">
@@ -190,9 +220,12 @@ const ItemValueHistory = () => {
     }
   };
 
-  const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  //const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const handleDisplay = async () => {
+    // Update displayed items when Display button is clicked
+    setDisplayedItems([...selectedItems]);
+
     const datasets = await Promise.all(
       selectedItems.map(async (itemName) => {
         const item = items.find((i) => i.name === itemName);
@@ -203,6 +236,11 @@ const ItemValueHistory = () => {
       })
     );
     setChartData({ datasets });
+  };
+
+  const formatDate = (date) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-GB');
   };
 
   const renderStatsCard = (itemName) => {
@@ -273,26 +311,51 @@ const ItemValueHistory = () => {
       {chartData && (
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
-            <div className="bg-[#111816] rounded-xl p-4 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
-              <canvas id="myChart" className="w-full h-[400px]" />
-            </div>
-            <div className="bg-[#111816] p-4 rounded-xl shadow-lg flex flex-col space-y-2 font-mono text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
-              <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items</h2>
-              {chartData?.datasets.map((ds) => (
-                <div key={ds.label} className="flex items-center space-x-2">
-                  <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
-                  <img src={ds.emoji} alt={ds.label} className="w-5 h-5" />
-                  <span className="truncate">{ds.label}</span>
+            <div className="bg-[#111816] rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
+              {/* Notes Section */}
+              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-2">
+                <div>Date format: dd/mm/yyyy</div>
+                <div className="text-[#6bff7a] text-[14px]">|</div>
+                <div>Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+                <div className="text-[#6bff7a] text-[14px]">|</div>
+                <div className="flex items-center space-x-1">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor" viewBox="0 0 24 24"
+                    className="w-4 h-4">
+                    <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
+                    <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
+                  </svg>
+                  <span>Scroll to zoom</span>
                 </div>
-              ))}
-              <button onClick={() => chartRef.current?.resetZoom()} className="mt-4 px-3 py-1 rounded bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] text-sm font-semibold transition">
-                Reset Zoom
-              </button>
+              </div>
+
+              <canvas id="myChart" className="w-full h-[370px]" />
+            </div>
+            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-2 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+              <div className="flex flex-col space-y-1">
+                <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items</h2>
+                {chartData?.datasets.map((ds) => (
+                  <div key={ds.label} className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
+                    <img src={ds.emoji} alt={ds.label} className="w-5 h-5" />
+                    <span className="truncate">{ds.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col space-y-1">
+                <button onClick={() => chartRef.current?.resetZoom()} className="mt-1 px-1 py-1 rounded bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] text-sm font-semibold transition">
+                  Reset Zoom
+                </button>
+                {/*<button className="mt-1 px-1 py-1 rounded bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] text-sm font-semibold transition">
+                  Date format
+                </button>
+                */}
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap mx-auto mt-6" style={{ width: "1251px", gap: "19px" }} id="cards-container">
-            {selectedItems.map(renderStatsCard)}
-            {Array.from({ length: 5 - selectedItems.length }).map((_, i) => (
+            {displayedItems.map(renderStatsCard)}
+            {Array.from({ length: 5 - displayedItems.length }).map((_, i) => (
               <div key={"empty-" + i} style={{ flex: "0 0 235px", width: "235px" }} className="bg-transparent" />
             ))}
           </div>

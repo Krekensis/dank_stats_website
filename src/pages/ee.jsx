@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import itemData from "../assets/parsed_items3.json";
-import Loader from "../components/loader";
 
 const emojiSize = 45;
 const emojiNum = 200;
@@ -75,11 +74,11 @@ const HomePage = () => {
 
   useEffect(() => {
     let isMounted = true;
-
+    
     const loadImages = async () => {
       const uniqueItems = itemData.filter((item) => item.emoji?.url);
       const uniqueUrls = Array.from(new Set(uniqueItems.map((item) => item.emoji.url)));
-
+      
       // Create promises for all image loads
       const imagePromises = uniqueUrls.map((url) => {
         return new Promise((resolve, reject) => {
@@ -94,7 +93,7 @@ const HomePage = () => {
       try {
         // Wait for all images to load or timeout after 3 seconds
         await Promise.allSettled(imagePromises);
-
+        
         if (isMounted) {
           setImagesLoaded(true);
           setPositions(generateEmojiPositions());
@@ -109,7 +108,7 @@ const HomePage = () => {
     };
 
     loadImages();
-
+    
     return () => {
       isMounted = false;
     };
@@ -117,25 +116,25 @@ const HomePage = () => {
 
   const handleAbsorbOrVomit = () => {
     const remaining = positions.filter((p) => !absorbingIds.includes(p.id));
-
+    
     // If no emojis left to absorb, vomit them all out
     if (remaining.length === 0) {
       setIsVomiting(true);
       const newPositions = generateEmojiPositions();
-
+      
       // Start all emojis from the button position
       const buttonX = window.innerWidth - 60;
       const buttonY = window.innerHeight - 60;
-
+      
       const vomitPositions = newPositions.map(pos => ({
         ...pos,
         startX: buttonX,
         startY: buttonY,
       }));
-
+      
       setVomitingIds(vomitPositions.map(p => p.id));
       setPositions(vomitPositions);
-
+      
       // After a brief delay, animate to final positions
       setTimeout(() => {
         setPositions(prev => prev.map(pos => ({
@@ -143,13 +142,13 @@ const HomePage = () => {
           startX: undefined,
           startY: undefined,
         })));
-
+        
         setTimeout(() => {
           setVomitingIds([]);
           setIsVomiting(false);
         }, 800);
       }, 50);
-
+      
       return;
     }
 
@@ -171,12 +170,12 @@ const HomePage = () => {
     <div className="min-h-screen bg-[#070e0c] relative overflow-hidden">
       <Navbar />
 
-      {/* Loading indicator */}
+      {/* Loading indicator }
       {!imagesLoaded && (
-        <div className="items-center justify-center flex h-screen">
-          <Loader size={200}/>
+        <div className="absolute inset-0 flex items-center justify-center bg-[#070e0c] z-30">
+          <div className="text-white text-lg">Loading emojis...</div>
         </div>
-      )}
+      )}*/}
 
       {/* Emojis */}
       {imagesLoaded && positions.map(({ x, y, url, rotation, name, latestValue, id, startX, startY }, i) => {
@@ -257,15 +256,16 @@ const HomePage = () => {
       {/* Absorb/Vomit Button */}
       <div
         onClick={handleAbsorbOrVomit}
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${absorbingIds.length > 0 ? "animate-fast-spin" : isVomiting ? "animate-bounce" : "hover:scale-110"
-          }`}
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
+          absorbingIds.length > 0 ? "animate-fast-spin" : isVomiting ? "animate-bounce" : "hover:scale-110"
+        }`}
       >
         <img
           src="https://cdn.discordapp.com/emojis/932395505382744106.png"
           alt={positions.length === 0 ? "Vomit Reality" : "Collapse Reality"}
-          style={{
-            width: "100px",
-            height: "100px",
+          style={{ 
+            width: "100px", 
+            height: "100px", 
             transform: "scaleX(-1)",
             filter: "none"
           }}
