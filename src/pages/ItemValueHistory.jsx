@@ -34,6 +34,7 @@ const ItemValueHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateError, setDateError] = useState(false);
   const [chartData, setChartData] = useState(null);
+  const [dateFormat, setDateFormat] = useState("dd/mm/yyyy"); // default format
   const [datasetSpan, setDatasetSpan] = useState({ oldest: null, latest: null });
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -78,10 +79,23 @@ const ItemValueHistory = () => {
   }, [startDate, endDate]);
 
   useEffect(() => {
+    const formatDate = (date, withWeekday = false) => {
+      if (!date) return "";
+      const locale = dateFormat === "dd/mm/yyyy" ? "en-GB" : "en-US";
+      const options = withWeekday
+        ? { weekday: "short", year: "numeric", month: "short", day: "numeric" }
+        : { year: "numeric", month: "2-digit", day: "2-digit" };
+      return date.toLocaleDateString(locale, options);
+    };
+
     if (!chartData) return;
     if (chartRef.current) chartRef.current.destroy();
 
     const ctx = document.getElementById("myChart").getContext("2d");
+    
+    // Determine display formats based on current dateFormat
+    const displayFormat = dateFormat === "dd/mm/yyyy" ? "dd/MM/yy" : "MM/dd/yy";
+    
     chartRef.current = new ChartJS(ctx, {
       type: "line",
       data: chartData,
@@ -100,13 +114,13 @@ const ItemValueHistory = () => {
           x: {
             type: "time",
             time: {
-              tooltipFormat: "dd/MM/yy",
+              tooltipFormat: displayFormat,
               displayFormats: {
-                day: "dd/MM/yy",
-                week: "dd/MM/yy",
-                month: "dd/MM/yy",
-                quarter: "dd/MM/yy",
-                year: "dd/MM/yy"
+                day: displayFormat,
+                week: displayFormat,
+                month: displayFormat,
+                quarter: displayFormat,
+                year: displayFormat
               },
               unit: "day"
             },
@@ -172,7 +186,7 @@ const ItemValueHistory = () => {
                   <div style="display: flex; gap: 0; align-items: center;">
                     <div style="flex: 1;">
                       <div style="color: #ffffff; font-size: 12px; font-weight: bold; margin-bottom: 2px;">
-                        ${date.toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                        ${formatDate(date, true)}
                       </div>
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">${dataset.label}</div>
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">⏣ ${commas(value)}</div>
@@ -206,7 +220,7 @@ const ItemValueHistory = () => {
         chartRef.current = null;
       }
     };
-  }, [chartData]);
+  }, [chartData, dateFormat]);
 
   const toggleSelectItem = (itemName) => {
     if (selectedItems.includes(itemName)) {
@@ -238,9 +252,19 @@ const ItemValueHistory = () => {
     setChartData({ datasets });
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    return date.toLocaleDateString('en-GB');
+  const handleDateFormatToggle = () => {
+    // Toggle the date format - the useEffect will handle chart re-rendering
+    const newFormat = dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy";
+    setDateFormat(newFormat);
+  };
+
+  const formatDate = (date, withWeekday = false) => {
+    if (!date) return "";
+    const locale = dateFormat === "dd/mm/yyyy" ? "en-GB" : "en-US";
+    const options = withWeekday
+      ? { weekday: "short", year: "numeric", month: "short", day: "numeric" }
+      : { year: "numeric", month: "2-digit", day: "2-digit" };
+    return date.toLocaleDateString(locale, options);
   };
 
   const renderStatsCard = (itemName) => {
@@ -313,8 +337,8 @@ const ItemValueHistory = () => {
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
             <div className="bg-[#111816] rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
               {/* Notes Section */}
-              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-2">
-                <div>Date format: dd/mm/yyyy</div>
+              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-2 ">
+                <div>Date format: {dateFormat}</div>
                 <div className="text-[#6bff7a] text-[14px]">|</div>
                 <div>Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
                 <div className="text-[#6bff7a] text-[14px]">|</div>
@@ -329,11 +353,11 @@ const ItemValueHistory = () => {
                 </div>
               </div>
 
-              <canvas id="myChart" className="w-full h-[370px]" />
+              <canvas id="myChart" className="w-full" />
             </div>
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-2 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
-              <div className="flex flex-col space-y-1">
-                <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items</h2>
+            <div className="bg-[#111816] p-3.5 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-2 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+              <div className="flex flex-col space-y-0.5">
+                <h2 className="text-base font-semibold text-[#ffffff] mb-1">Items — {displayedItems.length}</h2>
                 {chartData?.datasets.map((ds) => (
                   <div key={ds.label} className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
@@ -342,14 +366,13 @@ const ItemValueHistory = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col space-y-1">
-                <button onClick={() => chartRef.current?.resetZoom()} className="mt-1 px-1 py-1 rounded bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] text-sm font-semibold transition">
-                  Reset Zoom
+              <div className="flex flex-col space-y-2">
+                <button onClick={() => chartRef.current?.resetZoom()} className="mt-1 px-1 py-1 rounded border-transparent border-2 bg-[#1d2a24] hover:border-[#6bff7a] text-[#a4bbb0] hover:text-[#6bff7a] text-[15px] font-medium transition-colors duration-300">
+                  Reset chart zoom
                 </button>
-                {/*<button className="mt-1 px-1 py-1 rounded bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] text-sm font-semibold transition">
-                  Date format
+                <button onClick={handleDateFormatToggle} className="mt-1 px-1 py-1 rounded border-transparent border-2 bg-[#1d2a24] hover:border-[#6bff7a] text-[#a4bbb0] hover:text-[#6bff7a] text-[15px] font-medium transition-colors duration-300">
+                  {dateFormat === "dd/mm/yyyy" ? "Change to mm/dd/yyyy" : "Change to dd/mm/yyyy"}
                 </button>
-                */}
               </div>
             </div>
           </div>
