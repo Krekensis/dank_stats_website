@@ -25,4 +25,4 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: node ../../src/backend/updateMongo.js
+        run: node src/backend/updateMongo.js
