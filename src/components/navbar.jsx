@@ -68,7 +68,7 @@ const Navbar = () => {
   return (
     <nav className="fixed top-4 left-0 w-full flex justify-center z-50 pointer-events-none">
       <div
-        className="relative bg-[#151f1c] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+        className="z-50 relative bg-[#151f1c] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
         style={{ height: `${containerHeight}px` }}
       >
         <div className="flex justify-between items-center">
@@ -98,7 +98,7 @@ const Navbar = () => {
 
         <div
           ref={submenuRef}
-          className={`mt-4 flex justify-center gap-x-6 transition-opacity duration-300 w-full px-10 ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+          className={`z-50 mt-4 flex justify-center gap-x-6 transition-opacity duration-300 w-full px-10 ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           onMouseEnter={() => setHoveringSubmenu(true)}
           onMouseLeave={() => setHoveringSubmenu(false)}

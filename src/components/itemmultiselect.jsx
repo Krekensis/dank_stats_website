@@ -95,7 +95,7 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
       </button>
 
       {dropdownOpen && (
-        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto bg-[#111816] border-transparent rounded-md shadow-custom custom-scrollbar">
+        <div className="absolute z-1 mt-1 w-full max-h-64 overflow-y-auto bg-[#111816] border-transparent rounded-md shadow-custom custom-scrollbar">
           <style>{`
             .custom-scrollbar::-webkit-scrollbar { width: 8px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: #0d1311; border-radius: 6px; }

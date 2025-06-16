@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
-import itemData from "../assets/parsed_items3.json";
+import itemData from "../assets/parsed_items4.json";
 import Loader from "../components/loader";
 
 const emojiSize = 45;

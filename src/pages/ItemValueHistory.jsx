@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import ItemMultiSelect from "../components/itemmultiselect";
-import itemData from "../assets/parsed_items3.json";
+import itemData from "../assets/parsed_items4.json";
 import { neonizeHex, getAverageColor } from "../functions/colorUtils";
 import { commas } from "../functions/stringUtils";
 import zoomPlugin from "chartjs-plugin-zoom";
@@ -27,17 +27,23 @@ const titleCase = (str) => str.toLowerCase().split(" ").map((word) => word.charA
 const ItemValueHistory = () => {
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [displayedItems, setDisplayedItems] = useState([]); // New state for displayed items
+  const [displayedItems, setDisplayedItems] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateError, setDateError] = useState(false);
   const [chartData, setChartData] = useState(null);
-  const [dateFormat, setDateFormat] = useState("dd/mm/yyyy"); // default format
+  const [dateFormat, setDateFormat] = useState("dd/mm/yyyy");
+  const [chartType, setChartType] = useState("linechart"); // placeholder for chart type
   const [datasetSpan, setDatasetSpan] = useState({ oldest: null, latest: null });
+  const [dateFormatDropdownOpen, setDateFormatDropdownOpen] = useState(false);
+  const [chartTypeDropdownOpen, setChartTypeDropdownOpen] = useState(false);
+  const [isZoomedIn, setIsZoomedIn] = useState(false);
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
+  const dateFormatDropdownRef = useRef(null);
+  const chartTypeDropdownRef = useRef(null);
 
   const canDisplay = selectedItems.length > 0 && startDate && endDate && !dateError;
 
@@ -69,6 +75,12 @@ const ItemValueHistory = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (dateFormatDropdownRef.current && !dateFormatDropdownRef.current.contains(event.target)) {
+        setDateFormatDropdownOpen(false);
+      }
+      if (chartTypeDropdownRef.current && !chartTypeDropdownRef.current.contains(event.target)) {
+        setChartTypeDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -92,10 +104,10 @@ const ItemValueHistory = () => {
     if (chartRef.current) chartRef.current.destroy();
 
     const ctx = document.getElementById("myChart").getContext("2d");
-    
+
     // Determine display formats based on current dateFormat
     const displayFormat = dateFormat === "dd/mm/yyyy" ? "dd/MM/yy" : "MM/dd/yy";
-    
+
     chartRef.current = new ChartJS(ctx, {
       type: "line",
       data: chartData,
@@ -206,9 +218,53 @@ const ItemValueHistory = () => {
             }
           },
           zoom: {
-            pan: { enabled: true, mode: "x", modifierKey: "ctrl", onPanStart: ({ chart }) => { chart.options.animation = false; }, onPanComplete: ({ chart }) => { chart.options.animation = false; } },
-            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: "x", onZoomStart: ({ chart }) => { chart.options.animation = false; }, onZoomComplete: ({ chart }) => { chart.options.animation = false; } },
+            pan: {
+              enabled: true,
+              mode: "x",
+              modifierKey: "ctrl",
+              onPanStart: ({ chart }) => { chart.options.animation = false; },
+              onPanComplete: ({ chart }) => {
+                chart.options.animation = false;
+                setIsZoomedIn(true);
+              }
+            },
+            zoom: {
+              wheel: { enabled: true },
+              pinch: { enabled: true },
+              mode: "x",
+              onZoomStart: ({ chart }) => { chart.options.animation = false; },
+              onZoomComplete: ({ chart }) => {
+                chart.options.animation = false;
+                setIsZoomedIn(true);
+              }
+            },
             limits: { x: { min: "original", max: "original" }, y: { min: "original", max: "original" } }
+          },
+        },
+        onHover: (event, activeElements) => {
+          if (activeElements.length > 0) {
+            const hoveredIndex = activeElements[0].datasetIndex;
+            chartRef.current.data.datasets.forEach((dataset, index) => {
+              if (index === hoveredIndex) {
+                dataset.borderColor = dataset.originalColor;
+                dataset.borderDash = [];
+      
+              } else {
+                const color = dataset.originalColor;
+                const dimmedColor = color + '80'; // Add 40% opacity (hex)
+                dataset.borderColor = dimmedColor;
+                dataset.borderDash = [15,10];
+              }
+            });
+            chartRef.current.update('none');
+          } else {
+            // Reset all to full opacity
+            chartRef.current.data.datasets.forEach(dataset => {
+              dataset.borderColor = dataset.originalColor;
+              dataset.borderDash = [];
+
+            });
+            chartRef.current.update('none');
           }
         },
       }
@@ -234,11 +290,9 @@ const ItemValueHistory = () => {
     }
   };
 
-  //const filteredItems = items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
   const handleDisplay = async () => {
-    // Update displayed items when Display button is clicked
     setDisplayedItems([...selectedItems]);
+    setIsZoomedIn(false); // Reset zoom state when displaying new data
 
     const datasets = await Promise.all(
       selectedItems.map(async (itemName) => {
@@ -246,16 +300,28 @@ const ItemValueHistory = () => {
         const baseColor = await getAverageColor(item.emoji.url);
         const color = neonizeHex(baseColor);
         const dataPoints = item.history.map((entry) => ({ x: new Date(entry.timestamp), y: entry.value })).filter((entry) => entry.x >= startDate && entry.x <= endDate);
-        return { label: titleCase(itemName), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, emoji: item.emoji.url };
+        return { label: titleCase(itemName), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, emoji: item.emoji.url, originalColor: color };
       })
     );
     setChartData({ datasets });
   };
 
-  const handleDateFormatToggle = () => {
-    // Toggle the date format - the useEffect will handle chart re-rendering
-    const newFormat = dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy";
+  const handleDateFormatChange = (newFormat) => {
     setDateFormat(newFormat);
+    setDateFormatDropdownOpen(false);
+  };
+
+  const handleChartTypeChange = (newType) => {
+    setChartType(newType);
+    setChartTypeDropdownOpen(false);
+    // Placeholder - chart type change logic would go here
+  };
+
+  const handleZoomReset = () => {
+    if (chartRef.current && isZoomedIn) {
+      chartRef.current.resetZoom();
+      setIsZoomedIn(false);
+    }
   };
 
   const formatDate = (date, withWeekday = false) => {
@@ -336,28 +402,92 @@ const ItemValueHistory = () => {
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
             <div className="bg-[#111816] rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
-              {/* Notes Section */}
-              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-2 ">
-                <div>Date format: {dateFormat}</div>
-                <div className="text-[#6bff7a] text-[14px]">|</div>
-                <div>Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
-                <div className="text-[#6bff7a] text-[14px]">|</div>
-                <div className="flex items-center space-x-1">
+              {/* Updated Notes Section */}
+              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-1">
+                <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+
+                <div className="text-[#6bff7a] text-[16px]">|</div>
+
+                {/* Date Format Dropdown */}
+                <div className="relative" ref={dateFormatDropdownRef}>
+                  <button
+                    onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
+                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                  >
+                    <span>Date format: {dateFormat}</span>
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {dateFormatDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                      <button
+                        onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                      >
+                        Date format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-[#6bff7a] text-[16px]">|</div>
+
+                {/* Chart Type Dropdown */}
+                <div className="relative" ref={chartTypeDropdownRef}>
+                  <button
+                    onClick={() => setChartTypeDropdownOpen(!chartTypeDropdownOpen)}
+                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                  >
+                    <span>Chart type: {chartType}</span>
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {chartTypeDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                      {/*<button
+                        onClick={() => handleChartTypeChange("bar")}
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                      >
+                        Chart type: bar
+                      </button>
+                      <button
+                        onClick={() => handleChartTypeChange("area")}
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                      >
+                        Chart type: area
+                      </button>*/}
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-[#6bff7a] text-[16px]">|</div>
+
+                {/* Zoom Reset Button */}
+                <button
+                  onClick={handleZoomReset}
+                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
+                    }`}
+                  disabled={!isZoomedIn}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor" viewBox="0 0 24 24"
                     className="w-4 h-4">
                     <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
                     <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
                   </svg>
-                  <span>Scroll to zoom</span>
-                </div>
+                  <span>{isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}</span>
+                </button>
               </div>
 
               <canvas id="myChart" className="w-full" />
             </div>
-            <div className="bg-[#111816] p-3.5 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-2 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
-              <div className="flex flex-col space-y-0.5">
-                <h2 className="text-base font-semibold text-[#ffffff] mb-1">Items — {displayedItems.length}</h2>
+
+            {/* Simplified Legend Container */}
+            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+              <div className="flex flex-col space-y-1">
+                <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
                 {chartData?.datasets.map((ds) => (
                   <div key={ds.label} className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
@@ -365,14 +495,6 @@ const ItemValueHistory = () => {
                     <span className="truncate">{ds.label}</span>
                   </div>
                 ))}
-              </div>
-              <div className="flex flex-col space-y-2">
-                <button onClick={() => chartRef.current?.resetZoom()} className="mt-1 px-1 py-1 rounded border-transparent border-2 bg-[#1d2a24] hover:border-[#6bff7a] text-[#a4bbb0] hover:text-[#6bff7a] text-[15px] font-medium transition-colors duration-300">
-                  Reset chart zoom
-                </button>
-                <button onClick={handleDateFormatToggle} className="mt-1 px-1 py-1 rounded border-transparent border-2 bg-[#1d2a24] hover:border-[#6bff7a] text-[#a4bbb0] hover:text-[#6bff7a] text-[15px] font-medium transition-colors duration-300">
-                  {dateFormat === "dd/mm/yyyy" ? "Change to mm/dd/yyyy" : "Change to dd/mm/yyyy"}
-                </button>
               </div>
             </div>
           </div>
