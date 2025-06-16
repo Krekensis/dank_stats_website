@@ -1,9 +1,11 @@
-require("dotenv").config();
-const axios = require("axios");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+import dotenv from 'dotenv';
+import axios from 'axios';
+import { MongoClient, ServerApiVersion } from 'mongodb';
+
+dotenv.config();
 
 // --- CONFIGURATION ---
-const MONGO_URI = process.env.MONGO_URI
+const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "dankstats";
 const COLLECTION_NAME = "items";
 const CHANNEL_ID = "1011290554233008218";
@@ -53,20 +55,20 @@ function extractEmojiDetails(input) {
 }
 
 // --- MAIN FUNCTION ---
-(async () => {
+const main = async () => {
   const client = new MongoClient(MONGO_URI, {
-      serverApi: {
-          version: ServerApiVersion.v1,
-          strict: true,
-          deprecationErrors: true,
-      }
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
   });
+
   await client.connect();
   const db = client.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
 
   console.log(`🔄 Fetching messages from channel ${CHANNEL_ID}...`);
-  const seenTimestampsPerItem = new Set();
   let before = null;
   let batch = 1;
   let stopFlag = false;
@@ -173,5 +175,6 @@ function extractEmojiDetails(input) {
 
   console.log("🎉 Sync complete!");
   await client.close();
-})();
+};
 
+main();
