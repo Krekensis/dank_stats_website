@@ -72,47 +72,12 @@ const HomePage = () => {
   const [vomitingIds, setVomitingIds] = useState([]);
   const [isVomiting, setIsVomiting] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadedIds, setLoadedIds] = useState([]);
+  const [savedPositions, setSavedPositions] = useState([]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadImages = async () => {
-      const uniqueItems = itemData.filter((item) => item.emoji?.url);
-      const uniqueUrls = Array.from(new Set(uniqueItems.map((item) => item.emoji.url)));
-
-      // Create promises for all image loads
-      const imagePromises = uniqueUrls.map((url) => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(url);
-          img.onerror = () => reject(url);
-          // Start loading immediately
-          img.src = url;
-        });
-      });
-
-      try {
-        // Wait for all images to load or timeout after 3 seconds
-        await Promise.allSettled(imagePromises);
-
-        if (isMounted) {
-          setImagesLoaded(true);
-          setPositions(generateEmojiPositions());
-        }
-      } catch (error) {
-        console.warn('Some images failed to load:', error);
-        if (isMounted) {
-          setImagesLoaded(true);
-          setPositions(generateEmojiPositions());
-        }
-      }
-    };
-
-    loadImages();
-
-    return () => {
-      isMounted = false;
-    };
+    setPositions(generateEmojiPositions());
+    setImagesLoaded(true);
   }, []);
 
   const handleAbsorbOrVomit = () => {
@@ -121,16 +86,11 @@ const HomePage = () => {
     // If no emojis left to absorb, vomit them all out
     if (remaining.length === 0) {
       setIsVomiting(true);
-      const newPositions = generateEmojiPositions();
 
-      // Start all emojis from the button position
-      const buttonX = window.innerWidth - 60;
-      const buttonY = window.innerHeight - 60;
-
-      const vomitPositions = newPositions.map(pos => ({
+      const vomitPositions = savedPositions.map(pos => ({
         ...pos,
-        startX: buttonX,
-        startY: buttonY,
+        startX: window.innerWidth - 60,
+        startY: window.innerHeight - 60,
       }));
 
       setVomitingIds(vomitPositions.map(p => p.id));
@@ -153,6 +113,10 @@ const HomePage = () => {
       return;
     }
 
+    if (savedPositions.length === 0) {
+      setSavedPositions(positions);
+    }
+
     // Normal absorption logic
     const toAbsorb = remaining
       .sort(() => 0.5 - Math.random())
@@ -165,18 +129,12 @@ const HomePage = () => {
       setPositions((prev) => prev.filter((p) => !toAbsorb.includes(p.id)));
       setAbsorbingIds((prev) => prev.filter((id) => !toAbsorb.includes(id)));
     }, 800);
+
   };
 
   return (
     <div className="min-h-screen bg-[#070e0c] relative overflow-hidden">
       <Navbar />
-
-      {/* Loading indicator */}
-      {!imagesLoaded && (
-        <div className="items-center justify-center flex h-screen">
-          <Loader size={200}/>
-        </div>
-      )}
 
       {/* Emojis */}
       {imagesLoaded && positions.map(({ x, y, url, rotation, name, latestValue, id, startX, startY }, i) => {
@@ -218,15 +176,11 @@ const HomePage = () => {
             <img
               src={url}
               alt="emoji"
-              loading="eager"
+              loading="lazy"
               decoding="async"
-              style={{
-                width: "100%",
-                height: "100%",
-                userSelect: "none",
-                pointerEvents: "auto",
-                imageRendering: "crisp-edges",
-              }}
+              style={{ width: "100%", height: "100%", userSelect: "none", pointerEvents: "auto", imageRendering: "crisp-edges" }}
+              onLoad={() => setLoadedIds(prev => [...prev, id])}
+              className={`transition duration-400 ${loadedIds.includes(id) ? "blur-0 opacity-100" : "blur-xs opacity-30"}`}
             />
           </div>
         );
@@ -235,22 +189,14 @@ const HomePage = () => {
       {/* Tooltip */}
       {hovered && !absorbingIds.includes(positions[hovered.i]?.id) && !vomitingIds.includes(positions[hovered.i]?.id) && (
         <div
+          className="absolute bg-[#111816]/80 text-white px-[10px] py-[6px] rounded-md text-sm pointer-events-none whitespace-nowrap z-10"
           style={{
-            position: "absolute",
             top: Math.min(window.innerHeight - 60, hovered.y - 10),
-            left: Math.min(window.innerWidth - 200, hovered.x + emojiSize + 10),
-            background: "rgba(0,0,0,0.8)",
-            color: "white",
-            padding: "6px 10px",
-            borderRadius: "0.5rem",
-            fontSize: "0.875rem",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-            zIndex: 20,
+            left: Math.min(window.innerWidth - 200, hovered.x + emojiSize + 15),
           }}
         >
-          <div className="font-semibold text-[#6bff7a]">{titleCase(hovered.name)}</div>
-          <div>⏣ {hovered.latestValue.toLocaleString()}</div>
+          <div className="font-semibold font-mono text-[#6bff7a]">{titleCase(hovered.name)}</div>
+          <div className="font-mono"> ⏣ {hovered.latestValue.toLocaleString()}</div>
         </div>
       )}
 

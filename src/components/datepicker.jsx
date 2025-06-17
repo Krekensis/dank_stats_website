@@ -139,7 +139,7 @@ const DatePicker = ({ value, onChange }) => {
     };
 
     return (
-        <div ref={wrapperRef} className="relative font-mono">
+        <div ref={wrapperRef} className="relative font-mono custom-scrollbar">
             <input
                 ref={inputRef}
                 type="text"

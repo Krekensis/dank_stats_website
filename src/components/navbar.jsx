@@ -15,6 +15,25 @@ const Navbar = () => {
   const [hoveringSubmenu, setHoveringSubmenu] = useState(false);
   const collapseTimeout = useRef(null);
 
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (Math.abs(currentScrollY - lastScrollY) < 80) { return; } //threshold
+      if (currentScrollY > lastScrollY) { setShowNavbar(false) }
+      else { setShowNavbar(true) }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   useEffect(() => {
     const submenu = submenuRef.current;
     if (!submenu) return;
@@ -40,7 +59,7 @@ const Navbar = () => {
   }, [expanded]);
 
   useEffect(() => {
-    // Clear any pending collapse timeout
+    // Clear pending collapse timeout
     if (collapseTimeout.current) {
       clearTimeout(collapseTimeout.current);
       collapseTimeout.current = null;
@@ -49,13 +68,12 @@ const Navbar = () => {
     if (hoveringTrigger || hoveringSubmenu) {
       setExpanded(true);
     } else {
-      // Delay collapse to avoid flicker when moving between trigger and submenu
+      // delay
       collapseTimeout.current = setTimeout(() => {
         setExpanded(false);
       }, COLLAPSE_DELAY_MS);
     }
 
-    // Cleanup on unmount
     return () => {
       if (collapseTimeout.current) {
         clearTimeout(collapseTimeout.current);
@@ -63,14 +81,24 @@ const Navbar = () => {
     };
   }, [hoveringTrigger, hoveringSubmenu]);
 
-  const containerHeight = expanded ? COLLAPSED_HEIGHT + submenuHeight + 20 : COLLAPSED_HEIGHT;
+  const containerHeight = expanded ? COLLAPSED_HEIGHT + submenuHeight + 18 : COLLAPSED_HEIGHT;
+
+  const itemStatsCards = [
+    {
+      heading: "Item value visualizer",
+      description: "Visualize how item values have evolved over time through clear, interactive graphs.",
+      redirect: "/item-value-visualizer",
+    },
+    {
+      heading: "All items overview",
+      description: "Listed overview of all items, including their current values and historical trends.",
+      redirect: "/all-items-overview",
+    },
+  ]
 
   return (
-    <nav className="fixed top-4 left-0 w-full flex justify-center z-50 pointer-events-none">
-      <div
-        className="z-50 relative bg-[#151f1c] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
-        style={{ height: `${containerHeight}px` }}
-      >
+    <nav className={`fixed top-0 left-0 w-full flex justify-center z-50 pointer-events-none transition-transform duration-500 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}>
+      <div className="mt-4 z-50 relative bg-[#151f19]/70 backdrop-blur-[10px] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden" style={{ height: `${containerHeight}px` }}>
         <div className="flex justify-between items-center">
           {/* Logo + Text Grouped */}
           <Link to="/" className="flex items-center space-x-3">
@@ -98,17 +126,17 @@ const Navbar = () => {
 
         <div
           ref={submenuRef}
-          className={`z-50 mt-4 flex justify-center gap-x-6 transition-opacity duration-300 w-full px-10 ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+          className={`z-50 mt-3 flex justify-center gap-x-3 transition-opacity duration-300 px-3 w-full ${expanded ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           onMouseEnter={() => setHoveringSubmenu(true)}
           onMouseLeave={() => setHoveringSubmenu(false)}
         >
-          {["ItemValueHistory"].map((label) => (
+          {itemStatsCards.map((item, index) => (
             <NavCard
-              key={label}
-              heading="Item value history"
-              description="Visualize how item values have evolved over time through clear, interactive graphs."
-              redirect="/item-value-history"
+              key={index}
+              heading={item.heading}
+              description={item.description}
+              redirect={item.redirect}
             />
           ))}
         </div>

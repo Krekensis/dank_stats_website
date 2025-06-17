@@ -24,7 +24,7 @@ ChartJS.register(zoomPlugin, LineController, LineElement, PointElement, LinearSc
 const MAX_SELECTED_ITEMS = 15;
 const titleCase = (str) => str.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
-const ItemValueHistory = () => {
+const ItemValueVisualizer = () => {
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [displayedItems, setDisplayedItems] = useState([]);
@@ -510,4 +510,4 @@ const ItemValueHistory = () => {
   );
 };
 
-export default ItemValueHistory;
+export default ItemValueVisualizer;
