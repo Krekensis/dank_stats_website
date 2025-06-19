@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import Loader from "../components/loader";
+import ItemCard from "../components/itemcard"
 import ItemMultiSelect from "../components/itemmultiselect";
-//import itemData from "../assets/parsed_items4.json"
+
 import { useMongoData } from "../hooks/useMongoData";
+
 import { neonizeHex, getAverageColor } from "../functions/colorUtils";
 import { commas, titleCase } from "../functions/stringUtils";
+
 import zoomPlugin from "chartjs-plugin-zoom";
 import {
   Chart as ChartJS,
@@ -47,31 +51,31 @@ const ItemValueVisualizer = () => {
   const canDisplay = selectedItems.length > 0 && startDate && endDate && !dateError;
   const { data: itemData, loading } = useMongoData();
 
-useEffect(() => {
-  if (loading || !itemData) return;
+  useEffect(() => {
+    if (loading || !itemData) return;
 
-  const filtered = itemData
-    .filter((item) => item.emoji?.url)
-    .map((item) => ({
-      ...item,
-      history: item.history
-        ?.slice() // shallow copy
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    const filtered = itemData
+      .filter((item) => item.emoji?.url)
+      .map((item) => ({
+        ...item,
+        history: item.history
+          ?.slice() // shallow copy
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
-  setItems(filtered);
+    setItems(filtered);
 
-  const allDates = filtered.flatMap((item) =>
-    item.history?.map((entry) => new Date(entry.timestamp)) || []
-  );
+    const allDates = filtered.flatMap((item) =>
+      item.history?.map((entry) => new Date(entry.timestamp)) || []
+    );
 
-  if (allDates.length > 0) {
-    const oldest = new Date(Math.min(...allDates));
-    const latest = new Date(Math.max(...allDates));
-    setDatasetSpan({ oldest, latest });
-  }
-}, [itemData, loading]);
+    if (allDates.length > 0) {
+      const oldest = new Date(Math.min(...allDates));
+      const latest = new Date(Math.max(...allDates));
+      setDatasetSpan({ oldest, latest });
+    }
+  }, [itemData, loading]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -251,12 +255,12 @@ useEffect(() => {
               if (index === hoveredIndex) {
                 dataset.borderColor = dataset.originalColor;
                 dataset.borderDash = [];
-      
+
               } else {
                 const color = dataset.originalColor;
                 const dimmedColor = color + '80'; // Add 40% opacity (hex)
                 dataset.borderColor = dimmedColor;
-                dataset.borderDash = [15,10];
+                dataset.borderDash = [15, 10];
               }
             });
             chartRef.current.update('none');
@@ -281,31 +285,25 @@ useEffect(() => {
     };
   }, [chartData, dateFormat]);
 
-  const toggleSelectItem = (itemName) => {
-    if (selectedItems.includes(itemName)) {
-      setSelectedItems(selectedItems.filter((i) => i !== itemName));
-    } else {
-      if (selectedItems.length < MAX_SELECTED_ITEMS) {
-        setSelectedItems([...selectedItems, itemName]);
-      } else {
-        alert(`You can select up to ${MAX_SELECTED_ITEMS} items only.`);
-      }
-    }
-  };
-
   const handleDisplay = async () => {
     setDisplayedItems([...selectedItems]);
-    setIsZoomedIn(false); // Reset zoom state when displaying new data
+    setIsZoomedIn(false);
 
     const datasets = await Promise.all(
-      selectedItems.map(async (itemName) => {
-        const item = items.find((i) => i.name === itemName);
+      selectedItems.map(async (item) => {
         const baseColor = await getAverageColor(item.emoji.url);
         const color = neonizeHex(baseColor);
-        const dataPoints = item.history.map((entry) => ({ x: new Date(entry.timestamp), y: entry.value })).filter((entry) => entry.x >= startDate && entry.x <= endDate);
-        return { label: titleCase(itemName), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, emoji: item.emoji.url, originalColor: color };
+        const dataPoints = item.history
+          .map((entry) => ({
+            x: new Date(entry.timestamp),
+            y: entry.value
+          }))
+          .filter((entry) => entry.x >= startDate && entry.x <= endDate);
+
+        return { label: titleCase(item.name), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, emoji: item.emoji.url, originalColor: color };
       })
     );
+
     setChartData({ datasets });
   };
 
@@ -336,78 +334,30 @@ useEffect(() => {
     return date.toLocaleDateString(locale, options);
   };
 
-  const renderStatsCard = (itemName) => {
-    const item = items.find((i) => i.name === itemName);
-    if (!item) return null;
-
-    const allValues = item.history.map((entry) => entry.value);
-    const rangeValues = item.history.filter((entry) => {
-      const ts = new Date(entry.timestamp);
-      return ts >= startDate && ts <= endDate;
-    }).map((entry) => entry.value);
-
-    const [lowestAll, highestAll, oldestAll, latestAll] = [Math.min(...allValues), Math.max(...allValues), allValues[0], allValues[allValues.length - 1]];
-    const totalTimePercentChange = allValues.length > 1 && oldestAll !== 0 ? (((latestAll - oldestAll) / oldestAll) * 100).toFixed(2) : "N/A";
-    const totalValuePercentChange = lowestAll !== 0 ? (((highestAll - lowestAll) / lowestAll) * 100).toFixed(2) : "N/A";
-
-    const [lowestRange, highestRange, oldestRange, latestRange] = rangeValues.length > 0 ? [Math.min(...rangeValues), Math.max(...rangeValues), rangeValues[0], rangeValues[rangeValues.length - 1]] : ["N/A", "N/A", "N/A", "N/A"];
-    const rangeTimePercentChange = rangeValues.length > 1 && oldestRange !== 0 && oldestRange !== "N/A" ? (((latestRange - oldestRange) / oldestRange) * 100).toFixed(2) : "N/A";
-    const rangeValuePercentChange = rangeValues.length > 1 && lowestRange !== "N/A" && lowestRange !== 0 ? (((highestRange - lowestRange) / lowestRange) * 100).toFixed(2) : "N/A";
-
-    return (
-      <div key={itemName} className="bg-[#111816] rounded-xl p-4 shadow-lg font-mono text-[#a4bbb0] flex flex-col items-center" style={{ flex: "0 0 235px", width: "235px", height: "auto" }}>
-        <div className="flex flex-col items-center justify-center mb-4">
-          <img src={item.emoji.url} alt={itemName} className="w-10 h-10 mb-1" draggable={false} />
-          <div className="text-white font-semibold text-center text-base">{titleCase(itemName)}</div>
-        </div>
-        <div className="text-[15px] w-full space-y-3">
-          <div>
-            <div className="text-[#c3e0d2] font-semibold text-base mb-[5px]">Historical value</div>
-            <div>Oldest: ⏣ {commas(oldestAll)}</div>
-            <div>Latest: ⏣ {commas(latestAll)}</div>
-            <div>Minimum: ⏣ {commas(lowestAll)}</div>
-            <div>Maximum: ⏣ {commas(highestAll)}</div>
-            <div>% change time: {totalTimePercentChange}%</div>
-            <div>% change value: {totalValuePercentChange}%</div>
-          </div>
-          <div>
-            <div className="text-[#c3e0d2] font-semibold text-base mb-[5px]">Value over range</div>
-            <div>Oldest: {oldestRange !== "N/A" ? `⏣ ${commas(oldestRange)}` : "N/A"}</div>
-            <div>Latest: {latestRange !== "N/A" ? `⏣ ${commas(latestRange)}` : "N/A"}</div>
-            <div>Minimum: {lowestRange !== "N/A" ? `⏣ ${commas(lowestRange)}` : "N/A"}</div>
-            <div>Maximum: {highestRange !== "N/A" ? `⏣ ${commas(highestRange)}` : "N/A"}</div>
-            <div>% change time: {rangeTimePercentChange}%</div>
-            <div>% change value: {rangeValuePercentChange}%</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-[#070e0c] text-white p-6">
       <Navbar />
 
-      {loading ? ( 
+      {loading ? (
         <div className="items-center justify-center flex h-screen">
-          <Loader size={200}/>
+          <Loader size={200} />
         </div>
       ) : (
         <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
-        <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
-        <div className="relative">
-          <div className="flex space-x-4 items-end">
-            <DatePicker value={startDate} onChange={setStartDate} />
-            <DatePicker value={endDate} onChange={setEndDate} />
+          <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
+          <div className="relative">
+            <div className="flex space-x-4 items-end">
+              <DatePicker value={startDate} onChange={setStartDate} />
+              <DatePicker value={endDate} onChange={setEndDate} />
+            </div>
+            {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
           </div>
-          {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
+          <button onClick={handleDisplay} disabled={!canDisplay} className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer" : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"}`} style={{ height: "40px" }}>
+            Display
+          </button>
         </div>
-        <button onClick={handleDisplay} disabled={!canDisplay} className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer" : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"}`} style={{ height: "40px" }}>
-          Display
-        </button>
-      </div>
       )}
-      
+
       {chartData && (
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
@@ -509,7 +459,9 @@ useEffect(() => {
             </div>
           </div>
           <div className="flex flex-wrap mx-auto mt-6" style={{ width: "1251px", gap: "19px" }} id="cards-container">
-            {displayedItems.map(renderStatsCard)}
+            {displayedItems.map((item) => (
+              <ItemCard item={item} startDate={startDate} endDate={endDate} />
+            ))}
             {Array.from({ length: 5 - displayedItems.length }).map((_, i) => (
               <div key={"empty-" + i} style={{ flex: "0 0 235px", width: "235px" }} className="bg-transparent" />
             ))}

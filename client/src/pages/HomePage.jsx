@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import itemData from "../assets/parsed_items4.json";
+import { titleCase } from "../functions/stringUtils";
 
 const emojiSize = 45;
 const emojiNum = 200;
@@ -14,21 +15,12 @@ const getRandomPosition = (maxWidth, maxHeight) => {
   return { x, y };
 };
 
-const getRandomRotation = () => Math.random() * 60 - 30;
-
 const isOverlapping = (pos1, pos2, margin = 10) => {
   const dx = pos1.x - pos2.x;
   const dy = pos1.y - pos2.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
   return distance < emojiSize + margin;
 };
-
-const titleCase = (str) =>
-  str
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
 
 const generateEmojiPositions = () => {
   const uniqueItems = itemData.filter((item) => item.emoji?.url);
@@ -49,7 +41,7 @@ const generateEmojiPositions = () => {
       placed.push({
         ...pos,
         url: item.emoji.url,
-        rotation: getRandomRotation(),
+        rotation: Math.random() * 60 - 30,
         name: item.name,
         latestValue: item.history?.[item.history.length - 1]?.value ?? "N/A",
         id: crypto.randomUUID(),
@@ -117,10 +109,7 @@ const HomePage = () => {
     }
 
     // Normal absorption logic
-    const toAbsorb = remaining
-      .sort(() => 0.5 - Math.random())
-      .slice(0, emojiAbsorb)
-      .map((p) => p.id);
+    const toAbsorb = remaining.sort(() => 0.5 - Math.random()).slice(0, emojiAbsorb).map((p) => p.id);
 
     setAbsorbingIds((prev) => [...prev, ...toAbsorb]);
 
@@ -163,7 +152,7 @@ const HomePage = () => {
               transition: isAbsorbing
                 ? "all 0.8s ease-in"
                 : isVomitingOut
-                  ? "all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+                  ? "transform 0.7s ease-out, top 0.7s ease-out, left 0.7s ease-out, opacity 0.7s ease"
                   : hovered?.i === i
                     ? "transform 0.2s ease, opacity 0.2s ease"
                     : "transform 0.4s ease, opacity 0.4s ease",
@@ -173,7 +162,8 @@ const HomePage = () => {
             }}
           >
             <img
-              src={url}
+              src={`${url}?id=${id}`}
+              key={`${id}-${isVomitingOut}`}
               alt="emoji"
               loading="lazy"
               decoding="async"
