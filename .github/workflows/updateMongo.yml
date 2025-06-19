@@ -19,10 +19,12 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
+        working-directory: server
         run: npm install
 
       - name: Run fetch script
+        working-directory: server
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: node server/updateMongo.js
+        run: node updateMongo.js
