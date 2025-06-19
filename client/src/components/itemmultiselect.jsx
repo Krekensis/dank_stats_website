@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-
-const titleCase = (str) =>
-  str
-    .toLowerCase()
-    .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+import { titleCase } from "../functions/stringUtils";
 
 const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -24,7 +18,7 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Preload emoji images for better performance
+  // Preload emoji images
   useEffect(() => {
     items.forEach(item => {
       if (item.emoji?.url) {
@@ -34,45 +28,44 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
     });
   }, [items]);
 
-  // Sort items only when dropdown opens (not when selections change)
+  // Sort on dropdown open
   useEffect(() => {
     if (dropdownOpen) {
       const selected = [];
       const unselected = [];
-      
+
       items.forEach(item => {
-        if (selectedItems.includes(item.name)) {
+        if (selectedItems.some(sel => sel.name === item.name)) {
           selected.push(item);
         } else {
           unselected.push(item);
         }
       });
 
-      // Sort selected items by their selection order
       selected.sort((a, b) => {
-        const indexA = selectedItems.indexOf(a.name);
-        const indexB = selectedItems.indexOf(b.name);
+        const indexA = selectedItems.findIndex(sel => sel.name === a.name);
+        const indexB = selectedItems.findIndex(sel => sel.name === b.name);
         return indexA - indexB;
       });
 
       setSortedItems([...selected, ...unselected]);
     }
-  }, [dropdownOpen, items]); // Removed selectedItems dependency
+  }, [dropdownOpen, items]);
 
-  // Memoized filtered items (only filters, doesn't sort during selection)
+  // Filtered visible items
   const filteredItems = useMemo(() => {
-    return sortedItems.filter((item) =>
+    return sortedItems.filter(item =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [sortedItems, searchTerm]);
 
-  const toggleSelectItem = (name) => {
-    if (selectedItems.includes(name)) {
-      setSelectedItems(selectedItems.filter((n) => n !== name));
-    } else {
-      if (selectedItems.length < maxSelected) {
-        setSelectedItems([...selectedItems, name]);
-      }
+  const toggleSelectItem = (item) => {
+    const isSelected = selectedItems.some(sel => sel.name === item.name);
+
+    if (isSelected) {
+      setSelectedItems(selectedItems.filter(sel => sel.name !== item.name));
+    } else if (selectedItems.length < maxSelected) {
+      setSelectedItems([...selectedItems, item]);
     }
   };
 
@@ -83,15 +76,14 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
           setDropdownOpen(!dropdownOpen);
           setSearchTerm("");
         }}
-        className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${
-          dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
-        } text-[#a4bbb0] truncate`}
+        className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
+          } text-[#a4bbb0] truncate`}
         style={{ height: "40px" }}
         type="button"
       >
         {selectedItems.length === 0
-          ? `Select upto ${maxSelected} items...`
-          : selectedItems.map(titleCase).join(", ")}
+          ? `Select up to ${maxSelected} items...`
+          : selectedItems.map((item) => titleCase(item.name)).join(", ")}
       </button>
 
       {dropdownOpen && (
@@ -115,30 +107,29 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
               <div className="px-4 py-2 font-mono text-[#a4bbb0]">No such item found.</div>
             ) : (
               filteredItems.map((item) => {
-                const checked = selectedItems.includes(item.name);
-                const disabled = !checked && selectedItems.length >= maxSelected;
+                const isSelected = selectedItems.some(sel => sel.name === item.name);
+                const disabled = !isSelected && selectedItems.length >= maxSelected;
+
                 return (
                   <label
                     key={item.name}
-                    className={`flex items-center space-x-2 px-4 py-2 hover:bg-[#1e2a27] cursor-pointer select-none ${
-                      disabled ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={`flex items-center space-x-2 px-4 py-2 hover:bg-[#1e2a27] cursor-pointer select-none ${disabled ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                   >
                     <input
                       type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleSelectItem(item.name)}
+                      checked={isSelected}
+                      onChange={() => toggleSelectItem(item)}
                       disabled={disabled}
                       className="hidden"
                     />
                     <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${
-                        checked ? "border-[#6bff7a]" : "border-[#2b473e]"
-                      } ${disabled ? "opacity-50" : ""}`}
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${isSelected ? "border-[#6bff7a]" : "border-[#2b473e]"
+                        } ${disabled ? "opacity-50" : ""}`}
                       style={{ backgroundColor: "#0d1311" }}
                       aria-hidden="true"
                     >
-                      {checked && (
+                      {isSelected && (
                         <svg
                           className="w-4 h-4 text-[#6bff7a]"
                           fill="none"
@@ -152,15 +143,14 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
                         </svg>
                       )}
                     </div>
-                    <img 
-                      src={item.emoji.url} 
-                      alt={item.name} 
-                      className="w-6 h-6" 
+                    <img
+                      src={item.emoji.url}
+                      alt={item.name}
+                      className="w-6 h-6"
                       draggable={false}
                       loading="lazy"
                       onError={(e) => {
-                        // Fallback if image fails to load
-                        e.target.style.display = 'none';
+                        e.target.style.display = "none";
                       }}
                     />
                     <span className="font-mono">{titleCase(item.name)}</span>
