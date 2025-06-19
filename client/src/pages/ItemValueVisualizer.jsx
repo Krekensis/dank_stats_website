@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
+import Loader from "../components/loader";
 import ItemMultiSelect from "../components/itemmultiselect";
-import itemData from "../assets/parsed_items4.json";
+//import itemData from "../assets/parsed_items4.json"
+import { useMongoData } from "../hooks/useMongoData";
 import { neonizeHex, getAverageColor } from "../functions/colorUtils";
-import { commas } from "../functions/stringUtils";
+import { commas, titleCase } from "../functions/stringUtils";
 import zoomPlugin from "chartjs-plugin-zoom";
 import {
   Chart as ChartJS,
@@ -22,7 +24,6 @@ import "chartjs-adapter-date-fns";
 ChartJS.register(zoomPlugin, LineController, LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, CategoryScale);
 
 const MAX_SELECTED_ITEMS = 15;
-const titleCase = (str) => str.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
 const ItemValueVisualizer = () => {
   const [items, setItems] = useState([]);
@@ -30,8 +31,6 @@ const ItemValueVisualizer = () => {
   const [displayedItems, setDisplayedItems] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [dateError, setDateError] = useState(false);
   const [chartData, setChartData] = useState(null);
   const [dateFormat, setDateFormat] = useState("dd/mm/yyyy");
@@ -46,29 +45,33 @@ const ItemValueVisualizer = () => {
   const chartTypeDropdownRef = useRef(null);
 
   const canDisplay = selectedItems.length > 0 && startDate && endDate && !dateError;
+  const { data: itemData, loading } = useMongoData();
 
-  useEffect(() => {
-    const filtered = itemData.filter((item) => item.emoji?.url).sort((a, b) => a.name.localeCompare(b.name));
-    setItems(filtered);
+useEffect(() => {
+  if (loading || !itemData) return;
 
-    // Calculate dataset span
-    if (filtered.length > 0) {
-      let allDates = [];
-      filtered.forEach(item => {
-        if (item.history && item.history.length > 0) {
-          item.history.forEach(entry => {
-            allDates.push(new Date(entry.timestamp));
-          });
-        }
-      });
+  const filtered = itemData
+    .filter((item) => item.emoji?.url)
+    .map((item) => ({
+      ...item,
+      history: item.history
+        ?.slice() // shallow copy
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-      if (allDates.length > 0) {
-        const oldest = new Date(Math.min(...allDates));
-        const latest = new Date(Math.max(...allDates));
-        setDatasetSpan({ oldest, latest });
-      }
-    }
-  }, []);
+  setItems(filtered);
+
+  const allDates = filtered.flatMap((item) =>
+    item.history?.map((entry) => new Date(entry.timestamp)) || []
+  );
+
+  if (allDates.length > 0) {
+    const oldest = new Date(Math.min(...allDates));
+    const latest = new Date(Math.max(...allDates));
+    setDatasetSpan({ oldest, latest });
+  }
+}, [itemData, loading]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -384,7 +387,13 @@ const ItemValueVisualizer = () => {
   return (
     <div className="min-h-screen bg-[#070e0c] text-white p-6">
       <Navbar />
-      <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
+
+      {loading ? ( 
+        <div className="items-center justify-center flex h-screen">
+          <Loader size={200}/>
+        </div>
+      ) : (
+        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
         <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
         <div className="relative">
           <div className="flex space-x-4 items-end">
@@ -397,7 +406,8 @@ const ItemValueVisualizer = () => {
           Display
         </button>
       </div>
-
+      )}
+      
       {chartData && (
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
