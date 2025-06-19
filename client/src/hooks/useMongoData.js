@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchItemData } from "./fetchitemdata";
+import { fetchItemData } from "./fetchItemData";
 
 export const useMongoData = () => {
   const [data, setData] = useState(null);
