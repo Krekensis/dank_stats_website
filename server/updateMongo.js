@@ -123,7 +123,7 @@ const main = async () => {
         // 🧠 If timestamp already exists, skip and stop early
         if (
           existing &&
-          existing.history.some((h) => new Date(h.timestamp).getTime() === timestamp.getTime())
+          existing.history.some((h) => new Date(h.t).getTime() === timestamp.getTime())
         ) {
           console.log(`⏹️ Stopping at duplicate timestamp for "${name}"`);
           stopFlag = true;

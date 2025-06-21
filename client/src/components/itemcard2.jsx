@@ -10,7 +10,7 @@ const ItemCard2 = ({ item, onClick, selected }) => {
         hover:border-[#6bff7a] transition duration-300`}
     >
       <img
-        src={item.emoji.url}
+        src={item.url}
         alt={item.name}
         className="w-15 h-15 object-contain mx-auto mb-3"
       />

@@ -21,9 +21,9 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
   // Preload emoji images
   useEffect(() => {
     items.forEach(item => {
-      if (item.emoji?.url) {
+      if (item.url) {
         const img = new Image();
-        img.src = item.emoji.url;
+        img.src = item.url;
       }
     });
   }, [items]);
@@ -144,7 +144,7 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
                       )}
                     </div>
                     <img
-                      src={item.emoji.url}
+                      src={item.url}
                       alt={item.name}
                       className="w-6 h-6"
                       draggable={false}

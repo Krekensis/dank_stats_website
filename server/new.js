@@ -27,11 +27,11 @@ async function convertTimestamps() {
       let didUpdate = false;
 
       const updatedHistory = item.history.map((entry) => {
-        if (typeof entry.timestamp === "string") {
+        if (typeof entry.t === "string") {
           didUpdate = true;
           return {
             ...entry,
-            timestamp: new Date(entry.timestamp),
+            timestamp: new Date(entry.t),
           };
         }
         return entry;

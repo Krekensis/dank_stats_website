@@ -55,19 +55,19 @@ const ItemValueVisualizer = () => {
     if (loading || !itemData) return;
 
     const filtered = itemData
-      .filter((item) => item.emoji?.url)
+      .filter((item) => item.url)
       .map((item) => ({
         ...item,
         history: item.history
           ?.slice() // shallow copy
-          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
+          .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     setItems(filtered);
 
     const allDates = filtered.flatMap((item) =>
-      item.history?.map((entry) => new Date(entry.timestamp)) || []
+      item.history?.map((entry) => new Date(entry.t)) || []
     );
 
     if (allDates.length > 0) {
@@ -212,7 +212,7 @@ const ItemValueVisualizer = () => {
                       ${changeText}
                     </div>
                     <div style="display: flex; align-items: center;">
-                      <img src="${dataset.emoji}" alt="" style="width: 40px; height: 40px;">
+                      <img src="${dataset.url}" alt="" style="width: 40px; height: 40px;">
                     </div>
                   </div>
                 `;
@@ -291,16 +291,16 @@ const ItemValueVisualizer = () => {
 
     const datasets = await Promise.all(
       selectedItems.map(async (item) => {
-        const baseColor = await getAverageColor(item.emoji.url);
+        const baseColor = await getAverageColor(item.url);
         const color = neonizeHex(baseColor);
         const dataPoints = item.history
           .map((entry) => ({
-            x: new Date(entry.timestamp),
-            y: entry.value
+            x: new Date(entry.t),
+            y: entry.v
           }))
           .filter((entry) => entry.x >= startDate && entry.x <= endDate);
 
-        return { label: titleCase(item.name), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, emoji: item.emoji.url, originalColor: color };
+        return { label: titleCase(item.name), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, url: item.url, originalColor: color };
       })
     );
 
@@ -451,7 +451,7 @@ const ItemValueVisualizer = () => {
                 {chartData?.datasets.map((ds) => (
                   <div key={ds.label} className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
-                    <img src={ds.emoji} alt={ds.label} className="w-5 h-5" />
+                    <img src={ds.url} alt={ds.label} className="w-5 h-5" />
                     <span className="truncate">{ds.label}</span>
                   </div>
                 ))}

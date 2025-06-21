@@ -28,10 +28,10 @@ const SidePanel = ({ item }) => {
             // Filter by range
             if (range === '7d') {
                 const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-                history = history.filter(h => new Date(h.timestamp) >= weekAgo);
+                history = history.filter(h => new Date(h.t) >= weekAgo);
             } else if (range === '30d') {
                 const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-                history = history.filter(h => new Date(h.timestamp) >= monthAgo);
+                history = history.filter(h => new Date(h.t) >= monthAgo);
             }
 
             if (history.length === 0) {
@@ -39,9 +39,9 @@ const SidePanel = ({ item }) => {
                 return;
             }
 
-            const avgColor = await getAverageColor(item.emoji.url);
+            const avgColor = await getAverageColor(item.url);
             const color = neonizeHex(avgColor);
-            const values = history.map(h => h.value);
+            const values = history.map(h => h.v);
             const labels = history.map((_, i) => i);
 
             setChartData({
@@ -78,8 +78,7 @@ const SidePanel = ({ item }) => {
                 callbacks: {
                     title: (tooltipItems) => {
                         const itemIndex = tooltipItems[0].dataIndex;
-                        const label = tooltipItems[0].dataset.label || '';
-                        const timestamp = item.history[itemIndex]?.timestamp;
+                        const timestamp = visibleHistory[itemIndex]?.t;
                         if (!timestamp) return '';
                         const date = new Date(timestamp);
                         return date.toLocaleString('en-GB', {
@@ -105,19 +104,19 @@ const SidePanel = ({ item }) => {
     let visibleHistory = [...currentHistory];
     if (range === '7d') {
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.timestamp) >= weekAgo);
+        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= weekAgo);
     } else if (range === '30d') {
         const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.timestamp) >= monthAgo);
+        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= monthAgo);
     }
-    const oldest = item?.history?.[0]?.value ?? null;
-    const current = item?.history?.[item.history.length - 1]?.value ?? null;
-    const latest = visibleHistory?.[visibleHistory.length - 1]?.value ?? null;
-    const first = visibleHistory?.[0]?.value ?? null;
+    const oldest = item?.history?.[0]?.v ?? null;
+    const current = item?.history?.[item.history.length - 1]?.v ?? null;
+    const latest = visibleHistory?.[visibleHistory.length - 1]?.v ?? null;
+    const first = visibleHistory?.[0]?.v ?? null;
     const percentChange = first && latest ? (((latest - first) / first) * 100).toFixed(2) : null;
 
-    const min = Math.min(...(item?.history?.map(h => h.value) || []));
-    const max = Math.max(...(item?.history?.map(h => h.value) || []));
+    const min = Math.min(...(item?.history?.map(h => h.v) || []));
+    const max = Math.max(...(item?.history?.map(h => h.v) || []));
 
     return (
         <div className="w-[400px] bg-[#111816] border-0 rounded-md p-5 h-full overflow-y-auto">
@@ -125,7 +124,7 @@ const SidePanel = ({ item }) => {
                 <>
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6">
-                        <img src={item.emoji.url} alt={item.name} className="w-12 h-12 object-contain drop-shadow-md" />
+                        <img src={item.url} alt={item.name} className="w-12 h-12 object-contain drop-shadow-md" />
                         <div>
                             <h2 className="text-xl font-extrabold font-mono">{titleCase(item.name)}</h2>
                             <p className="text-sm text-[#a4bbb0] font-mono">Item details & stats</p>
