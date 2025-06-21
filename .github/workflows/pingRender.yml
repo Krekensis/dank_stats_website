@@ -1,0 +1,14 @@
+name: Keep Render Site Awake
+
+on:
+  schedule:
+    - cron: '*/14 * * * *' 
+  workflow_dispatch:        
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping your Render site
+        run: curl --silent --show-error --fail ${{ secrets.RENDER_URI }} || echo "⚠️ Site did not respond"
