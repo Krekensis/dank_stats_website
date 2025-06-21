@@ -120,3 +120,8 @@ export const neonizeHex = (hex) => {
   return hslToHex(h, 100, 60);
 };
 
+export const lightenHex = (hex, amount = 20) => {
+  const { h, s, l } = hexToHSL(hex);
+  const newL = Math.min(l + amount, 100); // prevent exceeding 100%
+  return hslToHex(h, s, newL);
+};
