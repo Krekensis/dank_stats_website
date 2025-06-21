@@ -1,7 +1,7 @@
 import React, { useState, useEffect, } from 'react';
 import { Line } from 'react-chartjs-2';
 import { commas, titleCase } from '../functions/stringUtils';
-import { neonizeHex, getAverageColor} from '../functions/colorUtils';
+import { neonizeHex, getAverageColor } from '../functions/colorUtils';
 import {
     Chart as ChartJS,
     LineElement,
@@ -34,6 +34,11 @@ const SidePanel = ({ item }) => {
                 history = history.filter(h => new Date(h.timestamp) >= monthAgo);
             }
 
+            if (history.length === 0) {
+                setChartData(null);
+                return;
+            }
+
             const avgColor = await getAverageColor(item.emoji.url);
             const color = neonizeHex(avgColor);
             const values = history.map(h => h.value);
@@ -59,7 +64,37 @@ const SidePanel = ({ item }) => {
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(13, 19, 17, 0.8)',
+                titleColor: '#6bff7a',
+                bodyColor: '#e0f4eb',
+                titleFont: { family: 'monospace', weight: 'bold', size: 12 },
+                bodyFont: { family: 'monospace', size: 12 },
+                displayColors: false,
+                callbacks: {
+                    title: (tooltipItems) => {
+                        const itemIndex = tooltipItems[0].dataIndex;
+                        const label = tooltipItems[0].dataset.label || '';
+                        const timestamp = item.history[itemIndex]?.timestamp;
+                        if (!timestamp) return '';
+                        const date = new Date(timestamp);
+                        return date.toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                        });
+                    },
+                    label: (tooltipItem) => {
+                        const val = tooltipItem.formattedValue;
+                        return `Value: ⏣ ${val}`;
+                    },
+                },
+            },
+        },
         scales: {
             x: { display: false },
             y: { display: false },
@@ -106,7 +141,7 @@ const SidePanel = ({ item }) => {
                                     <button
                                         key={r}
                                         onClick={() => setRange(r)}
-                                        className={`w-9 py-1 px-1 rounded-[5px] text-xs font-mono border transition ${range === r
+                                        className={`w-12 py-1 px-1 rounded-[4px] text-xs font-mono border transition ${range === r
                                             ? 'bg-[#17211d] border-0 text-[#6bff7a]'
                                             : 'bg-transparent border-0 text-[#a4bbb0]'
                                             }`}
@@ -117,11 +152,11 @@ const SidePanel = ({ item }) => {
                             </div>
                         </div>
 
-                        <div className="h-32 mb-2">
+                        <div className="h-32 mb-2 flex items-center justify-center">
                             {chartData ? (
                                 <Line data={chartData} options={chartOptions} />
                             ) : (
-                                <p className="text-gray-500 text-sm">No data available</p>
+                                <p className="text-red-400 font-mono text-sm italic">No data available in this range.</p>
                             )}
                         </div>
 
@@ -155,7 +190,7 @@ const SidePanel = ({ item }) => {
 
                     {/* Placeholder for more */}
                     <div className="bg-[#0d1311] font-mono rounded-md p-4 text-sm text-[#a4bbb0]">
-                        🧪 More stats coming soon.
+                        {`🧪 More stats (market stats) coming soon.`}
                     </div>
                 </>
             ) : (

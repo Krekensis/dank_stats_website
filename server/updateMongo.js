@@ -48,9 +48,8 @@ function extractEmojiDetails(input) {
     id: match[3],
     raw: match[0],
     animated: match[1] === "a",
-    url: `https://cdn.discordapp.com/emojis/${match[3]}.${
-      match[1] === "a" ? "gif" : "png"
-    }`,
+    url: `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "gif" : "png"
+      }`,
   };
 }
 
@@ -91,7 +90,7 @@ const main = async () => {
 
       for (const msg of messages) {
         if (msg.author?.id !== TARGET_BOT_ID) continue;
-        const timestamp = msg.timestamp;
+        const timestamp = new Date(msg.timestamp);
 
         // --- Extract item name and value ---
         let item = null;
@@ -124,7 +123,7 @@ const main = async () => {
         // 🧠 If timestamp already exists, skip and stop early
         if (
           existing &&
-          existing.history.some((h) => h.timestamp === timestamp)
+          existing.history.some((h) => new Date(h.timestamp).getTime() === timestamp.getTime())
         ) {
           console.log(`⏹️ Stopping at duplicate timestamp for "${name}"`);
           stopFlag = true;
