@@ -40,17 +40,10 @@ function extractName(input) {
     .toLowerCase();
 }
 
-function extractEmojiDetails(input) {
+function extractEmojiURL(input) {
   const match = input.match(/<(a?):(\w+):(\d+)>/);
   if (!match) return null;
-  return {
-    name: match[2],
-    id: match[3],
-    raw: match[0],
-    animated: match[1] === "a",
-    url: `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "gif" : "png"
-      }`,
-  };
+  return `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "gif" : "png"}`;
 }
 
 // --- MAIN FUNCTION ---
@@ -93,29 +86,29 @@ const main = async () => {
         const timestamp = new Date(msg.timestamp);
 
         // --- Extract item name and value ---
-        let item = null;
-        let value = null;
+        let itemRaw = null;
+        let valueRaw = null;
 
         if (msg.embeds?.length > 0) {
           const embed = msg.embeds[0];
-          item = embed.title || null;
-          value =
+          itemRaw = embed.title || null;
+          valueRaw =
             embed.fields?.length > 0
               ? embed.fields[embed.fields.length - 1].value
               : embed.description || null;
         } else if (msg.components?.length > 0) {
           const comps = msg.components[0]?.components || [];
-          item = comps[0]?.content || null;
-          value = comps[2]?.content || null;
+          itemRaw = comps[0]?.content || null;
+          valueRaw = comps[2]?.content || null;
         }
 
-        const name = extractName(item);
+        const name = extractName(itemRaw);
         if (!name) continue;
 
-        const parsedValue = extractValue(value);
+        const parsedValue = extractValue(valueRaw);
         if (parsedValue === null) continue;
 
-        const newEmoji = extractEmojiDetails(item);
+        const emojiURL = extractEmojiURL(itemRaw);
 
         // --- Check existing document in DB ---
         const existing = await collection.findOne({ name });
@@ -130,37 +123,26 @@ const main = async () => {
           break;
         }
 
-        // 🎯 Prepare document structure
+        // 🎯 Build new document
         const updatedItem = {
           name,
-          emoji: existing?.emoji || newEmoji || {
-            name: null,
-            id: null,
-            raw: null,
-            animated: false,
-            url: null,
-          },
-          history: [
-            ...(existing?.history || []),
-            { timestamp, value: parsedValue },
-          ],
+          url: existing?.url || emojiURL || null,
+          history: [...(existing?.history || []), { t: timestamp, v: parsedValue }],
         };
 
-        // ✏️ If old emoji is null but new one is valid, update emoji
-        if (
-          (!updatedItem.emoji?.id || updatedItem.emoji?.name === null) &&
-          newEmoji
-        ) {
-          updatedItem.emoji = newEmoji;
+        // 🧼 Optional: Patch in URL if it was missing before
+        if (!updatedItem.url && emojiURL) {
+          updatedItem.url = emojiURL;
         }
 
-        // 🔄 Upsert into Mongo
+        // 🔄 Upsert into MongoDB
         await collection.updateOne(
           { name },
           { $set: updatedItem },
           { upsert: true }
         );
-        console.log(`💾 Updated: ${name} @ ${timestamp}`);
+
+        console.log(`💾 Updated: ${name} @ ${timestamp.toISOString()}`);
       }
 
       before = messages[messages.length - 1].id;
