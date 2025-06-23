@@ -3,8 +3,11 @@ import express from "express";
 import cors from "cors";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
+import createItemsRouter from "./routes/items.js";
+import createMarketLogsRouter from "./routes/marketlogs.js";
+
 const app = express();
-app.use(cors());
+app.use(cors()); // Needed for POST support
 
 const client = new MongoClient(process.env.MONGO_URI, {
   serverApi: {
@@ -19,15 +22,10 @@ async function startServer() {
     await client.connect();
     console.log("✅ Connected to MongoDB");
 
-    app.get("/api/items", async (req, res) => {
-      try {
-        const items = await client.db("dankstats").collection("items").find({}).toArray();
-        res.json(items);
-      } catch (err) {
-        console.error("❌ Error fetching items:", err);
-        res.status(500).json({ error: "MongoDB query error" });
-      }
-    });
+    const db = client.db("dankstats");
+
+    app.use("/api/items", createItemsRouter(db));
+    app.use("/api/marketlogs", createMarketLogsRouter(db));
 
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => console.log(`🚀 API running on ${PORT}`));

@@ -18,27 +18,34 @@ const SidePanel = ({ item }) => {
 
     const [range, setRange] = useState('Full');
     const [chartData, setChartData] = useState(null);
+    const [sortedHistory, setSortedHistory] = useState([]);
 
     useEffect(() => {
+        if (!item?.history || item.history.length === 0) {
+            setChartData(null);
+            setSortedHistory([]);
+            return;
+        }
+
+        const sorted = [...item.history].sort((a, b) => new Date(a.t) - new Date(b.t));
+        setSortedHistory(sorted);
+
+        let history = [...sorted];
+
+        if (range === '7d') {
+            const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            history = history.filter(h => new Date(h.t) >= weekAgo);
+        } else if (range === '30d') {
+            const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            history = history.filter(h => new Date(h.t) >= monthAgo);
+        }
+
+        if (history.length === 0) {
+            setChartData(null);
+            return;
+        }
+
         const loadChart = async () => {
-            if (!item?.history || item.history.length === 0) return setChartData(null);
-
-            let history = [...item.history];
-
-            // Filter by range
-            if (range === '7d') {
-                const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-                history = history.filter(h => new Date(h.t) >= weekAgo);
-            } else if (range === '30d') {
-                const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-                history = history.filter(h => new Date(h.t) >= monthAgo);
-            }
-
-            if (history.length === 0) {
-                setChartData(null);
-                return;
-            }
-
             const avgColor = await getAverageColor(item.url);
             const color = neonizeHex(avgColor);
             const values = history.map(h => h.v);
@@ -100,7 +107,7 @@ const SidePanel = ({ item }) => {
         },
     };
 
-    const currentHistory = item?.history ?? [];
+    const currentHistory = sortedHistory ?? [];
     let visibleHistory = [...currentHistory];
     if (range === '7d') {
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -109,14 +116,14 @@ const SidePanel = ({ item }) => {
         const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         visibleHistory = visibleHistory.filter(h => new Date(h.t) >= monthAgo);
     }
-    const oldest = item?.history?.[0]?.v ?? null;
-    const current = item?.history?.[item.history.length - 1]?.v ?? null;
+    const oldest = sortedHistory?.[0]?.v ?? null;
+    const current = sortedHistory?.[sortedHistory.length - 1]?.v ?? null;
     const latest = visibleHistory?.[visibleHistory.length - 1]?.v ?? null;
     const first = visibleHistory?.[0]?.v ?? null;
     const percentChange = first && latest ? (((latest - first) / first) * 100).toFixed(2) : null;
 
-    const min = Math.min(...(item?.history?.map(h => h.v) || []));
-    const max = Math.max(...(item?.history?.map(h => h.v) || []));
+    const min = Math.min(...(sortedHistory?.map(h => h.v) || []));
+    const max = Math.max(...(sortedHistory?.map(h => h.v) || []));
 
     return (
         <div className="w-[400px] bg-[#111816] border-0 rounded-md p-5 h-full overflow-y-auto">

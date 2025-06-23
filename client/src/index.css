@@ -1,4 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sixtyfour&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geostar Fill&display=swap');
 @import "tailwindcss";
+
 /*
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
@@ -8,6 +12,12 @@
 @keyframes fast-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@theme {
+  --font-audiowide: "Audiowide", sans-serif;
+  --font-geostar: "Geostar Fill", sans-serif;
+  --font-sixtyfour: "Sixtyfour", sans-serif;
 }
 
 .animate-fast-spin {
