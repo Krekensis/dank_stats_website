@@ -43,7 +43,7 @@ function extractName(input) {
 function extractEmojiURL(input) {
   const match = input.match(/<(a?):(\w+):(\d+)>/);
   if (!match) return null;
-  return `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "gif" : "png"}`;
+  return `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "webp?animated=true" : "webp"}`;
 }
 
 // --- MAIN FUNCTION ---

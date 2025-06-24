@@ -1,9 +1,17 @@
 // tailwind.config.js
 module.exports = {
-    // ...
-    variants: {
-      extend: {
-        stroke: ['peer-checked'],
+  // ...
+  theme: {
+    extend: {
+      fontFamily: {
+        audiowide: ['"Audiowide"', 'monospace'],
       },
     },
-  }
+  },
+  plugins: [],
+  variants: {
+    extend: {
+      stroke: ['peer-checked'],
+    },
+  },
+}

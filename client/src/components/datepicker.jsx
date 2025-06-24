@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const DatePicker = ({ value, onChange }) => {
+const DatePicker = ({ value, onChange, time = false }) => {
     const today = new Date();
     const wrapperRef = useRef(null);
     const inputRef = useRef(null);
@@ -9,6 +9,9 @@ const DatePicker = ({ value, onChange }) => {
     const [inputValue, setInputValue] = useState(
         value ? value.toLocaleDateString("en-GB") : ""
     );
+
+    const [hours, setHours] = useState(value ? value.getHours() : 0); // 🕒
+    const [minutes, setMinutes] = useState(value ? value.getMinutes() : 0); // 🕒
 
     const [showCalendar, setShowCalendar] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -44,7 +47,6 @@ const DatePicker = ({ value, onChange }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-
     const formatInput = (val) => {
         val = val.replace(/\D/g, "").slice(0, 8);
         return val.replace(/^(\d{0,2})(\d{0,2})(\d{0,4})$/, (_, d, m, y) =>
@@ -75,7 +77,7 @@ const DatePicker = ({ value, onChange }) => {
             yyyy <= currentYear;
 
         if (isValid) {
-            const parsed = new Date(yyyy, mm - 1, dd);
+            const parsed = new Date(yyyy, mm - 1, dd, hours, minutes); // 🕒
             setSelectedDate(parsed);
             setCurrentMonth(parsed.getMonth());
             setCurrentYear(parsed.getFullYear());
@@ -97,18 +99,12 @@ const DatePicker = ({ value, onChange }) => {
 
         const formatted = formatInput(raw);
 
-        // Calculate new cursor position
         let newCursor = selectionStart;
-
-        if (!isDeleting) {
-            // We're inserting — move past slashes automatically
-            if (formatted[selectionStart - 1] === '/' && raw.length < formatted.length) {
-                newCursor++;
-            }
+        if (!isDeleting && formatted[selectionStart - 1] === '/' && raw.length < formatted.length) {
+            newCursor++;
         }
 
         setInputValue(formatted);
-
         requestAnimationFrame(() => {
             if (inputRef.current) {
                 inputRef.current.setSelectionRange(newCursor, newCursor);
@@ -116,11 +112,8 @@ const DatePicker = ({ value, onChange }) => {
         });
     };
 
-
-
-
     const handleDateClick = (day) => {
-        const date = new Date(currentYear, currentMonth, day);
+        const date = new Date(currentYear, currentMonth, day, hours, minutes); // 🕒
         setSelectedDate(date);
         const formatted = date.toLocaleDateString("en-GB");
         setInputValue(formatted);
@@ -138,6 +131,20 @@ const DatePicker = ({ value, onChange }) => {
         if (currentMonth === 11) setCurrentYear((y) => y + 1);
     };
 
+    const handleTimeChange = (type, val) => {
+        const num = parseInt(val, 10);
+        if (type === "hours" && num >= 0 && num <= 23) setHours(num);
+        if (type === "minutes" && num >= 0 && num <= 59) setMinutes(num);
+
+        if (selectedDate) {
+            const newDate = new Date(selectedDate);
+            if (type === "hours") newDate.setHours(num);
+            if (type === "minutes") newDate.setMinutes(num);
+            setSelectedDate(newDate);
+            onChange && onChange(newDate);
+        }
+    };
+
     return (
         <div ref={wrapperRef} className="relative font-mono custom-scrollbar">
             <input
@@ -150,9 +157,7 @@ const DatePicker = ({ value, onChange }) => {
                     const allowedKeys = ["Backspace", "ArrowLeft", "ArrowRight", "Tab", "Delete", "Enter"];
                     const isNumber = /^[0-9]$/.test(e.key);
                     const isControl = allowedKeys.includes(e.key);
-
                     if (!isNumber && !isControl) e.preventDefault();
-
                     if (e.key === "Enter") validateAndSetDate(inputValue);
                 }}
                 inputMode="numeric"
@@ -163,51 +168,33 @@ const DatePicker = ({ value, onChange }) => {
 
             {showCalendar && (
                 <div className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom">
+                    {/* Calendar Header */}
                     <div className="flex justify-between items-center mb-3">
                         <button onClick={prevMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] not-last:px-2">&lt;</button>
-
                         <div className="flex space-x-2 text-white text-sm">
-                            <button
-                                onClick={() => {
-                                    setShowMonthPicker(prev => !prev);
-                                    setShowYearPicker(false);
-                                }}
-                                className="hover:text-[#6bff7a]"
-                            >
-                                {monthNames[currentMonth]}
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowYearPicker(prev => !prev);
-                                    setShowMonthPicker(false);
-                                }}
-                                className="hover:text-[#6bff7a]"
-                            >
-                                {currentYear}
-                            </button>
+                            <button onClick={() => {
+                                setShowMonthPicker(prev => !prev);
+                                setShowYearPicker(false);
+                            }} className="hover:text-[#6bff7a]">{monthNames[currentMonth]}</button>
+                            <button onClick={() => {
+                                setShowYearPicker(prev => !prev);
+                                setShowMonthPicker(false);
+                            }} className="hover:text-[#6bff7a]">{currentYear}</button>
                         </div>
-
                         <button onClick={nextMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] px-2">&gt;</button>
                     </div>
 
                     {showMonthPicker && (
                         <div className="bg-[#0d1311] rounded-md grid grid-cols-3 gap-2 my-3 py-3 px-3">
                             {monthNames.map((month, i) => (
-                                <button
-                                    key={month}
-                                    onClick={() => {
-                                        setCurrentMonth(i);
-                                        setShowMonthPicker(false);
-
-                                        const newDate = new Date(currentYear, i, selectedDate?.getDate() || 1);
-                                        setSelectedDate(newDate);
-                                        setInputValue(newDate.toLocaleDateString("en-GB"));
-                                        onChange && onChange(newDate);
-                                    }}
-                                    className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]"
-                                >
-                                    {month}
-                                </button>
+                                <button key={month} onClick={() => {
+                                    setCurrentMonth(i);
+                                    setShowMonthPicker(false);
+                                    const newDate = new Date(currentYear, i, selectedDate?.getDate() || 1, hours, minutes);
+                                    setSelectedDate(newDate);
+                                    setInputValue(newDate.toLocaleDateString("en-GB"));
+                                    onChange && onChange(newDate);
+                                }} className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]">{month}</button>
                             ))}
                         </div>
                     )}
@@ -215,35 +202,28 @@ const DatePicker = ({ value, onChange }) => {
                     {showYearPicker && (
                         <div className="bg-[#0d1311] rounded-md grid grid-cols-4 gap-2 max-h-32 overflow-y-auto my-3 py-3 px-3 custom-scrollbar">
                             {years.map((year) => (
-                                <button
-                                    key={year}
-                                    onClick={() => {
-                                        setCurrentYear(year);
-                                        setShowYearPicker(false);
-
-                                        const newDate = new Date(year, currentMonth, selectedDate?.getDate() || 1);
-                                        setSelectedDate(newDate);
-                                        setInputValue(newDate.toLocaleDateString("en-GB"));
-                                        onChange && onChange(newDate);
-                                    }}
-                                    className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]"
-                                >
-                                    {year}
-                                </button>
+                                <button key={year} onClick={() => {
+                                    setCurrentYear(year);
+                                    setShowYearPicker(false);
+                                    const newDate = new Date(year, currentMonth, selectedDate?.getDate() || 1, hours, minutes);
+                                    setSelectedDate(newDate);
+                                    setInputValue(newDate.toLocaleDateString("en-GB"));
+                                    onChange && onChange(newDate);
+                                }} className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]">{year}</button>
                             ))}
                         </div>
                     )}
 
+                    {/* Day Labels */}
                     <div className="grid grid-cols-7 text-xs text-white mb-1">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
                             <div key={d} className="text-center">{d}</div>
                         ))}
                     </div>
 
+                    {/* Calendar Days */}
                     <div className="grid grid-cols-7 gap-1">
-                        {[...Array(firstDayOfMonth)].map((_, i) => (
-                            <div key={`empty-${i}`} />
-                        ))}
+                        {[...Array(firstDayOfMonth)].map((_, i) => <div key={`empty-${i}`} />)}
                         {[...Array(daysInMonth)].map((_, day) => (
                             <button
                                 key={day + 1}
@@ -259,6 +239,29 @@ const DatePicker = ({ value, onChange }) => {
                             </button>
                         ))}
                     </div>
+
+                    {/* 🕒 Time Picker */}
+                    {time && (
+                        <div className="flex justify-center mt-4 space-x-2">
+                            <input
+                                type="number"
+                                min={0}
+                                max={23}
+                                value={hours.toString().padStart(2, '0')}
+                                onChange={(e) => handleTimeChange("hours", e.target.value)}
+                                className="w-10 bg-[#0d1311] text-[#ffffff] text-center rounded-md outline-none"
+                            />
+                            <span className="text-[#ffffff]">:</span>
+                            <input
+                                type="number"
+                                min={0}
+                                max={59}
+                                value={minutes.toString().padStart(2, '0')}
+                                onChange={(e) => handleTimeChange("minutes", e.target.value)}
+                                className="w-10 bg-[#0d1311] text-[#ffffff] text-center rounded-md outline-none"
+                            />
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -274,6 +277,12 @@ const DatePicker = ({ value, onChange }) => {
                     background-color: #2b473e;
                     border-radius: 6px;
                     border: 2px solid #0d1311;
+                }
+                ::-webkit-inner-spin-button {
+                    background-color: #2b473e;
+                    border-radius: 50%;
+                    width: 4px;
+                    height: 4px;
                 }
             `}</style>
         </div>

@@ -23,7 +23,7 @@ const isOverlapping = (pos1, pos2, margin = 10) => {
 };
 
 const generateEmojiPositions = () => {
-  const uniqueItems = itemData.filter((item) => item.emoji?.url);
+  const uniqueItems = itemData.filter((item) => item.url);
   const maxWidth = window.innerWidth;
   const maxHeight = window.innerHeight;
   let placed = [];
@@ -40,10 +40,10 @@ const generateEmojiPositions = () => {
     if (tries < 100) {
       placed.push({
         ...pos,
-        url: item.emoji.url,
+        url: item.url,
         rotation: Math.random() * 60 - 30,
         name: item.name,
-        latestValue: item.history?.[item.history.length - 1]?.value ?? "N/A",
+        latestValue: item.history?.[item.history.length - 1]?.v ?? "N/A",
         id: crypto.randomUUID(),
       });
     } else {
@@ -162,7 +162,7 @@ const HomePage = () => {
             }}
           >
             <img
-              src={`${url}?id=${id}`}
+              src={`${url.includes("animated=true") ? url.replace(".webp?animated=true", ".gif") : url}?id=${id}`}
               key={`${id}-${isVomitingOut}`}
               alt="emoji"
               loading="lazy"
