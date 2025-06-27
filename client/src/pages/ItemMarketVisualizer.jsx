@@ -136,7 +136,7 @@ const ItemMarketVisualizer = () => {
 
     try {
       // 1. Count
-      const countRes = await fetch(`${process.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
+      const countRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
         ...baseParams,
         countOnly: "true"
       })}`);
@@ -150,7 +150,7 @@ const ItemMarketVisualizer = () => {
 
         await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay
         if (onProgress) onProgress(50, 100); // Show 50%
-        const res = await fetch(`${process.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
+        const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
           ...baseParams,
           skip: "0",
           limit: count.toString()
@@ -174,7 +174,7 @@ const ItemMarketVisualizer = () => {
           limit: limit.toString()
         });
 
-        const url = `${process.env.VITE_API_BASE}/api/marketlogs?${params}`;
+        const url = `${import.meta.env.VITE_API_BASE}/api/marketlogs?${params}`;
         const res = await fetch(url);
         const batch = await res.json();
         results.push(...batch);
