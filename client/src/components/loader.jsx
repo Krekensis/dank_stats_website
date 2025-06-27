@@ -21,7 +21,6 @@ const Loader = ({ size = 100 }) => {
           backgroundColor: '#182521',
           transformOrigin: 'center bottom',
           animation: 'barUp1 4s infinite',
-          boxShadow: `${1 * scale}px ${1 * scale}px 0 rgba(27, 54, 42, 0.3)`
         }}
       />
 
@@ -34,7 +33,6 @@ const Loader = ({ size = 100 }) => {
           backgroundColor: '#182521',
           transformOrigin: 'center bottom',
           animation: 'barUp2 4s infinite',
-          boxShadow: `${1 * scale}px ${1 * scale}px 0 rgba(27, 54, 42, 0.3)`
         }}
       />
 
@@ -47,7 +45,6 @@ const Loader = ({ size = 100 }) => {
           backgroundColor: '#182521',
           transformOrigin: 'center bottom',
           animation: 'barUp3 4s infinite',
-          boxShadow: `${1 * scale}px ${1 * scale}px 0 rgba(27, 54, 42, 0.3)`
         }}
       />
 
@@ -60,7 +57,6 @@ const Loader = ({ size = 100 }) => {
           backgroundColor: '#182521',
           transformOrigin: 'center bottom',
           animation: 'barUp4 4s infinite',
-          boxShadow: `${1 * scale}px ${1 * scale}px 0 rgba(27, 54, 42, 0.3)`
         }}
       />
 
@@ -73,7 +69,6 @@ const Loader = ({ size = 100 }) => {
           backgroundColor: '#182521',
           transformOrigin: 'center bottom',
           animation: 'barUp5 4s infinite',
-          boxShadow: `${1 * scale}px ${1 * scale}px 0 rgba(27, 54, 42, 0.3)`
         }}
       />
 
@@ -87,7 +82,6 @@ const Loader = ({ size = 100 }) => {
           height: `${10 * scale}px`,
           backgroundColor: '#2d5a47',
           animation: 'ball624 4s infinite',
-          boxShadow: `0 ${2 * scale}px ${4 * scale}px rgba(27, 54, 42, 0.3)`,
           transform: `scale(${scale})`,
           transformOrigin: 'bottom left',
         }}

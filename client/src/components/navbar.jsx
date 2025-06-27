@@ -94,6 +94,11 @@ const Navbar = () => {
       description: "Listed overview of all items, including their current values and historical trends.",
       redirect: "/all-items-overview",
     },
+    {
+      heading: "Item market visualizer",
+      description: "Explore the market trends of specific items with detailed visualizations.",
+      redirect: "/item-market-visualizer",
+    }
   ]
 
   return (
@@ -103,7 +108,7 @@ const Navbar = () => {
           {/* Logo + Text Grouped */}
           <Link to="/" className="flex items-center space-x-3">
             <img src={logo} alt="Dank Stats Logo" className="w-10 h-10 object-contain" />
-            <div className="text-[#6bff7a] text-3xl font-extrabold font-mono select-none leading-none">
+            <div className="text-[#6bff7a] text-3xl font-audiowide select-none leading-none">
               Dank Stats
             </div>
           </Link>
