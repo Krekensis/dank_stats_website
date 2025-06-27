@@ -1,6 +1,8 @@
-require("dotenv").config();
-const axios = require("axios");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+import dotenv from "dotenv";
+import axios from "axios";
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "dankstats";
@@ -8,7 +10,7 @@ const COLLECTION_NAME = "marketlogs";
 
 const CHANNEL_ID = "1011289984306778283"; // marketplace-logs
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const TARGET_BOT_ID = "270904126974590976"; //dank memer 
+const TARGET_BOT_ID = "270904126974590976"; // dank memer
 
 const discordAPI = axios.create({
   baseURL: "https://discord.com/api/v10",
@@ -73,7 +75,6 @@ function hasVPU(str) {
 }
 
 async function main() {
-
   let before;
   const { data: [latestMsg] } = await discordAPI.get(`/channels/${CHANNEL_ID}/messages`, {
     params: { limit: 1 },
@@ -81,7 +82,7 @@ async function main() {
   before = latestMsg.id;
   console.log("🚀 Starting from latest message ID:", before);
 
-  if(!before){return console.log('No "before" id')}
+  if (!before) return console.log('No "before" id');
 
   const client = new MongoClient(MONGO_URI, {
     serverApi: {
@@ -94,8 +95,8 @@ async function main() {
   await client.connect();
   const db = client.db(DB_NAME);
   const col = db.collection(COLLECTION_NAME);
-
   await col.createIndex({ id: 1 }, { unique: true });
+
   let inserted = 0;
   const BATCH_SIZE = 50;
   let buffer = [];
@@ -106,7 +107,7 @@ async function main() {
         params: { limit: 100, before },
       });
 
-      await sleep(250); // Safe delay
+      await sleep(250);
 
       const botMessages = messages.filter((m) => m.author?.id === TARGET_BOT_ID);
       if (botMessages.length === 0) {
@@ -118,7 +119,6 @@ async function main() {
 
       for (const msg of botMessages) {
         before = msg.id;
-
         const embed = msg.embeds?.[0];
         if (!embed || !embed.footer?.text) continue;
         if (embed.description?.toLowerCase().includes(" pet *for*") || embed.description.toLowerCase().includes(" pet (")) continue;
@@ -202,7 +202,6 @@ async function main() {
     }
   }
 
-  // Insert remaining buffer
   if (buffer.length > 0) {
     try {
       const result = await col.insertMany(buffer, { ordered: false });
