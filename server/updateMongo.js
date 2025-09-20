@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
-import axios from 'axios';
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import dotenv from "dotenv";
+import axios from "axios";
+import { MongoClient, ServerApiVersion } from "mongodb";
 
 dotenv.config();
 
@@ -43,7 +43,36 @@ function extractName(input) {
 function extractEmojiURL(input) {
   const match = input.match(/<(a?):(\w+):(\d+)>/);
   if (!match) return null;
-  return `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "webp?animated=true" : "webp"}`;
+  return `https://cdn.discordapp.com/emojis/${match[3]}.${
+    match[1] === "a" ? "webp?animated=true" : "webp"
+  }`;
+}
+
+// --- NEW: fixName() ---
+function fixName(name) {
+  const corrections = {
+    "jelly fish": "legacy jelly fish",
+    "yeng's paw": "squishy paw",
+    "legendary fish": "legacy legendary fish",
+    "patreon pack": "membership pack",
+    "fishing bait": "legacy fishing bait",
+    "potato ☭": "potato",
+    "common fish": "legacy common fish",
+    "patreon box": "membership box",
+    "kraken": "legacy kraken",
+    "rare fish": "legacy rare fish",
+    "exotic fish": "legacy rare fish",
+    "bunny's apron": "apron",
+    "amathine's butterfly": "rare butterfly",
+    "alexa's megaphone": "the megaphone",
+    "exclusive website box": "exclusive gems box",
+    "fishing pole": "legacy fishing pole",
+    "delta  seeds": "delta 9 seeds",
+    "d": "d100",
+    "sunbear's d": "sunbear's d20",
+    "bean mp player": "bean mp3 player",
+  };
+  return corrections[name] || name;
 }
 
 // --- MAIN FUNCTION ---
@@ -102,8 +131,9 @@ const main = async () => {
           valueRaw = comps[2]?.content || null;
         }
 
-        const name = extractName(itemRaw);
+        let name = extractName(itemRaw);
         if (!name) continue;
+        name = fixName(name);
 
         const parsedValue = extractValue(valueRaw);
         if (parsedValue === null) continue;
@@ -111,38 +141,41 @@ const main = async () => {
         const emojiURL = extractEmojiURL(itemRaw);
 
         // --- Check existing document in DB ---
-        const existing = await collection.findOne({ name });
+        let existing = await collection.findOne({ name });
 
-        // 🧠 If timestamp already exists, skip and stop early
-        if (
-          existing &&
-          existing.history.some((h) => new Date(h.t).getTime() === timestamp.getTime())
-        ) {
+        if (existing && existing.history.some((h) => new Date(h.t).getTime() === timestamp.getTime())) {
           console.log(`⏹️ Stopping at duplicate timestamp for "${name}"`);
           stopFlag = true;
           break;
         }
 
-        // 🎯 Build new document
+        // --- ID assignment ---
+        let itemId;
+        if (existing?.id !== undefined) {
+          itemId = existing.id;
+        } else {
+          const maxDoc = await collection.find().sort({ id: -1 }).limit(1).toArray();
+          const maxId = maxDoc.length ? maxDoc[0].id : -1;
+          itemId = maxId + 1;
+        }
+
         const updatedItem = {
           name,
+          id: itemId,
           url: existing?.url || emojiURL || null,
-          history: [...(existing?.history || []), { t: timestamp, v: parsedValue }],
+          history: [
+            ...(existing?.history || []),
+            { t: timestamp, v: parsedValue },
+          ],
         };
 
-        // 🧼 Optional: Patch in URL if it was missing before
         if (!updatedItem.url && emojiURL) {
           updatedItem.url = emojiURL;
         }
 
-        // 🔄 Upsert into MongoDB
-        await collection.updateOne(
-          { name },
-          { $set: updatedItem },
-          { upsert: true }
-        );
+        await collection.updateOne({ name }, { $set: updatedItem }, { upsert: true });
 
-        console.log(`💾 Updated: ${name} @ ${timestamp.toISOString()}`);
+        console.log( `💾 Updated: ${name} (id=${itemId}) @ ${timestamp.toISOString()}`);
       }
 
       before = messages[messages.length - 1].id;
@@ -158,4 +191,6 @@ const main = async () => {
   await client.close();
 };
 
-main();
+main().catch((err) => {
+  console.error("❌ Script crashed:", err);
+});

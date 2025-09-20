@@ -7,6 +7,7 @@ dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "dankstats";
 const COLLECTION_NAME = "marketlogs";
+const ITEMS_COLLECTION = "items";
 
 const CHANNEL_ID = "1011289984306778283"; // marketplace-logs
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
@@ -97,6 +98,7 @@ async function main() {
     await client.connect();
     const db = client.db(DB_NAME);
     const col = db.collection(COLLECTION_NAME);
+    const itemsCol = db.collection(ITEMS_COLLECTION);
     await col.createIndex({ id: 1 }, { unique: true });
 
     let inserted = 0;
@@ -168,7 +170,14 @@ async function main() {
                 const id = embed.footer.text.slice(4);
 
                 if (type !== undefined && item && vpu && amt && id) {
-                    buffer.push({ id, i: item, t: timestamp, v: vpu, n: amt, s: type });
+
+                    const itemDoc = await itemsCol.findOne({ name: item });
+
+                    if (!itemDoc) {
+                        console.warn(`⚠️ Item not found in items collection: "${item}"`);
+                        continue;
+                    }
+                    buffer.push({ id, i: itemDoc.id, t: timestamp, v: vpu, n: amt, s: type });
 
                     if (buffer.length >= BATCH_SIZE) {
                         try {
