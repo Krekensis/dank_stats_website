@@ -101,6 +101,9 @@ async function main() {
     const itemsCol = db.collection(ITEMS_COLLECTION);
     await col.createIndex({ id: 1 }, { unique: true });
 
+    const items = await itemsCol.find().toArray();
+    const itemMap = new Map(items.map(i => [i.name, i.id]));
+
     let inserted = 0;
     const BATCH_SIZE = 50;
     let buffer = [];
@@ -171,13 +174,20 @@ async function main() {
 
                 if (type !== undefined && item && vpu && amt && id) {
 
-                    const itemDoc = await itemsCol.findOne({ name: item });
+                    let itemID = itemMap.get(item);
+                    if (!itemID) {
+                        const maxId = Math.max(...itemMap.values(), -1) + 1;
+                        itemID = maxId;
+                        itemMap.set(item, itemID);
 
-                    if (!itemDoc) {
-                        console.warn(`⚠️ Item not found in items collection: "${item}"`);
-                        continue;
+                        itemsCol.updateOne(
+                            { name: item },
+                            { $set: { name: item, id: itemID, url: null, history: [{ t: timestamp, v: 0 }] } },
+                            { upsert: true }
+                        ).catch(console.error);
                     }
-                    buffer.push({ id, i: itemDoc.id, t: timestamp, v: vpu, n: amt, s: type });
+
+                    buffer.push({ id, i: itemID, t: timestamp, v: vpu, n: amt, s: type });
 
                     if (buffer.length >= BATCH_SIZE) {
                         try {

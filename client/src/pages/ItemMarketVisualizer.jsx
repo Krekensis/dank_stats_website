@@ -124,19 +124,21 @@ const ItemMarketVisualizer = () => {
     return data.filter(point => Math.abs(point.y - mean) <= threshold * stdDev);
   };
 
-  const fetchMarketData = useCallback(async (itemName, startDate, endDate, onProgress) => {
+  const fetchMarketData = useCallback(async (itemID, itemName, startDate, endDate, onProgress) => {
     const limit = 10000;
     const baseParams = {
-      item: itemName,
+      item: itemID,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       private: showPrivate.toString(),
     };
+
+    console.log("Fetching data for", itemName, "with id:", itemID);
     if (tradeType !== "all") baseParams.type = tradeType;
 
     try {
       // 1. Count
-      const countRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
+      const countRes = await fetch(`${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${new URLSearchParams({
         ...baseParams,
         countOnly: "true"
       })}`);
@@ -150,7 +152,7 @@ const ItemMarketVisualizer = () => {
 
         await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay
         if (onProgress) onProgress(50, 100); // Show 50%
-        const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/marketlogs?${new URLSearchParams({
+        const res = await fetch(`${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${new URLSearchParams({
           ...baseParams,
           skip: "0",
           limit: count.toString()
@@ -174,7 +176,7 @@ const ItemMarketVisualizer = () => {
           limit: limit.toString()
         });
 
-        const url = `${import.meta.env.VITE_API_BASE}/api/marketlogs?${params}`;
+        const url = `${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${params}`;
         const res = await fetch(url);
         const batch = await res.json();
         results.push(...batch);
@@ -417,6 +419,7 @@ const ItemMarketVisualizer = () => {
 
 
         const rawData = await fetchMarketData(
+          item.id,
           item.name,
           new Date(startDate),
           new Date(endDate),
@@ -527,7 +530,7 @@ const ItemMarketVisualizer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-6">
+    <div className="min-h-screen bg-[#070e0c] text-white">
       <Navbar />
 
       {itemsLoading ? (
@@ -535,7 +538,7 @@ const ItemMarketVisualizer = () => {
           <Loader size={200} />
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
+        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex flex-row justify-center items-center space-x-4">
           <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
           <div className="relative">
             <div className="flex space-x-4 items-end">

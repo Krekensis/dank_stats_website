@@ -20,6 +20,10 @@
   --font-sixtyfour: "Sixtyfour", sans-serif;
 }
 
+body {
+  @apply bg-[#070e0c] text-white; /* or any Tailwind bg/text color */
+}
+
 .animate-fast-spin {
   animation: fast-spin 0.8s ease-in-out;
 }
