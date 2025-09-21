@@ -6,13 +6,13 @@ export default function createChartsRouter(db1, db2) {
     const logs2 = db2.collection("marketlogs");
     const router = express.Router();
 
-    const width = 700;
-    const height = 400;
+    const width = 1400;
+    const height = 800;
 
     const chartJSNodeCanvas = new ChartJSNodeCanvas({
         width,
         height,
-        backgroundColour: "#19191f",
+        backgroundColour: "transparent",
     });
 
     function removeOutliers(data) {
