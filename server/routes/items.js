@@ -1,9 +1,8 @@
 import express from "express";
 
-const router = express.Router();
-
 export default function createItemsRouter(db) {
   const itemsCollection = db.collection("items");
+  const router = express.Router();
 
   router.get("/", async (req, res) => {
     try {

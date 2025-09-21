@@ -5,6 +5,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 
 import createItemsRouter from "./routes/items.js";
 import createMarketLogsRouter from "./routes/marketlogs.js";
+import createChartsRouter from "./routes/chart.js";
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ async function startServer() {
 
     app.use("/api/items", createItemsRouter(db1));
     app.use("/api/marketlogs", createMarketLogsRouter(db1, db2));
+    app.use("/api/chart", createChartsRouter(db1, db2));
 
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () =>
