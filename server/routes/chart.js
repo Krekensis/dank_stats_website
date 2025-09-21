@@ -6,8 +6,8 @@ export default function createChartsRouter(db1, db2) {
     const logs2 = db2.collection("marketlogs");
     const router = express.Router();
 
-    const width = 800;
-    const height = 500;
+    const width = 700;
+    const height = 400;
 
     const chartJSNodeCanvas = new ChartJSNodeCanvas({
         width,
