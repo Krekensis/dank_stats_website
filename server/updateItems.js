@@ -43,9 +43,7 @@ function extractName(input) {
 function extractEmojiURL(input) {
   const match = input.match(/<(a?):(\w+):(\d+)>/);
   if (!match) return null;
-  return `https://cdn.discordapp.com/emojis/${match[3]}.${
-    match[1] === "a" ? "webp?animated=true" : "webp"
-  }`;
+  return `https://cdn.discordapp.com/emojis/${match[3]}.${match[1] === "a" ? "webp?animated=true" : "webp"}`;
 }
 
 // --- NEW: fixName() ---
@@ -142,13 +140,11 @@ const main = async () => {
 
         // --- Check existing document in DB ---
         let existing = await collection.findOne({ name });
-
         if (existing && existing.history.some((h) => new Date(h.t).getTime() === timestamp.getTime())) {
           console.log(`⏹️ Stopping at duplicate timestamp for "${name}"`);
           stopFlag = true;
           break;
         }
-
         // --- ID assignment ---
         let itemId;
         if (existing?.id !== undefined) {
@@ -159,23 +155,18 @@ const main = async () => {
           itemId = maxId + 1;
         }
 
-        const updatedItem = {
-          name,
-          id: itemId,
-          url: existing?.url || emojiURL || null,
-          history: [
-            ...(existing?.history || []),
-            { t: timestamp, v: parsedValue },
-          ],
-        };
+        // --- Safe update to append to history ---
+        await collection.updateOne(
+          { name },
+          {
+            $setOnInsert: { id: itemId },
+            $set: { url: emojiURL || existing?.url || null },
+            $push: { history: { t: timestamp, v: parsedValue } },
+          },
+          { upsert: true }
+        );
 
-        if (!updatedItem.url && emojiURL) {
-          updatedItem.url = emojiURL;
-        }
-
-        await collection.updateOne({ name }, { $set: updatedItem }, { upsert: true });
-
-        console.log( `💾 Updated: ${name} (id=${itemId}) @ ${timestamp.toISOString()}`);
+        console.log(`💾 Updated: ${name} (id=${itemId}) @ ${timestamp.toISOString()}`);
       }
 
       before = messages[messages.length - 1].id;
