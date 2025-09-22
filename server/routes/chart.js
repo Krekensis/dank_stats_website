@@ -31,12 +31,11 @@ export default function createChartsRouter(db1, db2) {
         if (totalPoints === 0) return [];
         if (totalPoints === 1) return [0];
         if (totalPoints === 2) return [0, 1];
-        
-        // Always return: first, middle, last
+
         const first = 0;
         const last = totalPoints - 1;
         const middle = Math.floor(totalPoints / 2);
-        
+
         return [first, middle, last];
     }
 
@@ -52,33 +51,38 @@ export default function createChartsRouter(db1, db2) {
             const query = { i: parseInt(itemId, 10) };
             if (hidePrivate) query.id = { $not: { $regex: /^PV/ } };
 
-            const [docs1, docs2] = await Promise.all([
-                logs1.find(query).project({ x: "$t", y: "$v", s: 1 }).toArray(),
-                logs2.find(query).project({ x: "$t", y: "$v", s: 1 }).toArray(),
-            ]);
+            let docs1 = await logs1.find(query)
+                .sort({ t: -1 })
+                .limit(lastN)
+                .project({ x: "$t", y: "$v", s: 1 })
+                .toArray();
 
-            if (!docs1.length && !docs2.length) return res.status(404).json({ error: "No trades found" });
+            let merged = docs1;
 
-            let merged = [...docs1, ...docs2].sort((a, b) => new Date(b.x) - new Date(a.x));
-            let trades = merged.slice(0, lastN).reverse();
+            if (docs1.length < lastN) {
+                const remaining = lastN - docs1.length;
+                const docs2 = await logs2.find(query)
+                    .sort({ t: -1 })
+                    .limit(remaining)
+                    .project({ x: "$t", y: "$v", s: 1 })
+                    .toArray();
 
-            let sellTrades = trades.filter(t => t.s === true).map((t, idx) => {
-                const tradeIndex = trades.findIndex(trade => trade === t);
-                return { 
-                    x: tradeIndex, 
-                    y: t.y, 
-                    date: t.x
-                };
-            });
-            
-            let buyTrades = trades.filter(t => t.s === false).map((t, idx) => {
-                const tradeIndex = trades.findIndex(trade => trade === t);
-                return { 
-                    x: tradeIndex, 
-                    y: t.y, 
-                    date: t.x
-                };
-            });
+                merged = [...docs1, ...docs2]
+                    .sort((a, b) => new Date(b.x) - new Date(a.x)) 
+                    .slice(0, lastN);
+            }
+
+            if (!merged.length) return res.status(404).json({ error: "No trades found" });
+
+            const trades = merged.reverse();
+
+            let sellTrades = trades
+                .map((t, idx) => t.s === true ? { x: idx, y: t.y, date: t.x } : null)
+                .filter(Boolean);
+
+            let buyTrades = trades
+                .map((t, idx) => t.s === false ? { x: idx, y: t.y, date: t.x } : null)
+                .filter(Boolean);
 
             if (removeOutlierFlag) {
                 sellTrades = removeOutliers(sellTrades);
@@ -115,22 +119,21 @@ export default function createChartsRouter(db1, db2) {
                     },
                     scales: {
                         x: {
-                            type: 'linear',
+                            type: "linear",
                             display: true,
                             min: 0,
                             max: trades.length - 1,
                             ticks: {
                                 color: "#fff",
-                                callback: function(value, index, ticks) {
+                                callback: function(value) {
                                     const tickValue = Math.round(value);
                                     if (labelIndices.includes(tickValue)) {
                                         if (trades[tickValue]) {
                                             return new Date(trades[tickValue].x).toLocaleDateString();
                                         }
                                     }
-                                    return '';
+                                    return "";
                                 },
-                                // Force specific tick positions
                                 stepSize: Math.max(1, Math.floor((trades.length - 1) / 2)),
                                 autoSkip: false,
                                 includeBounds: true,
@@ -138,26 +141,18 @@ export default function createChartsRouter(db1, db2) {
                             afterBuildTicks: function(scale) {
                                 scale.ticks = labelIndices.map(index => ({
                                     value: index,
-                                    label: new Date(trades[index].x).toLocaleDateString()
+                                    label: new Date(trades[index].x).toLocaleDateString(),
                                 }));
                             },
-                            grid: { 
-                                display: false
-                            },
-                            border: {
-                                display: false
-                            }
+                            grid: { display: false },
+                            border: { display: false },
                         },
                         y: {
-                            ticks: { 
-                                color: "#fff" 
-                            },
-                            grid: { 
-                                color: "rgba(255,255,255,0.1)" 
-                            },
+                            ticks: { color: "#fff" },
+                            grid: { color: "rgba(255,255,255,0.1)" },
                         },
                     },
-                },
+                },   
             };
 
             const image = await chartJSNodeCanvas.renderToBuffer(configuration);
