@@ -39,6 +39,24 @@ export default function createChartsRouter(db1, db2) {
         return [first, middle, last];
     }
 
+    function movingAverageLine(data, windowSize = 5) {
+        if (data.length < 2) return [];
+
+        const sorted = [...data].sort((a, b) => a.x - b.x);
+        const smoothed = [];
+
+        for (let i = 0; i < sorted.length; i++) {
+            const start = Math.max(0, i - Math.floor(windowSize / 2));
+            const end = Math.min(sorted.length, i + Math.floor(windowSize / 2) + 1);
+            const subset = sorted.slice(start, end);
+            const avgY = subset.reduce((sum, d) => sum + d.y, 0) / subset.length;
+            smoothed.push({ x: sorted[i].x, y: avgY });
+        }
+
+        return smoothed;
+    }
+
+
     router.get("/", async (req, res) => {
         try {
             const itemId = req.query.item;
@@ -68,7 +86,7 @@ export default function createChartsRouter(db1, db2) {
                     .toArray();
 
                 merged = [...docs1, ...docs2]
-                    .sort((a, b) => new Date(b.x) - new Date(a.x)) 
+                    .sort((a, b) => new Date(b.x) - new Date(a.x))
                     .slice(0, lastN);
             }
 
@@ -89,12 +107,36 @@ export default function createChartsRouter(db1, db2) {
                 buyTrades = removeOutliers(buyTrades);
             }
 
+            const sellAvgLine = movingAverageLine(sellTrades, 50);
+            const buyAvgLine = movingAverageLine(buyTrades, 50);
+
             const labelIndices = generateThreeLabels(trades);
 
             const configuration = {
                 type: "scatter",
                 data: {
                     datasets: [
+                        ...(sellAvgLine.length > 1 ? [{
+                            label: "Sell Trend",
+                            data: sellAvgLine,
+                            type: "line",
+                            borderColor: "#d5ffcc",
+                            borderWidth: 5,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                        }] : []),
+
+                        ...(buyAvgLine.length > 1 ? [{
+                            label: "Buy Trend",
+                            data: buyAvgLine,
+                            type: "line",
+                            borderColor: "#ffcabf",
+                            borderWidth: 5,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                        }] : []),
                         {
                             label: "Sell Trades",
                             data: sellTrades,
@@ -125,7 +167,7 @@ export default function createChartsRouter(db1, db2) {
                             max: trades.length - 1,
                             ticks: {
                                 color: "#fff",
-                                callback: function(value) {
+                                callback: function (value) {
                                     const tickValue = Math.round(value);
                                     if (labelIndices.includes(tickValue)) {
                                         if (trades[tickValue]) {
@@ -138,7 +180,7 @@ export default function createChartsRouter(db1, db2) {
                                 autoSkip: false,
                                 includeBounds: true,
                             },
-                            afterBuildTicks: function(scale) {
+                            afterBuildTicks: function (scale) {
                                 scale.ticks = labelIndices.map(index => ({
                                     value: index,
                                     label: new Date(trades[index].x).toLocaleDateString(),
@@ -152,7 +194,7 @@ export default function createChartsRouter(db1, db2) {
                             grid: { color: "rgba(255,255,255,0.1)" },
                         },
                     },
-                },   
+                },
             };
 
             const image = await chartJSNodeCanvas.renderToBuffer(configuration);
