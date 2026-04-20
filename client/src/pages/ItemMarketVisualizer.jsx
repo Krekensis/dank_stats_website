@@ -530,7 +530,7 @@ const ItemMarketVisualizer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white">
+    <div className="min-h-screen bg-[#070e0c] text-white p-6">
       <Navbar />
 
       {itemsLoading ? (
