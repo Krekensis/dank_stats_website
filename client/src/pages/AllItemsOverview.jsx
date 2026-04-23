@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar';
-import ItemCard from '../components/itemcard2';
+import ItemCardAll from '../components/itemcard-all';
 import SidePanel from '../components/sidepanel';
 import Loader from '../components/loader';
 import { useMongoData } from '../hooks/useMongoData';
@@ -13,30 +13,30 @@ const AllItemsOverview = () => {
     const { data: itemData, loading } = useMongoData();
 
     useEffect(() => {
-       if (loading || !itemData) return;
-   
-       const filtered = itemData
-         .filter((item) => item.url)
-         .map((item) => ({
-           ...item,
-           history: item.history
-             ?.slice() // shallow copy
-             .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
-         }))
-         .sort((a, b) => a.name.localeCompare(b.name));
-   
-       setItems(filtered);
-   
-       const allDates = filtered.flatMap((item) =>
-         item.history?.map((entry) => new Date(entry.t)) || []
-       );
-   
-       if (allDates.length > 0) {
-         const oldest = new Date(Math.min(...allDates));
-         const latest = new Date(Math.max(...allDates));
-         setDatasetSpan({ oldest, latest });
-       }
-     }, [itemData, loading]);
+        if (loading || !itemData) return;
+
+        const filtered = itemData
+            .filter((item) => item.url)
+            .map((item) => ({
+                ...item,
+                history: item.history
+                    ?.slice() // shallow copy
+                    .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        setItems(filtered);
+
+        const allDates = filtered.flatMap((item) =>
+            item.history?.map((entry) => new Date(entry.t)) || []
+        );
+
+        if (allDates.length > 0) {
+            const oldest = new Date(Math.min(...allDates));
+            const latest = new Date(Math.max(...allDates));
+            setDatasetSpan({ oldest, latest });
+        }
+    }, [itemData, loading]);
 
     const filteredItems = items.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -76,7 +76,7 @@ const AllItemsOverview = () => {
                             <div className="flex-1 overflow-y-auto max-h-[calc(100vh-160px)] pr-[6px]">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-5">
                                     {filteredItems.map((item) => (
-                                        <ItemCard
+                                        <ItemCardAll
                                             key={item.name}
                                             item={item}
                                             onClick={() => setSelectedItem(item)}

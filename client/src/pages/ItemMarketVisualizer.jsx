@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import Loader from "../components/loader";
-import MarketItemCard from "../components/marketItemCard"
+import MarketItemCard from "../components/itemcard-market"
 import ItemMultiSelect from "../components/itemmultiselect";
 
 import { useMongoData } from "../hooks/useMongoData";
@@ -372,7 +372,7 @@ const ItemMarketVisualizer = () => {
             pan: {
               enabled: true,
               mode: "xy",
-              modifierKey: "ctrl",
+              modifierKey: null,
               onPanStart: ({ chart }) => { chart.options.animation = false; },
               onPanComplete: ({ chart }) => {
                 chart.options.animation = false;

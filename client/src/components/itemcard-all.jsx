@@ -1,7 +1,7 @@
 import React from 'react';
 import { titleCase } from '../functions/stringUtils';
 
-const ItemCard2 = ({ item, onClick, selected }) => {
+const ItemCardAll = ({ item, onClick, selected }) => {
   return (
     <div
       onClick={onClick}
@@ -21,4 +21,4 @@ const ItemCard2 = ({ item, onClick, selected }) => {
   );
 };
 
-export default ItemCard2;
+export default ItemCardAll;

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import Loader from "../components/loader";
-import ItemCard from "../components/itemcard"
+import ItemCard from "../components/itemcard-value"
 import ItemMultiSelect from "../components/itemmultiselect";
 
 import { useMongoData } from "../hooks/useMongoData";
@@ -115,18 +115,28 @@ const ItemValueVisualizer = () => {
     // Determine display formats based on current dateFormat
     const displayFormat = dateFormat === "dd/mm/yyyy" ? "dd/MM/yy" : "MM/dd/yy";
 
+    const maxPoints = Math.max(...chartData.datasets.map(ds => ds.data.length), 1);
+    const pointDelay = Math.min(2000 / maxPoints, 50);
+
     chartRef.current = new ChartJS(ctx, {
       type: "line",
       data: chartData,
       options: {
         responsive: true,
-        animation: { duration: 0 },
+        animation: {
+          onComplete: () => {
+            if (chartRef.current) {
+              chartRef.current.options.animations = false;
+              chartRef.current.options.animation = false;
+            }
+          }
+        },
         animations: {
           x: { type: 'number', easing: 'linear', duration: 0 },
-          y: { type: 'number', easing: 'easeOutQuart', duration: 2000, from: (ctx) => ctx.chart.scales.y.getPixelForValue(0), delay: (ctx) => ctx.index * 30 },
+          y: { type: 'number', easing: 'easeOutQuart', duration: 2000, from: (ctx) => ctx.chart.scales.y.getPixelForValue(0), delay: (ctx) => ctx.index * pointDelay },
           elements: {
             line: { type: 'number', duration: 1200, easing: 'easeInOutSine', from: NaN },
-            point: { type: 'number', duration: 400, easing: 'easeOutQuart', delay: (ctx) => ctx.index * 30 }
+            point: { type: 'number', duration: 400, easing: 'easeOutQuart', delay: (ctx) => ctx.index * pointDelay }
           }
         },
         scales: {
@@ -228,7 +238,7 @@ const ItemValueVisualizer = () => {
             pan: {
               enabled: true,
               mode: "x",
-              modifierKey: "ctrl",
+              modifierKey: null,
               onPanStart: ({ chart }) => { chart.options.animation = false; },
               onPanComplete: ({ chart }) => {
                 chart.options.animation = false;
@@ -248,30 +258,30 @@ const ItemValueVisualizer = () => {
             limits: { x: { min: "original", max: "original" }, y: { min: "original", max: "original" } }
           },
         },
-        onHover: (event, activeElements) => {
-          if (activeElements.length > 0) {
-            const hoveredIndex = activeElements[0].datasetIndex;
-            chartRef.current.data.datasets.forEach((dataset, index) => {
-              if (index === hoveredIndex) {
-                dataset.borderColor = dataset.originalColor;
-                dataset.borderDash = [];
+        onHover: (event, activeElements, chart) => {
+          const hoveredIndex = activeElements.length > 0 ? activeElements[0].datasetIndex : null;
 
+          if (chart._hoveredDatasetIndex !== hoveredIndex) {
+            chart._hoveredDatasetIndex = hoveredIndex;
+
+            chart.data.datasets.forEach((dataset, index) => {
+              if (hoveredIndex === null || index === hoveredIndex) {
+                dataset.borderColor = dataset.originalColor;
+                dataset.backgroundColor = dataset.originalColor;
+                dataset.pointBackgroundColor = dataset.originalColor;
+                dataset.pointBorderColor = dataset.originalColor;
+                dataset.borderDash = [];
               } else {
                 const color = dataset.originalColor;
-                const dimmedColor = color + '80'; // Add 40% opacity (hex)
+                const dimmedColor = color + '20'; // Add high transparency
                 dataset.borderColor = dimmedColor;
+                dataset.backgroundColor = dimmedColor;
+                dataset.pointBackgroundColor = dimmedColor;
+                dataset.pointBorderColor = dimmedColor;
                 dataset.borderDash = [15, 10];
               }
             });
-            chartRef.current.update('none');
-          } else {
-            // Reset all to full opacity
-            chartRef.current.data.datasets.forEach(dataset => {
-              dataset.borderColor = dataset.originalColor;
-              dataset.borderDash = [];
-
-            });
-            chartRef.current.update('none');
+            chart.update(); // Use full update to ensure zoom plugin caches are busted and points redraw properly
           }
         },
       }
@@ -300,7 +310,7 @@ const ItemValueVisualizer = () => {
           }))
           .filter((entry) => entry.x >= startDate && entry.x <= endDate);
 
-        return { label: titleCase(item.name), data: dataPoints, borderColor: color, backgroundColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, url: item.url, originalColor: color };
+        return { label: titleCase(item.name), data: dataPoints, borderColor: color, backgroundColor: color, pointBackgroundColor: color, pointBorderColor: color, pointRadius: 4, pointHoverRadius: 5, tension: 0.4, url: item.url, originalColor: color };
       })
     );
 
