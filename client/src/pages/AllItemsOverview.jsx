@@ -7,6 +7,7 @@ import { useMongoData } from '../hooks/useMongoData';
 
 const AllItemsOverview = () => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchMode, setSearchMode] = useState('contains'); // 'contains', 'exact', 'startsWith'
     const [items, setItems] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [datasetSpan, setDatasetSpan] = useState({ oldest: null, latest: null });
@@ -38,9 +39,14 @@ const AllItemsOverview = () => {
         }
     }, [itemData, loading]);
 
-    const filteredItems = items.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredItems = items.filter((item) => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return true;
+        const name = item.name.toLowerCase();
+        if (searchMode === 'exact') return name === query;
+        if (searchMode === 'startsWith') return name.startsWith(query);
+        return name.includes(query);
+    });
 
     useEffect(() => {
         if (!selectedItem && filteredItems.length > 0) {
@@ -61,13 +67,39 @@ const AllItemsOverview = () => {
                     <div className="mt-20">
                         {/* Search Bar */}
                         <div className="max-w-7xl mx-auto mb-6">
-                            <input
-                                type="text"
-                                placeholder="Search for an item..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full p-3 bg-[#111816] text-[#a4bbb0] placeholder-[#a4bbb0] placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-[#6bff7a] focus:border-[#6bff7a] transition duration-300"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search for an item..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full p-3 pr-20 bg-[#111816] text-[#a4bbb0] placeholder-[#a4bbb0] placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-[#6bff7a] focus:border-[#6bff7a] transition duration-300"
+                                />
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                    {/* Starts With toggle */}
+                                    <button
+                                        onClick={() => setSearchMode(searchMode === 'startsWith' ? 'contains' : 'startsWith')}
+                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                                        title="Starts with"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 10H9M7 7L10 10L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <text x="15.5" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">A</text>
+                                        </svg>
+                                    </button>
+                                    {/* Exact Match toggle */}
+                                    <button
+                                        onClick={() => setSearchMode(searchMode === 'exact' ? 'contains' : 'exact')}
+                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                                        title="Exact match"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2 16H18M2 16V12.5M18 16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <text x="10" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">ab</text>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Main Content: Grid + Side Panel */}

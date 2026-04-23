@@ -4,6 +4,7 @@ import { titleCase } from "../functions/stringUtils";
 const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchMode, setSearchMode] = useState('contains'); // 'contains', 'exact', 'startsWith'
   const [sortedItems, setSortedItems] = useState(items);
   const dropdownRef = useRef(null);
 
@@ -54,10 +55,15 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
 
   // Filtered visible items
   const filteredItems = useMemo(() => {
-    return sortedItems.filter(item =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [sortedItems, searchTerm]);
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return sortedItems;
+    return sortedItems.filter(item => {
+      const name = item.name.toLowerCase();
+      if (searchMode === 'exact') return name === query;
+      if (searchMode === 'startsWith') return name.startsWith(query);
+      return name.includes(query);
+    });
+  }, [sortedItems, searchTerm, searchMode]);
 
   const toggleSelectItem = (item) => {
     const isSelected = selectedItems.some(sel => sel.name === item.name);
@@ -94,13 +100,39 @@ const ItemMultiSelect = ({ items, selectedItems, setSelectedItems, maxSelected }
             .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #2b473e; border-radius: 6px; border: 2px solid #0d1311; }
           `}</style>
           <div className="p-2">
-            <input
-              type="text"
-              placeholder="Type to search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-md px-3 py-1 bg-[#0d1311] font-mono text-[#a4bbb0] border-2 border-transparent focus:outline-none placeholder-[#a4bbb0] placeholder-opacity-100"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Type to search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-md px-3 py-1 pr-16 bg-[#0d1311] font-mono text-[#a4bbb0] border-2 border-transparent focus:outline-none placeholder-[#a4bbb0] placeholder-opacity-100"
+              />
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                {/* Starts With toggle */}
+                <button
+                  onClick={() => setSearchMode(searchMode === 'startsWith' ? 'contains' : 'startsWith')}
+                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                  title="Starts with"
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 10H9M7 7L10 10L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <text x="15.5" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">A</text>
+                  </svg>
+                </button>
+                {/* Exact Match toggle */}
+                <button
+                  onClick={() => setSearchMode(searchMode === 'exact' ? 'contains' : 'exact')}
+                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                  title="Exact match"
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 16H18M2 16V12.5M18 16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <text x="10" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">ab</text>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
           <div>
             {filteredItems.length === 0 ? (

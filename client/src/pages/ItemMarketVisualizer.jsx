@@ -7,6 +7,7 @@ import MarketItemCard from "../components/itemcard-market"
 import ItemMultiSelect from "../components/itemmultiselect";
 
 import { useMongoData } from "../hooks/useMongoData";
+import marketCache from "../hooks/marketCache";
 
 import { neonizeHex, getAverageColor, lightenHex } from "../functions/colorUtils";
 import { commas, titleCase } from "../functions/stringUtils";
@@ -48,6 +49,8 @@ const ItemMarketVisualizer = () => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [marketData, setMarketData] = useState({});
+  const [rawMarketData, setRawMarketData] = useState({}); // Unfiltered data per item name
+  const [itemColors, setItemColors] = useState({}); // Cached neonized colors per item name
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
   const dateFormatDropdownRef = useRef(null);
@@ -58,8 +61,10 @@ const ItemMarketVisualizer = () => {
   const { data: itemData, loading: itemsLoading } = useMongoData();
 
   const [dataOptionsDropdownOpen, setDataOptionsDropdownOpen] = useState(false);
-  const [excludeOutliers, setExcludeOutliers] = useState(false);
-  const [outlierThreshold, setOutlierThreshold] = useState(3);
+  const [excludeOutliers, setExcludeOutliers] = useState(true);
+  const [excludeOneCoinTrades, setExcludeOneCoinTrades] = useState(true);
+  const [outlierThresholds, setOutlierThresholds] = useState({}); // { itemName: threshold }
+  const [dualMode, setDualMode] = useState(false);
   const dataOptionsDropdownRef = useRef(null);
 
   useEffect(() => {
@@ -82,11 +87,12 @@ const ItemMarketVisualizer = () => {
   }, []);
 
 
+  // When filters change, rebuild chart from cached raw data (no API calls)
   useEffect(() => {
-    if (canDisplay && chartData) {
-      handleDisplay();
+    if (Object.keys(rawMarketData).length > 0 && displayedItems.length > 0) {
+      rebuildChart(rawMarketData, displayedItems, itemColors);
     }
-  }, [tradeType, showPrivate, excludeOutliers]);
+  }, [tradeType, showPrivate, excludeOutliers, excludeOneCoinTrades, dualMode, outlierThresholds]);
 
   useEffect(() => {
     if (itemsLoading || !itemData) return;
@@ -124,74 +130,75 @@ const ItemMarketVisualizer = () => {
     return data.filter(point => Math.abs(point.y - mean) <= threshold * stdDev);
   };
 
-  const fetchMarketData = useCallback(async (itemID, itemName, startDate, endDate, onProgress) => {
+  // Fetch raw market data — no filters applied, uses segment cache
+  const fetchMarketData = useCallback(async (itemID, itemName, start, end, onProgress) => {
+    const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001";
     const limit = 10000;
-    const baseParams = {
-      item: itemID,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      private: showPrivate.toString(),
-    };
 
-    console.log("Fetching data for", itemName, "with id:", itemID);
-    if (tradeType !== "all") baseParams.type = tradeType;
+    // Check cache for missing segments
+    const missing = marketCache.getMissingSegments(itemID, start, end);
 
-    try {
-      // 1. Count
-      const countRes = await fetch(`${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${new URLSearchParams({
-        ...baseParams,
-        countOnly: "true"
-      })}`);
-      const { count } = await countRes.json();
-
-      setDebugInfo(`Fetching ${itemName}: ${count} records`);
-
-      if (count <= limit) {
-        setDebugInfo(`${itemName}: Fetching ${count} records...`);
-        if (onProgress) onProgress(0, 100); // Show 0% first
-
-        await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay
-        if (onProgress) onProgress(50, 100); // Show 50%
-        const res = await fetch(`${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${new URLSearchParams({
-          ...baseParams,
-          skip: "0",
-          limit: count.toString()
-        })}`);
-        const data = await res.json();
-
-        if (onProgress) onProgress(100, 100);
-        return data;
-      }
-
-      // 2. Batched fetching with progress
-      const pages = Math.ceil(count / limit);
-      const results = [];
-
-      for (let i = 0; i < pages; i++) {
-        setDebugInfo(`${itemName}: Batch ${i + 1}/${pages}`);
-
-        const params = new URLSearchParams({
-          ...baseParams,
-          skip: (i * limit).toString(),
-          limit: limit.toString()
-        });
-
-        const url = `${import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001"}/api/marketlogs?${params}`;
-        const res = await fetch(url);
-        const batch = await res.json();
-        results.push(...batch);
-
-        if (onProgress) onProgress(i + 1, pages);
-
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      return results;
-    } catch (err) {
-      setDebugInfo(`Error: ${err.message}`);
-      throw err;
+    if (missing.type === 'none') {
+      console.log(`Cache hit for ${itemName} — no fetch needed`);
+      if (onProgress) onProgress(100, 100);
+      return marketCache.getData(itemID, start, end);
     }
-  }, [tradeType, showPrivate]);
+
+    console.log(`Cache ${missing.type} for ${itemName} — fetching ${missing.segments.length} segment(s)`);
+
+    for (const segment of missing.segments) {
+      const baseParams = {
+        item: itemID,
+        start: segment.start.toISOString(),
+        end: segment.end.toISOString(),
+      };
+
+      try {
+        // Count
+        const countRes = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
+          ...baseParams,
+          countOnly: "true"
+        })}`);
+        const { count } = await countRes.json();
+        setDebugInfo(`Fetching ${itemName}: ${count} records`);
+
+        if (count <= limit) {
+          setDebugInfo(`${itemName}: Fetching ${count} records...`);
+          if (onProgress) onProgress(0, 100);
+
+          const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
+            ...baseParams,
+            skip: "0",
+            limit: count.toString()
+          })}`);
+          const data = await res.json();
+          marketCache.mergeData(itemID, data, segment.start, segment.end);
+          if (onProgress) onProgress(100, 100);
+        } else {
+          // Batched fetching
+          const pages = Math.ceil(count / limit);
+          for (let i = 0; i < pages; i++) {
+            setDebugInfo(`${itemName}: Batch ${i + 1}/${pages}`);
+            const params = new URLSearchParams({
+              ...baseParams,
+              skip: (i * limit).toString(),
+              limit: limit.toString()
+            });
+            const res = await fetch(`${apiBase}/api/marketlogs?${params}`);
+            const batch = await res.json();
+            marketCache.mergeData(itemID, batch, segment.start, segment.end);
+            if (onProgress) onProgress(i + 1, pages);
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+      } catch (err) {
+        setDebugInfo(`Error: ${err.message}`);
+        throw err;
+      }
+    }
+
+    return marketCache.getData(itemID, start, end);
+  }, []);
 
   const calculateMovingAverage = (data, windowSize = 50) => {
     const sortedData = [...data].sort((a, b) => new Date(a.x) - new Date(b.x));
@@ -352,7 +359,7 @@ const ItemMarketVisualizer = () => {
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">${dataset.label}</div>
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">⏣ ${commas(value)}</div>
                       <div style="color: #a4bbb0; font-size: 11px; margin-bottom: 1px;">Qty: ${quantity}</div>
-                      <div style="color: ${isSell ? '#ff6b6b' : '#6bff7a'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
+                      <div style="color: ${isSell ? '#6bff7a' : '#ff6b6b'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
                     </div>
                     <div style="display: flex; align-items: center;">
                       <img src="${dataset.url}" alt="" style="width: 40px; height: 40px;">
@@ -403,58 +410,127 @@ const ItemMarketVisualizer = () => {
     };
   }, [chartData, dateFormat]);
 
-  const handleDisplay = async () => {
-    setLoading(true);
-    setProgress(0);
-    setDisplayedItems([...selectedItems]);
-    setIsZoomedIn(false);
+  /**
+   * Apply all active filters to raw data and rebuild chart datasets.
+   * This is called when filters change (no API calls).
+   * Designed to be extensible — add new filter logic here.
+   */
+  const applyFilters = (rawData, itemName) => {
+    let filtered = [...rawData];
 
-    try {
-      const datasets = [];
+    // Filter: trade type (skipped in dual mode — dual mode always uses all trades)
+    if (!dualMode) {
+      if (tradeType === 'sell') {
+        filtered = filtered.filter(p => p.s === true);
+      } else if (tradeType === 'buy') {
+        filtered = filtered.filter(p => p.s === false);
+      }
+    }
 
-      for (let i = 0; i < selectedItems.length; i++) {
-        const item = selectedItems[i];
-        const baseColor = await getAverageColor(item.url);
-        const color = neonizeHex(baseColor);
+    // Filter: hide private offers
+    if (!showPrivate) {
+      filtered = filtered.filter(p => !p.id || !p.id.startsWith('PV'));
+    }
 
+    // Filter: exclude outliers (per-item threshold)
+    if (excludeOutliers) {
+      const threshold = outlierThresholds[itemName] ?? 3;
+      filtered = removeOutliers(filtered, threshold);
+    }
 
-        const rawData = await fetchMarketData(
-          item.id,
-          item.name,
-          new Date(startDate),
-          new Date(endDate),
-          (currentBatch, totalBatches) => {
+    // Filter: exclude ⏣ 1 trades (#5)
+    if (excludeOneCoinTrades) {
+      filtered = filtered.filter(p => p.y !== 1);
+    }
 
-            const itemProgress = currentBatch / totalBatches;
-            const overallProgress = ((i + itemProgress) / selectedItems.length) * 100;
-            setProgress(Math.round(overallProgress));
+    return filtered;
+  };
+
+  /**
+   * Rebuild chart datasets from raw cached data + current filter state.
+   * No API calls — purely client-side transformation.
+   */
+  const rebuildChart = (rawDataMap, items, colors) => {
+    const datasets = [];
+    const newMarketData = {};
+
+    for (const item of items) {
+      const rawPoints = rawDataMap[item.name] || [];
+      const color = colors[item.name];
+      if (!color) continue;
+
+      // Apply all filters
+      let scatterData = applyFilters(rawPoints, item.name);
+      newMarketData[item.name] = scatterData;
+
+      // Dual Mode: split buy/sell into separate colored datasets
+      if (dualMode && items.length === 1) {
+        const sellPoints = scatterData.filter(p => p.s === true);
+        const buyPoints = scatterData.filter(p => p.s === false);
+
+        const sellTrend = calculateMovingAverage(sellPoints, 100);
+        const buyTrend = calculateMovingAverage(buyPoints, 100);
+
+        datasets.push(
+          {
+            label: `${titleCase(item.name)} Sell Trend`,
+            data: sellTrend,
+            borderColor: '#6bff7a',
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            borderWidth: 4,
+            tension: 0.3,
+            showLine: true,
+            url: item.url,
+            type: 'line',
+            order: 1
+          },
+          {
+            label: `${titleCase(item.name)} Buy Trend`,
+            data: buyTrend,
+            borderColor: '#ff6b6b',
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            borderWidth: 4,
+            tension: 0.3,
+            showLine: true,
+            url: item.url,
+            type: 'line',
+            order: 1
+          },
+          {
+            label: `${titleCase(item.name)} (Sell)`,
+            data: sellPoints,
+            backgroundColor: '#6bff7a80',
+            borderColor: '#6bff7a',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            showLine: false,
+            url: item.url,
+            type: 'scatter',
+            order: 2
+          },
+          {
+            label: `${titleCase(item.name)} (Buy)`,
+            data: buyPoints,
+            backgroundColor: '#ff6b6b80',
+            borderColor: '#ff6b6b',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            showLine: false,
+            url: item.url,
+            type: 'scatter',
+            order: 2
           }
         );
-
-        let scatterData = rawData
-          .map((entry) => ({
-            x: new Date(entry.x),
-            y: entry.y,
-            n: entry.n,
-            id: entry.id,
-            s: entry.s
-          }))
-          .filter((entry) => entry.x >= startDate && entry.x <= endDate);
-
-        if (excludeOutliers) {
-          scatterData = removeOutliers(scatterData, outlierThreshold);
-        }
-
-        setMarketData(prev => ({
-          ...prev,
-          [item.name]: scatterData
-        }));
-
+      } else {
+        // Normal mode: single color per item
         const trendData = calculateMovingAverage(scatterData, 100);
         const trendColor = lightenHex(color, 0.4);
 
         datasets.push(
-
           {
             label: `${titleCase(item.name)} Trend`,
             data: trendData,
@@ -483,8 +559,59 @@ const ItemMarketVisualizer = () => {
           }
         );
       }
+    }
 
-      setChartData({ datasets });
+    setMarketData(newMarketData);
+    setChartData({ datasets });
+  };
+
+  const handleDisplay = async () => {
+    setLoading(true);
+    setProgress(0);
+    const currentItems = [...selectedItems];
+    setDisplayedItems(currentItems);
+    setIsZoomedIn(false);
+
+    try {
+      const newRawData = {};
+      const newColors = {};
+
+      for (let i = 0; i < currentItems.length; i++) {
+        const item = currentItems[i];
+
+        // Compute color (uses color cache from Phase 1)
+        const baseColor = await getAverageColor(item.url);
+        const color = neonizeHex(baseColor);
+        newColors[item.name] = color;
+
+        // Fetch raw data (uses segment cache from Phase 4)
+        const rawData = await fetchMarketData(
+          item.id,
+          item.name,
+          new Date(startDate),
+          new Date(endDate),
+          (currentBatch, totalBatches) => {
+            const itemProgress = currentBatch / totalBatches;
+            const overallProgress = ((i + itemProgress) / currentItems.length) * 100;
+            setProgress(Math.round(overallProgress));
+          }
+        );
+
+        // Store raw unfiltered data
+        newRawData[item.name] = rawData.map((entry) => ({
+          x: new Date(entry.x),
+          y: entry.y,
+          n: entry.n,
+          id: entry.id,
+          s: entry.s
+        }));
+      }
+
+      setRawMarketData(newRawData);
+      setItemColors(newColors);
+
+      // Build chart with current filters applied
+      rebuildChart(newRawData, currentItems, newColors);
     } catch (error) {
       console.error('Error displaying market data:', error);
     } finally {
@@ -623,7 +750,7 @@ const ItemMarketVisualizer = () => {
                         </div>
                         <span>Private offers</span>
                       </label>
-                      <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none">
+                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={excludeOutliers}
@@ -643,6 +770,48 @@ const ItemMarketVisualizer = () => {
                         </div>
                         <span>Exclude outliers</span>
                       </label>
+                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={excludeOneCoinTrades}
+                          onChange={(e) => setExcludeOneCoinTrades(e.target.checked)}
+                          className="hidden"
+                        />
+                        <div
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOneCoinTrades ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
+                          style={{ backgroundColor: "#0d1311" }}
+                          aria-hidden="true"
+                        >
+                          {excludeOneCoinTrades && (
+                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
+                        <span>Exclude ⏣ 1 trades</span>
+                      </label>
+                      {displayedItems.length === 1 && (
+                        <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none border-t border-[#1e2a27] pt-2 mt-1">
+                          <input
+                            type="checkbox"
+                            checked={dualMode}
+                            onChange={(e) => setDualMode(e.target.checked)}
+                            className="hidden"
+                          />
+                          <div
+                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${dualMode ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
+                            style={{ backgroundColor: "#0d1311" }}
+                            aria-hidden="true"
+                          >
+                            {dualMode && (
+                              <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </div>
+                          <span>Dual Mode</span>
+                        </label>
+                      )}
                     </div>
                   )}
                 </div>
@@ -675,17 +844,18 @@ const ItemMarketVisualizer = () => {
                 <div className="text-[#6bff7a] text-[16px]">|</div>
 
                 {/* Trade Type Dropdown */}
-                <div className="relative" ref={tradeTypeDropdownRef}>
+                <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : ""}>
                   <button
-                    onClick={() => setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    onClick={() => !dualMode && setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
+                    className={`flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-[#6bff7a] cursor-pointer'}`}
+                    disabled={dualMode}
                   >
-                    <span>{getTradeTypeLabel(tradeType)}</span>
+                    <span>{dualMode ? 'All trades' : getTradeTypeLabel(tradeType)}</span>
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
-                  {tradeTypeDropdownOpen && (
+                  {tradeTypeDropdownOpen && !dualMode && (
                     <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
                       {["all", "buy", "sell"].map((type) => (
                         <button
@@ -726,17 +896,43 @@ const ItemMarketVisualizer = () => {
             <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
               <div className="flex flex-col space-y-1">
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Market Data — {displayedItems.length}</h2>
-                {chartData?.datasets.filter(ds => ds.type === 'scatter').map((ds) => {
-                  const itemData = marketData[ds.label.toLowerCase()] || [];
-                  const totalTrades = itemData.length;
+                {displayedItems.map((item) => {
+                  const itemName = item.name;
+                  const filteredData = marketData[itemName] || [];
+                  const totalTrades = filteredData.length;
+                  const color = itemColors[itemName] || '#6bff7a';
+                  const threshold = outlierThresholds[itemName] ?? 3;
                   return (
-                    <div key={ds.label} className="flex items-center space-x-2 mb-2">
-                      <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: ds.borderColor }} />
-                      <img src={ds.url} alt={ds.label} className="w-5 h-5 shrink-0" />
-                      <div className="flex flex-col">
-                        <span className="truncate text-xs">{ds.label}</span>
-                        <span className="text-xs text-[#6bff7a]">{totalTrades} trades</span>
+                    <div key={itemName} className="mb-3">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: color }} />
+                        <img src={item.url} alt={titleCase(itemName)} className="w-5 h-5 shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="truncate text-xs">{titleCase(itemName)}</span>
+                          <span className="text-xs text-[#6bff7a]">{totalTrades} trades</span>
+                        </div>
                       </div>
+                      {excludeOutliers && (
+                        <div className="ml-1 mt-1">
+                          <div className="flex items-center justify-between text-[10px] text-[#a4bbb0] mb-0.5">
+                            <span>Outlier σ</span>
+                            <span className="text-[#6bff7a]">{threshold.toFixed(1)}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="5"
+                            step="0.5"
+                            value={threshold}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              setOutlierThresholds(prev => ({ ...prev, [itemName]: val }));
+                            }}
+                            className="w-full h-1 appearance-none rounded-full bg-[#1e2a27] outline-none cursor-pointer"
+                            style={{ accentColor: '#6bff7a' }}
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}

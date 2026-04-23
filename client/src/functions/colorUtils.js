@@ -15,11 +15,15 @@ export const rgbArrayToHex = ([r, g, b]) => {
   );
 }
 
+const colorCache = new Map();
+
 export const getAverageColor = async (imageUrl) => {
+  if (colorCache.has(imageUrl)) return colorCache.get(imageUrl);
   try {
     const colorArray = await average(imageUrl); // returns [r, g, b]
     // Convert [r,g,b] to hex string
     const hex = rgbArrayToHex(colorArray);
+    colorCache.set(imageUrl, hex);
     return hex;
   } catch (error) {
     console.error('Error getting average color:', error);

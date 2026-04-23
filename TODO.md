@@ -1,17 +1,17 @@
 ## TO-DO
 
 ### Important backend / logic stuff
-1. Needs to be scalable, apply caching techniques for stuff like item emoji image urls, item image colors etc.
-2. Logic for filters / options on item market visualizer, currently re-fetches everything again when any filter/option is toggled/changed. Figure out any other stuff logical issues to improve on excessive API calls. Let filters be applied on data POST API call and not PRE API call.
+1. ✅ Needs to be scalable, apply caching techniques for stuff like item emoji image urls, item image colors etc.
+2. ✅ Logic for filters / options on item market visualizer, currently re-fetches everything again when any filter/option is toggled/changed.
 3. When there are too many data points on market visualizer, it starts getting laggy. Figure out solution for this.
-4. Caching techniques for market visualizer too, cuz goddamn. Implement selective data fetching that only retrieves segments not already present in cache, avoiding redundant requests for data that has been previously loaded.
-5. Toggleable option in market visualizer under `data options` for `exclude ⏣ 1 trades` filter.
-6. Replace market stats placeholder in `sidepanel` (allitemoverview) with actual functionality with similar style as Value trend stuff (chart, buttons etc.) For chart buttons, add option to pick between last 100, 500, 1000 trades. for chart, dont show data points, just show the moving avg lines (sell #6bff7a and buy #ff6b6b separate)
+4. ✅ Caching techniques for market visualizer too, cuz goddamn. Implement selective data fetching that only retrieves segments not already present in cache, avoiding redundant requests for data that has been previously loaded.
+5. ✅ Toggleable option in market visualizer under `data options` for `Exclude ⏣ 1 trades` filter with respective logic.
+6. ✅ Replace market stats placeholder in `sidepanel` (allitemoverview) with actual functionality with similar style as Value trend stuff (chart, buttons etc.) For chart buttons, add option to pick between last 100, 500, 1000 trades. for chart, dont show data points, just show the moving avg lines (sell #6bff7a and buy #ff6b6b separate)
 7. For some reason, using the direct url for different pages shows `404 not found` on vercel hosting (fine on localhost). So, gotta figure out routing issues. Page routing works fine on host when navigating through buttons/navbar however.
-8. Enable `exclude outliers` by default (but not applying pre API call, applying post API call via frontend). 
-9. Make advanced outlier threshold sliders (these can be placed where the legend for items are) which can support separate thresholds for separate items.
-10. `Exact match` (applying after .trim() on input), `StartsWith` toggle buttons on all search bars (AllItems)with respective logic.
-11. When ONLY ONE item (multiple items wont work) is selected in `ItemMarketVisualizer`, add a `Dual Mode` to `data options`. Disable dropdown trade type and lock to `all trades` when `Dual mode` is toggled `ON` (hovering on this disabled dropdown should show "This option is disabled as 'Dual Mode' is enabled."). This toggle will make all the SELL trade data points GREEN (#6bff7a) and BUY as RED (#ff6b6b) and have 2 separate moving avg lines (one for sell and one for buy). Without the toggle, the chart only shows a single moving avg line for ALL data points and all data elements are color matched to item colors.
+8. ✅ Enable `Exclude outliers`, `Exclude ⏣ 1 trades` by default (but not applying pre API call, applying post API call via filters).
+9. ✅ Make advanced outlier threshold sliders in `ItemMarketVisualizer` (these can be placed where the legend for items are) which can support separate thresholds for separate items.
+10. ✅ `Exact match` (applying after .trim() on input), `StartsWith` toggle buttons on all search bars (AllItemsOverview, ItemMultiSelect, etc.) with respective logic.
+11. ✅ When ONLY ONE item (multiple items wont work) is selected in `ItemMarketVisualizer`, add a `Dual Mode` to `data options`. Disable dropdown `Trade type` and lock to `all trades` when `Dual mode` is toggled `ON` (hovering on this disabled dropdown should show "This option is disabled as 'Dual Mode' is enabled."). This toggle will make all the SELL trade data points GREEN (#6bff7a) and BUY as RED (#ff6b6b) and have 2 separate moving avg lines (one for sell and one for buy). Without the toggle, the chart only shows a single moving avg line for ALL data points and all data elements are color matched to item colors.
 
 
 ### UI/UX stuff
