@@ -161,7 +161,7 @@ const ItemValueVisualizer = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px;`;
+                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 // Create triangle pointer
                 const triangle = document.createElement('div');
@@ -202,7 +202,7 @@ const ItemValueVisualizer = () => {
                 }
 
                 tooltipEl.innerHTML = `
-                  <div style="display: flex; gap: 0; align-items: center;">
+                  <div style="display: flex; gap: 16px; align-items: center;">
                     <div style="flex: 1;">
                       <div style="color: #ffffff; font-size: 12px; font-weight: bold; margin-bottom: 2px;">
                         ${formatDate(date, true)}
@@ -450,8 +450,8 @@ const ItemValueVisualizer = () => {
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
                 {chartData?.datasets.map((ds) => (
                   <div key={ds.label} className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
-                    <img src={ds.url} alt={ds.label} className="w-5 h-5" />
+                    <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: ds.borderColor }} />
+                    <img src={ds.url} alt={ds.label} className="w-5 h-5 shrink-0" />
                     <span className="truncate">{ds.label}</span>
                   </div>
                 ))}
@@ -467,6 +467,18 @@ const ItemValueVisualizer = () => {
             ))}
           </div>
         </>
+      )}
+
+      {!chartData && !loading && (
+        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
+          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          <h2 className="text-xl font-bold mb-2">Item Value Visualizer</h2>
+          <p className="max-w-md">
+            Select up to 15 items, choose your date range, and click "Display" to visualize their historical value trends.
+          </p>
+        </div>
       )}
     </div>
   );

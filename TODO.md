@@ -15,16 +15,18 @@
 
 
 ### UI/UX stuff
-1. Match checkbox style of `data options` checkboxes to match checkbox style in `itemmultiselect` component.
-2. `itemcard2` component implementation in `AllItemsOverview` page doesnt have consistent sizes when item names are longer.
+✅ 1. Match checkbox style of `data options` checkboxes to match checkbox style in `itemmultiselect` component.
+✅ 2. `itemcard2` component implementation in `AllItemsOverview` page doesnt have consistent sizes when item names are longer (all of them should be equal sized squares).
 3. Currently zooming on chart doesnt have scrollbars so you have to unzoom and zoom again to see a different part, if possible figure this out.
 4. Whole website is not responsive and terrible for mobile devices, gotta fix this.
-5. Show placeholder divs with info about the page when no items are selected in `ItemValueVisualizer` / `ItemMarketVisualizer` pages.
-6. Better home page with info about the site itself.
-7. better ui for `itemcard` component.
+✅ 5. Show placeholder divs with info about the page on `ItemValueVisualizer` / `ItemMarketVisualizer` pages are opened and "display" has not been clicked yet (basically when no data is alr being displayed).
+6. Better home page with info about the site itself. Dont remove the existing stuff on homepage, add stuff over it.
+✅ 7. better ui for `itemcard` component.
 8. Dynamic `ItemValueVisualizer` chart animation durations because when there are more data points it feels sluggish. So normalize this. 
 9. In the `ItemValueVisualizer` chart, ensure that when a line is hovered, both the non-hovered lines and their corresponding data points reduce in opacity. Currently, only the lines are affected, the data points remain unchanged for some reason.
-10. Chart data tooltips need to be wider when displaying longer item names because those are getting clipped. 
+✅ 10. Chart data tooltips need to be wider when displaying longer item names because those are getting clipped.
+✅ 11. `itemcard` only shows info for item-values, however we are using that same component for `ItemMarketVisualizer`. Instead, make a separate component for that which will have relevant info about trades and all with similar style as `itemcard` and use that.
+✅ 12. In `ItemValueVisualizer` chart legends, the colored square sometimes gets squeezed when item names are long, fix this.
 
 
 ### Structural & security stuff

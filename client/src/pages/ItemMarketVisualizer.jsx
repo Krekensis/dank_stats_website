@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "../components/navbar";
 import DatePicker from "../components/datepicker";
 import Loader from "../components/loader";
-import ItemCard from "../components/itemcard"
+import MarketItemCard from "../components/marketItemCard"
 import ItemMultiSelect from "../components/itemmultiselect";
 
 import { useMongoData } from "../hooks/useMongoData";
@@ -299,7 +299,7 @@ const ItemMarketVisualizer = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px;`;
+                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
@@ -344,7 +344,7 @@ const ItemMarketVisualizer = () => {
                 const isSell = originalData.s !== undefined ? originalData.s : true;
 
                 tooltipEl.innerHTML = `
-                  <div style="display: flex; gap: 0; align-items: center;">
+                  <div style="display: flex; gap: 16px; align-items: center;">
                     <div style="flex: 1;">
                       <div style="color: #ffffff; font-size: 12px; font-weight: bold; margin-bottom: 2px;">
                         ${dateString} ${timeString}
@@ -602,23 +602,45 @@ const ItemMarketVisualizer = () => {
                     </svg>
                   </button>
                   {dataOptionsDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-5 min-w-[200px] p-2">
-                      <label className="flex items-center space-x-2 text-[12px] mb-2">
+                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-5 w-max p-2">
+                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={showPrivate}
                           onChange={(e) => setShowPrivate(e.target.checked)}
-                          className="rounded border-gray-300"
+                          className="hidden"
                         />
+                        <div
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${showPrivate ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
+                          style={{ backgroundColor: "#0d1311" }}
+                          aria-hidden="true"
+                        >
+                          {showPrivate && (
+                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
                         <span>Private offers</span>
                       </label>
-                      <label className="flex items-center space-x-2 text-[12px]">
+                      <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={excludeOutliers}
                           onChange={(e) => setExcludeOutliers(e.target.checked)}
-                          className="rounded border-gray-300"
+                          className="hidden"
                         />
+                        <div
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOutliers ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
+                          style={{ backgroundColor: "#0d1311" }}
+                          aria-hidden="true"
+                        >
+                          {excludeOutliers && (
+                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
                         <span>Exclude outliers</span>
                       </label>
                     </div>
@@ -709,8 +731,8 @@ const ItemMarketVisualizer = () => {
                   const totalTrades = itemData.length;
                   return (
                     <div key={ds.label} className="flex items-center space-x-2 mb-2">
-                      <div className="w-4 h-4 rounded-md" style={{ backgroundColor: ds.borderColor }} />
-                      <img src={ds.url} alt={ds.label} className="w-5 h-5" />
+                      <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: ds.borderColor }} />
+                      <img src={ds.url} alt={ds.label} className="w-5 h-5 shrink-0" />
                       <div className="flex flex-col">
                         <span className="truncate text-xs">{ds.label}</span>
                         <span className="text-xs text-[#6bff7a]">{totalTrades} trades</span>
@@ -724,13 +746,25 @@ const ItemMarketVisualizer = () => {
 
           <div className="flex flex-wrap mx-auto mt-6" style={{ width: "1251px", gap: "19px" }} id="cards-container">
             {displayedItems.map((item) => (
-              <ItemCard key={item.name} item={item} startDate={startDate} endDate={endDate} />
+              <MarketItemCard key={item.name} item={item} tradeData={marketData[item.name]} />
             ))}
             {Array.from({ length: 5 - displayedItems.length }).map((_, i) => (
               <div key={"empty-" + i} style={{ flex: "0 0 235px", width: "235px" }} className="bg-transparent" />
             ))}
           </div>
         </>
+      )}
+
+      {!chartData && !loading && !itemsLoading && (
+        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
+          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+          </svg>
+          <h2 className="text-xl font-bold mb-2">Item Market Visualizer</h2>
+          <p className="max-w-md">
+            Select up to 10 items, choose your date range, and click "Display" to visualize their market trades, trends, and pricing history.
+          </p>
+        </div>
       )}
     </div>
   );
