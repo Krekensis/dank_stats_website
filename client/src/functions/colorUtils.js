@@ -1,5 +1,4 @@
 // src/utils/colorUtils.js
-import axios from "axios";
 import { average } from 'color.js';
 
 export const rgbArrayToHex = ([r, g, b]) => {
@@ -31,23 +30,6 @@ export const getAverageColor = async (imageUrl) => {
   }
 }
 
-export const getEmojiColor = async (imageUrl) => {
-  try {
-    const response = await axios.get("https://api.sightengine.com/1.0/check.json", {
-      params: {
-        url: imageUrl.endsWith(".gif") ? imageUrl.replace(".gif", ".png") : imageUrl,
-        models: "properties",
-        api_user: "256690365",
-        api_secret: "DSZ9GksrgKuzP6XsfgCw",
-      },
-    });
-    const hex = response.data.colors?.dominant?.hex;
-    return hex || `hsl(${Math.random() * 360}, 70%, 60%)`;
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    return `hsl(${Math.random() * 360}, 70%, 60%)`;
-  }
-};
 
 export const hexOpacity = (hex, opacityPercent) => {
   // Remove "#" if present

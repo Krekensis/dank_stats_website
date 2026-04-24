@@ -1,4 +1,5 @@
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
+import { LRUCache } from "lru-cache";
 import { removeOutliers, generateThreeLabels, movingAverageLine } from "../utils/mathUtils.js";
 
 const width = 700;
@@ -8,6 +9,13 @@ const chartJSNodeCanvas = new ChartJSNodeCanvas({
     width,
     height,
     backgroundColour: "transparent",
+});
+
+const cache = new LRUCache({
+    max: 100,            // max 100 unique charts in memory
+    ttl: 60_000,         // expire after 60 seconds
+    maxSize: 50_000_000, // 50MB total cap
+    sizeCalculation: (v) => v.length,
 });
 
 export const getChart = (db1, db2) => async (req, res) => {
@@ -21,9 +29,21 @@ export const getChart = (db1, db2) => async (req, res) => {
         const lastN = Math.min(parseInt(req.query.last || "500", 10), 5000);
         const hidePrivate = req.query.private === "false";
         const removeOutlierFlag = req.query.routlier === "true";
+        const excludeOneCoin = req.query.ronecoin === "true";
+
+        // Check LRU cache before doing any DB work
+        const cacheKey = `${itemId}-${lastN}-${hidePrivate}-${removeOutlierFlag}-${excludeOneCoin}`;
+        const cachedImage = cache.get(cacheKey);
+        if (cachedImage) {
+            res.set("Content-Type", "image/png");
+            res.set("Cache-Control", "public, max-age=60, s-maxage=60");
+            res.set("X-Cache", "HIT");
+            return res.send(cachedImage);
+        }
 
         const query = { i: parseInt(itemId, 10) };
         if (hidePrivate) query.id = { $not: { $regex: /^PV/ } };
+        if (excludeOneCoin) query.v = { $ne: 1 };
 
         let docs1 = await logs1.find(query)
             .sort({ t: -1 })
@@ -154,7 +174,13 @@ export const getChart = (db1, db2) => async (req, res) => {
         };
 
         const image = await chartJSNodeCanvas.renderToBuffer(configuration);
+
+        // Store in LRU cache for subsequent requests
+        cache.set(cacheKey, image);
+
         res.set("Content-Type", "image/png");
+        res.set("Cache-Control", "public, max-age=60, s-maxage=60");
+        res.set("X-Cache", "MISS");
         res.send(image);
 
     } catch (err) {

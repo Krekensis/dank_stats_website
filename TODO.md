@@ -7,7 +7,7 @@
 4. ✅ Caching techniques for market visualizer too, cuz goddamn. Implement selective data fetching that only retrieves segments not already present in cache, avoiding redundant requests for data that has been previously loaded.
 5. ✅ Toggleable option in market visualizer under `data options` for `Exclude ⏣ 1 trades` filter with respective logic.
 6. ✅ Replace market stats placeholder in `sidepanel` (allitemoverview) with actual functionality with similar style as Value trend stuff (chart, buttons etc.) For chart buttons, add option to pick between last 100, 500, 1000 trades. for chart, dont show data points, just show the moving avg lines (sell #6bff7a and buy #ff6b6b separate)
-7. For some reason, using the direct url for different pages shows `404 not found` on vercel hosting (fine on localhost). So, gotta figure out routing issues. Page routing works fine on host when navigating through buttons/navbar however.
+7. ✅ For some reason, using the direct url for different pages shows `404 not found` on vercel hosting (fine on localhost). So, gotta figure out routing issues. Page routing works fine on host when navigating through buttons/navbar however.
 8. ✅ Enable `Exclude outliers`, `Exclude ⏣ 1 trades` by default (but not applying pre API call, applying post API call via filters).
 9. ✅ Make advanced outlier threshold sliders in `ItemMarketVisualizer` (these can be placed where the legend for items are) which can support separate thresholds for separate items.
 10. ✅ `Exact match` (applying after .trim() on input), `StartsWith` toggle buttons on all search bars (AllItemsOverview, ItemMultiSelect, etc.) with respective logic.

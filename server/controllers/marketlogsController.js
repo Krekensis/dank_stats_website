@@ -12,6 +12,7 @@ export const getMarketLogs = (db1, db2) => async (req, res) => {
       start,
       end,
       countOnly,
+      excludeOneCoin, // optional: "true" to filter out v===1 trades
     } = req.query;
 
     const query = {};
@@ -19,6 +20,8 @@ export const getMarketLogs = (db1, db2) => async (req, res) => {
     if (type === "sell") query.s = true;
     else if (type === "buy") query.s = false;
     if (isPrivate === "false") query.id = { $not: { $regex: /^PV/ } };
+    // Server-side exclude 1 DMC trades via DB query for efficiency
+    if (excludeOneCoin === "true") query.v = { $ne: 1 };
 
     if (start || end) {
       query.t = {};
@@ -41,12 +44,15 @@ export const getMarketLogs = (db1, db2) => async (req, res) => {
       logs2.find(query).project({ x: "$t", y: "$v", n: "$n", id: 1, s: 1, i: 1 }).toArray(),
     ]);
 
-    // Merge + sort + slice
-    const merged = [...docs1, ...docs2].sort((a, b) => a.x - b.x);
+    // Merge + sort descending (latest first) then slice for "latest N" semantics
+    const merged = [...docs1, ...docs2].sort((a, b) => b.x - a.x);
     const sliced = merged.slice(
       parseInt(skip),
       parseInt(skip) + Math.min(parseInt(limit), 10000)
     );
+
+    // Return in chronological order
+    sliced.sort((a, b) => a.x - b.x);
 
     res.json(sliced);
   } catch (err) {

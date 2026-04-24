@@ -66,6 +66,8 @@ const ItemMarketVisualizer = () => {
   const [outlierThresholds, setOutlierThresholds] = useState({}); // { itemName: threshold }
   const [dualMode, setDualMode] = useState(false);
   const dataOptionsDropdownRef = useRef(null);
+  // Track whether the next chart rebuild should animate
+  const shouldAnimate = useRef(true);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -90,7 +92,7 @@ const ItemMarketVisualizer = () => {
   // When filters change, rebuild chart from cached raw data (no API calls)
   useEffect(() => {
     if (Object.keys(rawMarketData).length > 0 && displayedItems.length > 0) {
-      rebuildChart(rawMarketData, displayedItems, itemColors);
+      rebuildChartNoAnimate(rawMarketData, displayedItems, itemColors);
     }
   }, [tradeType, showPrivate, excludeOutliers, excludeOneCoinTrades, dualMode, outlierThresholds]);
 
@@ -261,7 +263,7 @@ const ItemMarketVisualizer = () => {
       data: chartData,
       options: {
         responsive: true,
-        animations: {
+        animations: shouldAnimate.current ? {
           tension: {
             duration: 1000,
             easing: 'linear',
@@ -269,7 +271,7 @@ const ItemMarketVisualizer = () => {
             to: 0,
             loop: true
           }
-        },
+        } : false,
         scales: {
           x: {
             type: "time",
@@ -409,6 +411,17 @@ const ItemMarketVisualizer = () => {
       }
     };
   }, [chartData, dateFormat]);
+
+  // Suppress animation when rebuilding chart from filter/slider changes
+  const rebuildChartNoAnimate = (rawDataMap, items, colors) => {
+    if (chartRef.current) {
+      chartRef.current.options.animation = false;
+    }
+    // We set chartData which triggers the useEffect that re-creates chart
+    // But we need animation=false for the NEXT creation; use a ref flag
+    shouldAnimate.current = false;
+    rebuildChart(rawDataMap, items, colors);
+  };
 
   /**
    * Apply all active filters to raw data and rebuild chart datasets.
@@ -610,7 +623,8 @@ const ItemMarketVisualizer = () => {
       setRawMarketData(newRawData);
       setItemColors(newColors);
 
-      // Build chart with current filters applied
+      // Build chart with animation (initial load)
+      shouldAnimate.current = true;
       rebuildChart(newRawData, currentItems, newColors);
     } catch (error) {
       console.error('Error displaying market data:', error);
@@ -913,24 +927,37 @@ const ItemMarketVisualizer = () => {
                         </div>
                       </div>
                       {excludeOutliers && (
-                        <div className="ml-1 mt-1">
-                          <div className="flex items-center justify-between text-[10px] text-[#a4bbb0] mb-0.5">
+                        <div className="ml-1 mt-2">
+                          <div className="flex items-center justify-between text-[10px] text-[#a4bbb0] mb-1">
                             <span>Outlier σ</span>
-                            <span className="text-[#6bff7a]">{threshold.toFixed(1)}</span>
+                            <span className="text-[#6bff7a] font-bold">{threshold.toFixed(1)}</span>
                           </div>
-                          <input
-                            type="range"
-                            min="1"
-                            max="5"
-                            step="0.5"
-                            value={threshold}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value);
-                              setOutlierThresholds(prev => ({ ...prev, [itemName]: val }));
-                            }}
-                            className="w-full h-1 appearance-none rounded-full bg-[#1e2a27] outline-none cursor-pointer"
-                            style={{ accentColor: '#6bff7a' }}
-                          />
+                          <div className="relative w-full h-4 flex items-center">
+                            <div
+                              className="absolute w-full h-[3px] rounded-full"
+                              style={{ background: '#1e2a27' }}
+                            />
+                            <div
+                              className="absolute h-[3px] rounded-full pointer-events-none"
+                              style={{
+                                background: '#6bff7a',
+                                width: `${((threshold - 1) / (5 - 1)) * 100}%`,
+                              }}
+                            />
+                            <input
+                              type="range"
+                              min="1"
+                              max="5"
+                              step="0.5"
+                              value={threshold}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                shouldAnimate.current = false;
+                                setOutlierThresholds(prev => ({ ...prev, [itemName]: val }));
+                              }}
+                              className="outlier-slider relative w-full"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

@@ -103,9 +103,9 @@ const AllItemsOverview = () => {
                         </div>
 
                         {/* Main Content: Grid + Side Panel */}
-                        <div className="max-w-7xl mx-auto flex gap-[6px]">
+                        <div className="max-w-7xl mx-auto flex gap-[6px]" style={{ height: 'calc(100vh - 160px)' }}>
                             {/* Left Column: Scrollable Items Grid */}
-                            <div className="flex-1 overflow-y-auto max-h-[calc(100vh-160px)] pr-[6px]">
+                            <div className="flex-1 overflow-y-auto h-full pr-[6px]">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-5">
                                     {filteredItems.map((item) => (
                                         <ItemCardAll
@@ -118,8 +118,14 @@ const AllItemsOverview = () => {
                                 </div>
                             </div>
 
-                            {/* Right Column: Always-visible Side Panel */}
-                            <SidePanel item={selectedItem} />
+                            {/* Right Column: Always-visible Side Panel — same height as grid */}
+                            <SidePanel
+                                item={selectedItem}
+                                prefetchItemIds={filteredItems
+                                    .filter(i => i.id !== selectedItem?.id)
+                                    .slice(0, 6)
+                                    .map(i => i.id)}
+                            />
                         </div>
                     </div>
 

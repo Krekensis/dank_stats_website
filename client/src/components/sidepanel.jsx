@@ -1,4 +1,4 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { commas, titleCase } from '../functions/stringUtils';
 import { neonizeHex, getAverageColor } from '../functions/colorUtils';
@@ -13,19 +13,120 @@ import {
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip);
 
-const SidePanel = ({ item }) => {
+// ── Persistent market cache (survives item switching) ─────────────────────────
+// Structure: { [itemId]: { data: [...], fetchedAt: timestamp } }
+const sidePanelMarketCache = {};
 
+const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
+
+function isCacheValid(itemId) {
+    const entry = sidePanelMarketCache[itemId];
+    if (!entry) return false;
+    return Date.now() - entry.fetchedAt < CACHE_MAX_AGE_MS;
+}
+
+function getCached(itemId) {
+    return sidePanelMarketCache[itemId]?.data ?? null;
+}
+
+function setCache(itemId, data) {
+    sidePanelMarketCache[itemId] = { data, fetchedAt: Date.now() };
+}
+
+// ── Outlier removal ───────────────────────────────────────────────────────────
+function removeOutliers(data, threshold = 3) {
+    if (data.length === 0) return data;
+    const values = data.map(d => d.y);
+    const mean = values.reduce((s, v) => s + v, 0) / values.length;
+    const std = Math.sqrt(values.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / values.length);
+    return data.filter(d => Math.abs(d.y - mean) <= threshold * std);
+}
+
+// ── Moving average ────────────────────────────────────────────────────────────
+function calcMA(trades, window = 20) {
+    if (trades.length === 0) return [];
+    return trades.map((_, i) => {
+        const start = Math.max(0, i - window + 1);
+        const slice = trades.slice(start, i + 1);
+        return Math.round(slice.reduce((s, t) => s + t.y, 0) / slice.length);
+    });
+}
+
+// ── Build chart data from pre-filtered trades ─────────────────────────────────
+function buildMarketChartData(filtered) {
+    const sorted = [...filtered].sort((a, b) => new Date(a.x) - new Date(b.x));
+    const sellTrades = sorted.filter(d => d.s === true);
+    const buyTrades = sorted.filter(d => d.s === false);
+
+    const sellMA = calcMA(sellTrades, Math.max(10, Math.floor(sellTrades.length / 10)));
+    const buyMA = calcMA(buyTrades, Math.max(10, Math.floor(buyTrades.length / 10)));
+
+    // Keep timestamps aligned to each trade for tooltip
+    const sellTimestamps = sellTrades.map(d => d.x);
+    const buyTimestamps = buyTrades.map(d => d.x);
+
+    const maxLen = Math.max(sellMA.length, buyMA.length);
+    const labels = Array.from({ length: maxLen }, (_, i) => i);
+
+    const padded = (arr, targetLen) =>
+        arr.length >= targetLen ? arr : [...new Array(targetLen - arr.length).fill(null), ...arr];
+
+    const paddedSellTS = sellTimestamps.length >= maxLen
+        ? sellTimestamps
+        : [...new Array(maxLen - sellTimestamps.length).fill(null), ...sellTimestamps];
+    const paddedBuyTS = buyTimestamps.length >= maxLen
+        ? buyTimestamps
+        : [...new Array(maxLen - buyTimestamps.length).fill(null), ...buyTimestamps];
+
+    return {
+        labels,
+        datasets: [
+            {
+                label: 'Sell Avg',
+                data: padded(sellMA, maxLen),
+                timestamps: paddedSellTS,
+                borderColor: '#6bff7a',
+                pointRadius: 0,
+                tension: 0.3,
+                borderWidth: 3,
+                spanGaps: true,
+            },
+            {
+                label: 'Buy Avg',
+                data: padded(buyMA, maxLen),
+                timestamps: paddedBuyTS,
+                borderColor: '#ff6b6b',
+                pointRadius: 0,
+                tension: 0.3,
+                borderWidth: 3,
+                spanGaps: true,
+            },
+        ],
+        // For stats tiles
+        _sellTrades: sellTrades,
+        _buyTrades: buyTrades,
+        _total: sorted.length,
+    };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SidePanel = ({ item, prefetchItemIds = [] }) => {
 
     const [range, setRange] = useState('Full');
     const [chartData, setChartData] = useState(null);
     const [sortedHistory, setSortedHistory] = useState([]);
 
     // Market stats state
-    const [marketRange, setMarketRange] = useState(500);
+    const [marketRange, setMarketRange] = useState(1000);
     const [marketChartData, setMarketChartData] = useState(null);
     const [marketStats, setMarketStats] = useState(null);
     const [marketLoading, setMarketLoading] = useState(false);
 
+    // Track last fetched item to avoid redundant fetches
+    const lastFetchedItemId = useRef(null);
+
+    // ── Value trend chart ──────────────────────────────────────────────────────
     useEffect(() => {
         if (!item?.history || item.history.length === 0) {
             setChartData(null);
@@ -37,7 +138,6 @@ const SidePanel = ({ item }) => {
         setSortedHistory(sorted);
 
         let history = [...sorted];
-
         if (range === '7d') {
             const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             history = history.filter(h => new Date(h.t) >= weekAgo);
@@ -46,34 +146,63 @@ const SidePanel = ({ item }) => {
             history = history.filter(h => new Date(h.t) >= monthAgo);
         }
 
-        if (history.length === 0) {
-            setChartData(null);
-            return;
-        }
+        if (history.length === 0) { setChartData(null); return; }
 
         const loadChart = async () => {
             const avgColor = await getAverageColor(item.url);
             const color = neonizeHex(avgColor);
             const values = history.map(h => h.v);
             const labels = history.map((_, i) => i);
-
             setChartData({
                 labels,
-                datasets: [
-                    {
-                        data: values,
-                        borderColor: color,
-                        pointRadius: 0,
-                        tension: 0.3,
-                    },
-                ],
+                datasets: [{
+                    data: values,
+                    borderColor: color,
+                    pointRadius: 0,
+                    tension: 0.3,
+                }],
             });
         };
 
         loadChart();
     }, [item, range]);
 
-    // Fetch market data when item or marketRange changes
+    // ── Market data fetch + cache ──────────────────────────────────────────────
+    const fetchAndCacheMarket = async (itemId) => {
+        if (!itemId) return;
+        if (isCacheValid(itemId)) return; // already cached
+
+        const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : 'http://localhost:3001';
+        try {
+            const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
+                item: itemId.toString(),
+                skip: '0',
+                limit: '1000',
+                private: 'false',
+                excludeOneCoin: 'true',
+            })}`);
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                // Client-side outlier removal (threshold 3σ)
+                const cleaned = removeOutliers(data);
+                setCache(itemId, cleaned);
+            }
+        } catch (err) {
+            console.error('SidePanel prefetch error:', err);
+        }
+    };
+
+    // ── Prefetch adjacent items ───────────────────────────────────────────────
+    useEffect(() => {
+        if (!prefetchItemIds || prefetchItemIds.length === 0) return;
+        // Fire-and-forget; low priority
+        const ids = prefetchItemIds.filter(id => id && !isCacheValid(id));
+        for (const id of ids) {
+            fetchAndCacheMarket(id);
+        }
+    }, [prefetchItemIds]);
+
+    // ── Derive chart data from cache when item or marketRange changes ──────────
     useEffect(() => {
         if (!item?.id) {
             setMarketChartData(null);
@@ -81,102 +210,59 @@ const SidePanel = ({ item }) => {
             return;
         }
 
-        const fetchMarketData = async () => {
-            setMarketLoading(true);
-            try {
-                const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : "http://localhost:3001";
-                const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
-                    item: item.id,
-                    skip: "0",
-                    limit: marketRange.toString()
-                })}`);
-                const data = await res.json();
-
-                if (!data || data.length === 0) {
-                    setMarketChartData(null);
-                    setMarketStats(null);
-                    setMarketLoading(false);
-                    return;
-                }
-
-                // Sort by time
-                const sorted = data.sort((a, b) => new Date(a.x) - new Date(b.x));
-
-                // Split buy/sell
-                const sellTrades = sorted.filter(d => d.s === true);
-                const buyTrades = sorted.filter(d => d.s === false);
-
-                // Calculate moving averages
-                const calcMA = (trades, window = 20) => {
-                    if (trades.length === 0) return [];
-                    const result = [];
-                    for (let i = 0; i < trades.length; i++) {
-                        const start = Math.max(0, i - window + 1);
-                        const slice = trades.slice(start, i + 1);
-                        const avg = slice.reduce((sum, t) => sum + t.y, 0) / slice.length;
-                        result.push(avg);
-                    }
-                    return result;
-                };
-
-                const sellMA = calcMA(sellTrades, Math.max(10, Math.floor(sellTrades.length / 10)));
-                const buyMA = calcMA(buyTrades, Math.max(10, Math.floor(buyTrades.length / 10)));
-
-                // Create labels (indices)
-                const maxLen = Math.max(sellMA.length, buyMA.length);
-                const labels = Array.from({ length: maxLen }, (_, i) => i);
-
-                // Pad shorter array with nulls at the start
-                const padded = (arr, targetLen) => {
-                    if (arr.length >= targetLen) return arr;
-                    return [...new Array(targetLen - arr.length).fill(null), ...arr];
-                };
-
-                setMarketChartData({
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Sell Avg',
-                            data: padded(sellMA, maxLen),
-                            borderColor: '#6bff7a',
-                            pointRadius: 0,
-                            tension: 0.3,
-                            borderWidth: 3,
-                            spanGaps: true,
-                        },
-                        {
-                            label: 'Buy Avg',
-                            data: padded(buyMA, maxLen),
-                            borderColor: '#ff6b6b',
-                            pointRadius: 0,
-                            tension: 0.3,
-                            borderWidth: 3,
-                            spanGaps: true,
-                        },
-                    ],
-                });
-
-                // Stats
-                const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.y, 0) / arr.length) : 0;
-                setMarketStats({
-                    totalTrades: sorted.length,
-                    sellCount: sellTrades.length,
-                    buyCount: buyTrades.length,
-                    avgSellPrice: avgPrice(sellTrades),
-                    avgBuyPrice: avgPrice(buyTrades),
-                });
-            } catch (err) {
-                console.error('Error fetching market data for sidepanel:', err);
-                setMarketChartData(null);
-                setMarketStats(null);
-            } finally {
-                setMarketLoading(false);
-            }
+        const buildFromCache = (rawData) => {
+            // Take the latest `marketRange` records (data is already sorted chrono)
+            const sliced = rawData.slice(-marketRange);
+            const built = buildMarketChartData(sliced);
+            setMarketChartData(built);
+            const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.y, 0) / arr.length) : 0;
+            setMarketStats({
+                totalTrades: built._total,
+                sellCount: built._sellTrades.length,
+                buyCount: built._buyTrades.length,
+                avgSellPrice: avgPrice(built._sellTrades),
+                avgBuyPrice: avgPrice(built._buyTrades),
+            });
         };
 
-        fetchMarketData();
+        // If data is already cached → instant render
+        if (isCacheValid(item.id)) {
+            buildFromCache(getCached(item.id));
+            return;
+        }
+
+        // Otherwise fetch then build
+        setMarketLoading(true);
+        fetchAndCacheMarket(item.id).then(() => {
+            const cached = getCached(item.id);
+            if (cached) buildFromCache(cached);
+            else {
+                setMarketChartData(null);
+                setMarketStats(null);
+            }
+        }).finally(() => setMarketLoading(false));
+
     }, [item?.id, marketRange]);
 
+
+    // ── Value chart options ───────────────────────────────────────────────────
+    const currentHistory = sortedHistory ?? [];
+    let visibleHistory = [...currentHistory];
+    if (range === '7d') {
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= weekAgo);
+    } else if (range === '30d') {
+        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= monthAgo);
+    }
+
+    const oldest = sortedHistory?.[0]?.v ?? null;
+    const current = sortedHistory?.[sortedHistory.length - 1]?.v ?? null;
+    const latest = visibleHistory?.[visibleHistory.length - 1]?.v ?? null;
+    const first = visibleHistory?.[0]?.v ?? null;
+    const percentChange = first && latest ? (((latest - first) / first) * 100).toFixed(2) : null;
+    const min = Math.min(...(sortedHistory?.map(h => h.v) || []));
+    const max = Math.max(...(sortedHistory?.map(h => h.v) || []));
 
     const chartOptions = {
         responsive: true,
@@ -199,15 +285,10 @@ const SidePanel = ({ item }) => {
                         if (!timestamp) return '';
                         const date = new Date(timestamp);
                         return date.toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
+                            day: '2-digit', month: 'short', year: 'numeric',
                         });
                     },
-                    label: (tooltipItem) => {
-                        const val = tooltipItem.formattedValue;
-                        return `Value: ⏣ ${val}`;
-                    },
+                    label: (tooltipItem) => `Value: ⏣ ${tooltipItem.formattedValue}`,
                 },
             },
         },
@@ -217,26 +298,46 @@ const SidePanel = ({ item }) => {
         },
     };
 
+    // ── Market chart options ──────────────────────────────────────────────────
+    // We build a custom plugin to color labels without showing color boxes.
     const marketChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false,
         plugins: {
             legend: { display: false },
             tooltip: {
                 mode: 'index',
                 intersect: false,
-                backgroundColor: 'rgba(13, 19, 17, 0.8)',
-                titleColor: '#a4bbb0',
+                backgroundColor: 'rgba(13, 19, 17, 0.92)',
+                titleColor: '#6bff7a',
                 bodyColor: '#e0f4eb',
                 titleFont: { family: 'monospace', weight: 'bold', size: 12 },
                 bodyFont: { family: 'monospace', size: 12 },
                 displayColors: false,
                 callbacks: {
-                    title: () => 'Moving Average',
+                    // Title: timestamp of the hovered data point (neon green via titleColor above)
+                    title: (tooltipItems) => {
+                        const item = tooltipItems[0];
+                        const dataset = item.chart.data.datasets[item.datasetIndex];
+                        const ts = dataset.timestamps?.[item.dataIndex];
+                        if (!ts) return '';
+                        const d = new Date(ts);
+                        return d.toLocaleDateString('en-GB', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                        });
+                    },
+                    // Labels: colored text, integer only, no color box 
                     label: (tooltipItem) => {
                         const label = tooltipItem.dataset.label;
-                        const val = tooltipItem.formattedValue;
-                        return `${label}: ⏣ ${val}`;
+                        const raw = tooltipItem.raw;
+                        if (raw === null || raw === undefined) return null;
+                        const val = Math.round(raw);
+                        return `${label}: ⏣ ${commas(val)}`;
+                    },
+                    // Color each label line by dataset color
+                    labelTextColor: (tooltipItem) => {
+                        return '#e0f4eb';
                     },
                 },
             },
@@ -247,26 +348,8 @@ const SidePanel = ({ item }) => {
         },
     };
 
-    const currentHistory = sortedHistory ?? [];
-    let visibleHistory = [...currentHistory];
-    if (range === '7d') {
-        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= weekAgo);
-    } else if (range === '30d') {
-        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= monthAgo);
-    }
-    const oldest = sortedHistory?.[0]?.v ?? null;
-    const current = sortedHistory?.[sortedHistory.length - 1]?.v ?? null;
-    const latest = visibleHistory?.[visibleHistory.length - 1]?.v ?? null;
-    const first = visibleHistory?.[0]?.v ?? null;
-    const percentChange = first && latest ? (((latest - first) / first) * 100).toFixed(2) : null;
-
-    const min = Math.min(...(sortedHistory?.map(h => h.v) || []));
-    const max = Math.max(...(sortedHistory?.map(h => h.v) || []));
-
     return (
-        <div className="w-[400px] bg-[#111816] border-0 rounded-md p-5 h-full overflow-y-auto">
+        <div className="w-[410px] bg-[#111816] border-0 rounded-md p-5 h-full overflow-y-auto flex-shrink-0">
             {item ? (
                 <>
                     {/* Header */}
@@ -274,11 +357,11 @@ const SidePanel = ({ item }) => {
                         <img src={item.url} alt={item.name} className="w-12 h-12 object-contain drop-shadow-md" />
                         <div>
                             <h2 className="text-xl font-extrabold font-mono">{titleCase(item.name)}</h2>
-                            <p className="text-sm text-[#a4bbb0] font-mono">Item details & stats</p>
+                            <p className="text-sm text-[#a4bbb0] font-mono">Item details &amp; stats</p>
                         </div>
                     </div>
 
-                    {/* Value Trend Header + Buttons + Chart */}
+                    {/* Value Trend */}
                     <div className='mb-4 border-b-2 border-[#1e2a27]'>
                         <div className="mb-6">
                             <div className="mb-4 flex items-center justify-between">
@@ -316,26 +399,26 @@ const SidePanel = ({ item }) => {
 
                         {/* Stat Highlights */}
                         <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="bg-[#0d1311] rounded-md p-3">
+                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                 <p className="text-xs font-mono text-[#a4bbb0] mb-1">Current Value</p>
                                 <p className="text-base font-mono">⏣ {commas(current ?? '–')}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md p-3">
+                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                 <p className="text-xs font-mono text-[#a4bbb0] mb-1">Oldest Value</p>
                                 <p className="text-base font-mono">⏣ {commas(oldest ?? '–')}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md p-3">
+                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                 <p className="text-xs font-mono text-[#a4bbb0] mb-1">Minimum</p>
                                 <p className="text-base font-mono">⏣ {commas(min)}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md p-3">
+                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                 <p className="text-xs font-mono text-[#a4bbb0] mb-1">Maximum</p>
                                 <p className="text-base font-mono">⏣ {commas(max)}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Market Stats Chart */}
+                    {/* Market Trend */}
                     <div className="">
                         <div className="mb-4 flex items-center justify-between">
                             <p className="text-base text-[#a4bbb0] font-mono">Market Trend</p>
@@ -380,19 +463,19 @@ const SidePanel = ({ item }) => {
                         {/* Market stat tiles */}
                         {marketStats && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-[#0d1311] rounded-md p-3">
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Trades</p>
                                     <p className="text-base font-mono">{commas(marketStats.sellCount)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md p-3">
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Trades</p>
                                     <p className="text-base font-mono">{commas(marketStats.buyCount)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md p-3">
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Avg Sell Price</p>
                                     <p className="text-base font-mono">⏣ {commas(marketStats.avgSellPrice)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md p-3">
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Avg Buy Price</p>
                                     <p className="text-base font-mono">⏣ {commas(marketStats.avgBuyPrice)}</p>
                                 </div>
