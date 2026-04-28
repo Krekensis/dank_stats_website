@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/navbar';
-import ItemCardAll from '../components/itemcard-all';
-import SidePanel from '../components/sidepanel';
-import Loader from '../components/loader';
-import { useMongoData } from '../hooks/useMongoData';
+import Navbar from '../../components/navbar';
+import ItemCardAll from '../../components/itemcard-all';
+import SidePanel from '../../components/sidepanel';
+import Loader from '../../components/loader';
+import { useMongoData } from '../../hooks/useMongoData';
 
 const AllItemsOverviewMobile = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +83,7 @@ const AllItemsOverviewMobile = () => {
                                         title="Starts with"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M1 10H9M7 7L10 10L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M1 10H9M7 7L10 10L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                             <text x="15.5" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">A</text>
                                         </svg>
                                     </button>
@@ -94,7 +94,7 @@ const AllItemsOverviewMobile = () => {
                                         title="Exact match"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M2 16H18M2 16V12.5M18 16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M2 16H18M2 16V12.5M18 16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                             <text x="10" y="14.5" textAnchor="middle" fill="currentColor" fontSize="12" fontFamily="monospace" fontWeight="bold">ab</text>
                                         </svg>
                                     </button>

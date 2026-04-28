@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/navbar";
-import itemData from "../assets/parsed_items4.json";
-import { titleCase } from "../functions/stringUtils";
+import Navbar from "../../components/navbar";
+import itemData from "../../assets/parsed_items4.json";
+import { titleCase } from "../../functions/stringUtils";
 
 const emojiSize = 45;
 const emojiNum = 50;

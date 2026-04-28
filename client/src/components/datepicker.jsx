@@ -146,7 +146,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
     };
 
     return (
-        <div ref={wrapperRef} className="relative font-mono custom-scrollbar">
+        <div ref={wrapperRef} className="relative sm:w-full font-mono custom-scrollbar">
             <input
                 ref={inputRef}
                 type="text"
@@ -167,7 +167,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
             />
 
             {showCalendar && (
-                <div className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom">
+                <div className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0">
                     {/* Calendar Header */}
                     <div className="flex justify-between items-center mb-3">
                         <button onClick={prevMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] not-last:px-2">&lt;</button>

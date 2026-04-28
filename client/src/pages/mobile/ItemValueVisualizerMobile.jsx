@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import Navbar from "../components/navbar";
-import DatePicker from "../components/datepicker";
-import Loader from "../components/loader";
-import ItemCard from "../components/itemcard-value"
-import ItemMultiSelect from "../components/itemmultiselect";
+import Navbar from "../../components/navbar";
+import DatePicker from "../../components/datepicker";
+import Loader from "../../components/loader";
+import ItemCard from "../../components/itemcard-value"
+import ItemMultiSelect from "../../components/itemmultiselect";
 
-import { useMongoData } from "../hooks/useMongoData";
+import { useMongoData } from "../../hooks/useMongoData";
 
-import { neonizeHex, getAverageColor } from "../functions/colorUtils";
-import { commas, titleCase } from "../functions/stringUtils";
+import { neonizeHex, getAverageColor } from "../../functions/colorUtils";
+import { commas, titleCase, formatLargeNumber } from "../../functions/stringUtils";
 
 import zoomPlugin from "chartjs-plugin-zoom";
 import {
@@ -29,7 +29,7 @@ ChartJS.register(zoomPlugin, LineController, LineElement, PointElement, LinearSc
 
 const MAX_SELECTED_ITEMS = 15;
 
-const ItemValueVisualizerDesktop = () => {
+const ItemValueVisualizerMobile = () => {
   const [items, setItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [displayedItems, setDisplayedItems] = useState([]);
@@ -159,7 +159,7 @@ const ItemValueVisualizerDesktop = () => {
           },
           y: {
             title: { display: false },
-            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${commas(value)}` },
+            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${formatLargeNumber(value)}` },
             grid: { display: false },
           },
         },
@@ -353,9 +353,9 @@ const ItemValueVisualizerDesktop = () => {
           <Loader size={200} />
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex justify-center items-center space-x-4">
+        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex flex-col justify-center items-center space-y-4 px-4">
           <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
-          <div className="relative">
+          <div className="relative w-full flex justify-center">
             <div className="flex space-x-4 items-end">
               <DatePicker value={startDate} onChange={setStartDate} />
               <DatePicker value={endDate} onChange={setEndDate} />
@@ -370,10 +370,10 @@ const ItemValueVisualizerDesktop = () => {
 
       {chartData && (
         <>
-          <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
-            <div className="bg-[#111816] rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
+          <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
+            <div className="bg-[#111816] rounded-xl p-2 sm:p-3 shadow-lg w-full" id="chart-container">
               {/* Updated Notes Section */}
-              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-1">
+              <div className="flex flex-wrap justify-end items-center font-mono text-[12px] text-[#a4bbb0] gap-2 mb-4">
                 <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
 
                 <div className="text-[#6bff7a] text-[16px]">|</div>
@@ -455,7 +455,7 @@ const ItemValueVisualizerDesktop = () => {
             </div>
 
             {/* Simplified Legend Container */}
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0] w-full" id="legend-container">
               <div className="flex flex-col space-y-1">
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
                 {chartData?.datasets.map((ds) => (
@@ -468,12 +468,10 @@ const ItemValueVisualizerDesktop = () => {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap mx-auto mt-6" style={{ width: "1251px", gap: "19px" }} id="cards-container">
+
+          <div className="flex flex-col mx-auto space-y-4 w-full" id="cards-container">
             {displayedItems.map((item) => (
-              <ItemCard item={item} startDate={startDate} endDate={endDate} />
-            ))}
-            {Array.from({ length: 5 - displayedItems.length }).map((_, i) => (
-              <div key={"empty-" + i} style={{ flex: "0 0 235px", width: "235px" }} className="bg-transparent" />
+              <ItemCard key={item.id || item.name} item={item} startDate={startDate} endDate={endDate} />
             ))}
           </div>
         </>
@@ -494,4 +492,4 @@ const ItemValueVisualizerDesktop = () => {
   );
 };
 
-export default ItemValueVisualizerDesktop;
+export default ItemValueVisualizerMobile;

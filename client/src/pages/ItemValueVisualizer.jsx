@@ -1,6 +1,6 @@
 import React from 'react';
-import ItemValueVisualizerDesktop from './ItemValueVisualizerDesktop';
-import ItemValueVisualizerMobile from './ItemValueVisualizerMobile';
+import ItemValueVisualizerDesktop from './desktop/ItemValueVisualizerDesktop';
+import ItemValueVisualizerMobile from './mobile/ItemValueVisualizerMobile';
 import useIsMobile from '../hooks/useIsMobile';
 
 const ItemValueVisualizer = () => {

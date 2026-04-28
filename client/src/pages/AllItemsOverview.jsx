@@ -1,6 +1,6 @@
 import React from 'react';
-import AllItemsOverviewDesktop from './AllItemsOverviewDesktop';
-import AllItemsOverviewMobile from './AllItemsOverviewMobile';
+import AllItemsOverviewDesktop from './desktop/AllItemsOverviewDesktop';
+import AllItemsOverviewMobile from './mobile/AllItemsOverviewMobile';
 import useIsMobile from '../hooks/useIsMobile';
 
 const AllItemsOverview = () => {

@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-import Navbar from "../components/navbar";
-import DatePicker from "../components/datepicker";
-import Loader from "../components/loader";
-import MarketItemCard from "../components/itemcard-market"
-import ItemMultiSelect from "../components/itemmultiselect";
+import Navbar from "../../components/navbar";
+import DatePicker from "../../components/datepicker";
+import Loader from "../../components/loader";
+import MarketItemCard from "../../components/itemcard-market"
+import ItemMultiSelect from "../../components/itemmultiselect";
 
-import { useMongoData } from "../hooks/useMongoData";
-import marketCache from "../hooks/marketCache";
+import { useMongoData } from "../../hooks/useMongoData";
+import marketCache from "../../hooks/marketCache";
 
-import { neonizeHex, getAverageColor, lightenHex } from "../functions/colorUtils";
-import { commas, titleCase } from "../functions/stringUtils";
+import { neonizeHex, getAverageColor, lightenHex } from "../../functions/colorUtils";
+import { commas, titleCase, formatLargeNumber } from "../../functions/stringUtils";
 
 import zoomPlugin from "chartjs-plugin-zoom";
 import {
@@ -287,15 +287,12 @@ const ItemMarketVisualizerMobile = () => {
               unit: "day"
             },
             title: { display: false },
-            ticks: { color: "#a4bbb0", maxTicksLimit: 10 },
+            ticks: { color: "#a4bbb0", maxTicksLimit: 5 },
             grid: { display: false },
           },
           y: {
             title: { display: false },
-            ticks: {
-              color: "#a4bbb0",
-              callback: (value) => `⏣ ${commas(Number(value).toFixed(2))}`
-            },
+            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${formatLargeNumber(value)}` },
             grid: { display: false },
           },
         },
@@ -705,8 +702,8 @@ const ItemMarketVisualizerMobile = () => {
 
       {chartData && (
         <>
-          <div className="flex flex-col justify-between m-[19px] space-y-4" id="chart-legend-container" style={{ width: "100%", margin: "0 auto", padding: "0 10px" }}>
-            <div className="bg-[#111816] rounded-xl p-3 shadow-lg relative w-full" id="chart-container">
+          <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
+            <div className="bg-[#111816] rounded-xl p-2 sm:p-3 shadow-lg relative w-full" id="chart-container">
 
               {loading && (
                 <div className="absolute inset-0 bg-[#111816] bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
@@ -907,7 +904,7 @@ const ItemMarketVisualizerMobile = () => {
             </div>
 
             {/* Legend Container */}
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0] w-full" id="legend-container">
+            <div className="bg-[#111816] mx-auto p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0] w-full" id="legend-container">
               <div className="flex flex-col space-y-1">
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Market Data — {displayedItems.length}</h2>
                 {displayedItems.map((item) => {
@@ -967,7 +964,7 @@ const ItemMarketVisualizerMobile = () => {
             </div>
           </div>
 
-          <div className="flex flex-col mx-auto mt-6 px-4 space-y-4 w-full" id="cards-container">
+          <div className="flex flex-col mx-auto px-0 space-y-4 w-full" id="cards-container">
             {displayedItems.map((item) => (
               <MarketItemCard key={item.name} item={item} tradeData={marketData[item.name]} />
             ))}

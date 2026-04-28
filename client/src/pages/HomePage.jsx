@@ -1,6 +1,6 @@
 import React from 'react';
-import HomePageDesktop from './HomePageDesktop';
-import HomePageMobile from './HomePageMobile';
+import HomePageDesktop from './desktop/HomePageDesktop';
+import HomePageMobile from './mobile/HomePageMobile';
 import useIsMobile from '../hooks/useIsMobile';
 
 const HomePage = () => {
