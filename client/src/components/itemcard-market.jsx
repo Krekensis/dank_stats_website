@@ -27,7 +27,7 @@ const MarketItemCard = ({ item, tradeData }) => {
     const buyStats = getMinMaxAvg(buyTrades);
 
     return (
-        <div key={item.name} className="bg-[#111816] border border-transparent rounded-xl p-4 shadow-lg font-mono flex flex-col" style={{ flex: "0 0 235px", width: "235px" }}>
+        <div key={item.name} className="bg-[#111816] border border-transparent rounded-xl p-4 shadow-lg font-mono flex flex-col w-full sm:w-[235px] sm:shrink-0">
             <div className="flex items-center space-x-3 mb-5 pb-4 border-b-2 border-[#1e2a27]">
                 <div className="p-2 rounded-lg shrink-0">
                     <img src={item.url} className="w-10 h-10 object-contain" draggable={false} />
