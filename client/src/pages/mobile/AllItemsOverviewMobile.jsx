@@ -13,6 +13,32 @@ const AllItemsOverviewMobile = () => {
     const [datasetSpan, setDatasetSpan] = useState({ oldest: null, latest: null });
     const { data: itemData, loading } = useMongoData();
 
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [touchStartY, setTouchStartY] = useState(null);
+    const [touchEndY, setTouchEndY] = useState(null);
+
+    const handleTouchStart = (e) => {
+        setTouchEndY(null);
+        setTouchStartY(e.targetTouches[0].clientY);
+    };
+
+    const handleTouchMove = (e) => {
+        setTouchEndY(e.targetTouches[0].clientY);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStartY || !touchEndY) return;
+        const distance = touchStartY - touchEndY;
+        const minSwipeDistance = 30;
+
+        if (distance > minSwipeDistance && !isPanelOpen) {
+            setIsPanelOpen(true);
+        }
+        if (distance < -minSwipeDistance && isPanelOpen) {
+            setIsPanelOpen(false);
+        }
+    };
+
     useEffect(() => {
         if (loading || !itemData) return;
 
@@ -102,10 +128,58 @@ const AllItemsOverviewMobile = () => {
                             </div>
                         </div>
 
-                        {/* Main Content: Mobile vertical stack */}
+                        {/* Main Content: Items Grid */}
                         <div className="max-w-7xl mx-auto flex flex-col gap-4">
-                            {/* Selected Item Panel (Top) */}
-                            <div className="w-full h-[500px]">
+                            <div className="flex-1 overflow-y-visible">
+                                <div className="grid grid-cols-3 gap-3 pb-24">
+                                    {filteredItems.map((item) => (
+                                        <ItemCardAll
+                                            key={item.name}
+                                            item={item}
+                                            onClick={() => {
+                                                setSelectedItem(item);
+                                                setIsPanelOpen(true);
+                                            }}
+                                            selected={selectedItem?.name === item.name}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom Docked Pull Tab (SidePanel) */}
+                        {isPanelOpen && (
+                            <div
+                                className="fixed inset-0 bg-black/60 z-40 transition-opacity"
+                                onClick={() => setIsPanelOpen(false)}
+                                onTouchStart={() => setIsPanelOpen(false)}
+                                onTouchMove={() => setIsPanelOpen(false)}
+                            />
+                        )}
+                        <div
+                            className={`fixed bottom-0 left-0 right-0 bg-[#0c1411] rounded-t-[32px] z-50 transition-transform duration-300 ease-out shadow-[0_-15px_40px_rgba(0,0,0,0.7)] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-44px)]'}`}
+                        >
+                            {/* Pull Handle Area */}
+                            <div
+                                className="w-full h-11 flex items-center justify-center cursor-pointer"
+                                onClick={() => setIsPanelOpen(!isPanelOpen)}
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
+                            >
+                                <svg
+                                    className={`w-10 h-7 text-[#6bff7a] transition-transform duration-300 ${isPanelOpen ? 'rotate-180 translate-y-1' : '-translate-y-1'}`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                </svg>
+                            </div>
+
+                            {/* SidePanel Content */}
+                            <div className="w-full h-[600px] px-2 pb-3 overflow-y-auto">
                                 <SidePanel
                                     item={selectedItem}
                                     prefetchItemIds={filteredItems
@@ -113,20 +187,6 @@ const AllItemsOverviewMobile = () => {
                                         .slice(0, 6)
                                         .map(i => i.id)}
                                 />
-                            </div>
-
-                            {/* Items Grid (Bottom) */}
-                            <div className="flex-1 overflow-y-visible">
-                                <div className="grid grid-cols-2 gap-4 pb-10">
-                                    {filteredItems.map((item) => (
-                                        <ItemCardAll
-                                            key={item.name}
-                                            item={item}
-                                            onClick={() => setSelectedItem(item)}
-                                            selected={selectedItem?.name === item.name}
-                                        />
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     </div>
