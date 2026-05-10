@@ -1,12 +1,55 @@
 import localItemData from "../assets/parsed_items4.json";
 
-export const fetchItemData = async () => {
+let memoryCache = null;
+let fetchPromise = null;
+const CACHE_KEY = "dank_stats_items_cache";
+const CACHE_EXPIRY_KEY = "dank_stats_items_cache_expiry";
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
+export const getCachedData = () => {
+  if (memoryCache) return memoryCache;
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/items`);
-    if (!res.ok) throw new Error("API fetch failed");
-    return await res.json();
-  } catch (err) {
-    console.warn("Using fallback local data due to error:", err);
-    return localItemData;
+    const cachedString = sessionStorage.getItem(CACHE_KEY);
+    const cachedExpiry = sessionStorage.getItem(CACHE_EXPIRY_KEY);
+    if (cachedString && cachedExpiry && Date.now() < parseInt(cachedExpiry, 10)) {
+      memoryCache = JSON.parse(cachedString);
+      return memoryCache;
+    }
+  } catch (e) {
+    console.warn("Failed to read from sessionStorage:", e);
   }
+  return null;
+};
+
+export const fetchItemData = async () => {
+  const cached = getCachedData();
+  if (cached) return cached;
+  
+  if (fetchPromise) return fetchPromise;
+
+  fetchPromise = (async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/items`);
+      if (!res.ok) throw new Error("API fetch failed");
+      const data = await res.json();
+      
+      memoryCache = data;
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        sessionStorage.setItem(CACHE_EXPIRY_KEY, (Date.now() + CACHE_DURATION).toString());
+      } catch (e) {
+        console.warn("Failed to write to sessionStorage:", e);
+      }
+      
+      return data;
+    } catch (err) {
+      console.warn("Using fallback local data due to error:", err);
+      memoryCache = localItemData;
+      return memoryCache;
+    } finally {
+      fetchPromise = null;
+    }
+  })();
+
+  return fetchPromise;
 };

@@ -36,10 +36,30 @@ function setCache(itemId, data) {
 // ── Outlier removal ───────────────────────────────────────────────────────────
 function removeOutliers(data, threshold = 3) {
     if (data.length === 0) return data;
-    const values = data.map(d => d.y);
-    const mean = values.reduce((s, v) => s + v, 0) / values.length;
-    const std = Math.sqrt(values.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / values.length);
-    return data.filter(d => Math.abs(d.y - mean) <= threshold * std);
+
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baseData = baselineTrades.length > 0 ? baselineTrades : data;
+
+    const values = baseData.map(point => point.y).sort((a, b) => a - b);
+    
+    const getMedian = (arr) => {
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    };
+
+    const median = getMedian(values);
+    const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
+    const mad = getMedian(deviations);
+    
+    let madStdDev = 1.4826 * mad;
+    
+    if (madStdDev === 0) {
+        const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+        madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
+    }
+
+    return data.filter(point => Math.abs(point.y - median) <= threshold * madStdDev);
 }
 
 // ── Moving average ────────────────────────────────────────────────────────────

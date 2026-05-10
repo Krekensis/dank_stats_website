@@ -26,12 +26,12 @@ const NavbarMobile = () => {
 
   const itemStatsCards = [
     {
-      heading: "Item value visualizer",
-      redirect: "/item-value-visualizer",
-    },
-    {
       heading: "All items overview",
       redirect: "/all-items-overview",
+    },
+    {
+      heading: "Item value visualizer",
+      redirect: "/item-value-visualizer",
     },
     {
       heading: "Item market visualizer",
@@ -52,7 +52,7 @@ const NavbarMobile = () => {
           </Link>
 
           {/* Hamburger Icon */}
-          <button 
+          <button
             onClick={() => setExpanded(!expanded)}
             className="text-[#6bff7a] focus:outline-none p-2"
           >
@@ -67,8 +67,8 @@ const NavbarMobile = () => {
           <div className="flex flex-col space-y-3 font-mono text-[#c6ffcc] text-sm">
             <div className="text-[#6bff7a] font-bold border-b border-[#2a3c31] pb-1">Item Statistics</div>
             {itemStatsCards.map((item, index) => (
-              <button 
-                key={index} 
+              <button
+                key={index}
                 onClick={() => {
                   setExpanded(false);
                   navigate(item.redirect);

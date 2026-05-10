@@ -85,14 +85,14 @@ const NavbarDesktop = () => {
 
   const itemStatsCards = [
     {
-      heading: "Item value visualizer",
-      description: "Visualize how item values have evolved over time through clear, interactive graphs.",
-      redirect: "/item-value-visualizer",
-    },
-    {
       heading: "All items overview",
       description: "Listed overview of all items, including their current values and historical trends.",
       redirect: "/all-items-overview",
+    },
+    {
+      heading: "Item value visualizer",
+      description: "Visualize how item values have evolved over time through clear, interactive graphs.",
+      redirect: "/item-value-visualizer",
     },
     {
       heading: "Item market visualizer",

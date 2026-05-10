@@ -82,24 +82,24 @@ const AllItemsOverviewMobile = () => {
 
     return (
         <div className="min-h-screen bg-[#070e0c] text-white flex">
-            <div className="flex-1 p-6">
+            <div className="flex-1 p-4">
                 <Navbar />
 
                 {loading ? (
-                    <div className="items-center justify-center flex h-screen">
+                    <div className="items-center justify-center flex h-[calc(100vh-80px)]">
                         <Loader size={200} />
                     </div>
                 ) : (
                     <div className="mt-20">
                         {/* Search Bar */}
-                        <div className="max-w-7xl mx-auto mb-6">
+                        <div className="max-w-7xl mx-auto mb-4">
                             <div className="relative">
                                 <input
                                     type="text"
                                     placeholder="Search for an item..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full p-3 pr-20 bg-[#111816] text-[#a4bbb0] placeholder-[#a4bbb0] placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-[#6bff7a] focus:border-[#6bff7a] transition duration-300"
+                                    className="w-full h-11 p-3 pr-20 bg-[#111816] text-[#a4bbb0] placeholder-[#a4bbb0] placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-[#6bff7a] focus:border-[#6bff7a] transition duration-300"
                                 />
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                                     {/* Starts With toggle */}
@@ -131,7 +131,7 @@ const AllItemsOverviewMobile = () => {
                         {/* Main Content: Items Grid */}
                         <div className="max-w-7xl mx-auto flex flex-col gap-4">
                             <div className="flex-1 overflow-y-visible">
-                                <div className="grid grid-cols-3 gap-3 pb-24">
+                                <div className="grid grid-cols-3 gap-3 pb-10">
                                     {filteredItems.map((item) => (
                                         <ItemCardAll
                                             key={item.name}

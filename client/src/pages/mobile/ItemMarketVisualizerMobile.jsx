@@ -57,6 +57,9 @@ const ItemMarketVisualizerMobile = () => {
   const tradeTypeDropdownRef = useRef(null);
   const [debugInfo, setDebugInfo] = useState('');
 
+  const [datasetRangeDropdownOpen, setDatasetRangeDropdownOpen] = useState(false);
+  const datasetRangeDropdownRef = useRef(null);
+
   const canDisplay = selectedItems.length > 0 && startDate && endDate && !dateError;
   const { data: itemData, loading: itemsLoading } = useMongoData();
 
@@ -66,7 +69,6 @@ const ItemMarketVisualizerMobile = () => {
   const [outlierThresholds, setOutlierThresholds] = useState({}); // { itemName: threshold }
   const [dualMode, setDualMode] = useState(false);
   const dataOptionsDropdownRef = useRef(null);
-  // Track whether the next chart rebuild should animate
   const shouldAnimate = useRef(true);
 
   useEffect(() => {
@@ -83,13 +85,16 @@ const ItemMarketVisualizerMobile = () => {
       if (dataOptionsDropdownRef.current && !dataOptionsDropdownRef.current.contains(event.target)) {
         setDataOptionsDropdownOpen(false);
       }
+      if (datasetRangeDropdownRef.current && !datasetRangeDropdownRef.current.contains(event.target)) {
+        setDatasetRangeDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
 
-  // When filters change, rebuild chart from cached raw data (no API calls)
+  // filter change, rebuild using cache
   useEffect(() => {
     if (Object.keys(rawMarketData).length > 0 && displayedItems.length > 0) {
       rebuildChartNoAnimate(rawMarketData, displayedItems, itemColors);
@@ -125,11 +130,32 @@ const ItemMarketVisualizerMobile = () => {
   const removeOutliers = (data, threshold = 3) => {
     if (data.length === 0) return data;
 
-    const values = data.map(point => point.y);
-    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+    // Use only public, non-1-coin trades to compute the baseline median & MAD
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
-    return data.filter(point => Math.abs(point.y - mean) <= threshold * stdDev);
+    const values = baseData.map(point => point.y).sort((a, b) => a - b);
+    
+    const getMedian = (arr) => {
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    };
+
+    const median = getMedian(values);
+    const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
+    const mad = getMedian(deviations);
+    
+    // Scale MAD to approximate standard deviation
+    let madStdDev = 1.4826 * mad;
+    
+    // Fallback if MAD is 0 (majority of trades are exactly the same price)
+    if (madStdDev === 0) {
+        const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+        madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
+    }
+
+    return data.filter(point => Math.abs(point.y - median) <= threshold * madStdDev);
   };
 
   // Fetch raw market data — no filters applied, uses segment cache
@@ -263,6 +289,7 @@ const ItemMarketVisualizerMobile = () => {
       data: chartData,
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         animations: shouldAnimate.current ? {
           tension: {
             duration: 1000,
@@ -414,21 +441,14 @@ const ItemMarketVisualizerMobile = () => {
     if (chartRef.current) {
       chartRef.current.options.animation = false;
     }
-    // We set chartData which triggers the useEffect that re-creates chart
-    // But we need animation=false for the NEXT creation; use a ref flag
     shouldAnimate.current = false;
     rebuildChart(rawDataMap, items, colors);
   };
 
-  /**
-   * Apply all active filters to raw data and rebuild chart datasets.
-   * This is called when filters change (no API calls).
-   * Designed to be extensible — add new filter logic here.
-   */
   const applyFilters = (rawData, itemName) => {
     let filtered = [...rawData];
 
-    // Filter: trade type (skipped in dual mode — dual mode always uses all trades)
+    // filter trade type (skipped in dual mode — dual mode always uses all trades)
     if (!dualMode) {
       if (tradeType === 'sell') {
         filtered = filtered.filter(p => p.s === true);
@@ -485,7 +505,7 @@ const ItemMarketVisualizerMobile = () => {
           {
             label: `${titleCase(item.name)} Sell Trend`,
             data: sellTrend,
-            borderColor: '#6bff7a',
+            borderColor: '#a3ffacff',
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 0,
@@ -499,7 +519,7 @@ const ItemMarketVisualizerMobile = () => {
           {
             label: `${titleCase(item.name)} Buy Trend`,
             data: buyTrend,
-            borderColor: '#ff6b6b',
+            borderColor: '#ff8585ff',
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 0,
@@ -668,35 +688,34 @@ const ItemMarketVisualizerMobile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-6">
+    <div className="min-h-screen bg-[#070e0c] text-white p-4">
       <Navbar />
 
       {itemsLoading ? (
-        <div className="items-center justify-center flex h-screen">
+        <div className="items-center justify-center flex h-[calc(100vh-80px)]">
           <Loader size={200} />
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex flex-col justify-center items-center space-y-4 px-4">
+        <div className="w-full mx-auto mt-20 mb-[19px] flex flex-col justify-center items-center space-y-4">
           <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
-          <div className="relative w-full flex justify-center">
-            <div className="flex space-x-4 items-end">
-              <DatePicker value={startDate} onChange={setStartDate} />
-              <DatePicker value={endDate} onChange={setEndDate} />
+          <div className="relative w-full">
+            <div className="flex space-x-3 items-center w-full">
+              <div className="flex-1 min-w-0"><DatePicker value={startDate} onChange={setStartDate} /></div>
+              <div className="flex-1 min-w-0"><DatePicker value={endDate} onChange={setEndDate} /></div>
+              <button
+                onClick={handleDisplay}
+                disabled={!canDisplay || loading}
+                className={`flex-none font-mono font-extrabold py-[6px] px-4 rounded-md transition ${canDisplay && !loading
+                  ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
+                  : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
+                  }`}
+              //style={{ height: "40px" }}
+              >
+                {loading ? "Loading..." : "Display"}
+              </button>
             </div>
             {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
           </div>
-
-          <button
-            onClick={handleDisplay}
-            disabled={!canDisplay || loading}
-            className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay && !loading
-              ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
-              : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
-              }`}
-            style={{ height: "40px" }}
-          >
-            {loading ? "Loading..." : "Display"}
-          </button>
         </div>
       )}
 
@@ -723,24 +742,39 @@ const ItemMarketVisualizerMobile = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap justify-end items-center font-mono text-[12px] text-[#a4bbb0] gap-2 mb-4">
-                <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+              <div className="flex flex-wrap justify-end items-center font-mono text-[#a4bbb0] gap-1 mb-4">
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                {/* Dataset Range Dropdown */}
+                <div className="relative" ref={datasetRangeDropdownRef}>
+                  <button
+                    onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
+                    title="Dataset range"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                  </button>
+                  {datasetRangeDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
+                      Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
+                    </div>
+                  )}
+                </div>
 
                 {/* Data Options Dropdown */}
                 <div className="relative" ref={dataOptionsDropdownRef}>
                   <button
                     onClick={() => setDataOptionsDropdownOpen(!dataOptionsDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
+                    title="Data options"
                   >
-                    <span>Data options</span>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>
                   </button>
                   {dataOptionsDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-5 w-max p-2">
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-3 ">
                       <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -827,52 +861,51 @@ const ItemMarketVisualizerMobile = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
-
                 {/* Date Format Dropdown */}
                 <div className="relative" ref={dateFormatDropdownRef}>
                   <button
                     onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
+                    title="Date format"
                   >
-                    <span>Date format: {dateFormat}</span>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
                   </button>
                   {dateFormatDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max ">
                       <button
                         onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-3 py-2 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
                       >
-                        Date format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
+                        Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
-
                 {/* Trade Type Dropdown */}
-                <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : ""}>
+                <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : "Trade Type"}>
                   <button
                     onClick={() => !dualMode && setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
-                    className={`flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-[#6bff7a] cursor-pointer'}`}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-[#6bff7a] cursor-pointer'}`}
                     disabled={dualMode}
                   >
-                    <span>{dualMode ? 'All trades' : getTradeTypeLabel(tradeType)}</span>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
                     </svg>
                   </button>
                   {tradeTypeDropdownOpen && !dualMode && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 min-w-25 ">
                       {["all", "buy", "sell"].map((type) => (
                         <button
                           key={type}
                           onClick={() => handleTradeTypeChange(type)}
-                          className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                          className={`w-full text-left rounded-md px-3 py-2 transition-colors text-[12px] ${
+                            tradeType === type 
+                              ? "bg-[#1d2a24] text-[#6bff7a]" 
+                              : "hover:bg-[#1d2a24] hover:text-[#6bff7a]"
+                          }`}
                         >
                           {getTradeTypeLabel(type)}
                         </button>
@@ -881,14 +914,13 @@ const ItemMarketVisualizerMobile = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
-
                 {/* Zoom Reset Button */}
                 <button
                   onClick={handleZoomReset}
-                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
+                  className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
                     }`}
                   disabled={!isZoomedIn}
+                  title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor" viewBox="0 0 24 24"
@@ -896,11 +928,12 @@ const ItemMarketVisualizerMobile = () => {
                     <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
                     <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
                   </svg>
-                  <span>{isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}</span>
                 </button>
               </div>
 
-              <canvas id="myChart" className="w-full" />
+              <div className="relative w-full h-[450px]">
+                <canvas id="myChart" className="w-full h-full" />
+              </div>
             </div>
 
             {/* Legend Container */}
@@ -938,13 +971,13 @@ const ItemMarketVisualizerMobile = () => {
                               className="absolute h-[3px] rounded-full pointer-events-none"
                               style={{
                                 background: '#6bff7a',
-                                width: `${((threshold - 1) / (5 - 1)) * 100}%`,
+                                width: `${((threshold - 1) / (10 - 1)) * 100}%`,
                               }}
                             />
                             <input
                               type="range"
                               min="1"
-                              max="5"
+                              max="10"
                               step="0.5"
                               value={threshold}
                               onChange={(e) => {

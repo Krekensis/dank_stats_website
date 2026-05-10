@@ -125,11 +125,32 @@ const ItemMarketVisualizerDesktop = () => {
   const removeOutliers = (data, threshold = 3) => {
     if (data.length === 0) return data;
 
-    const values = data.map(point => point.y);
-    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+    // Use only public, non-1-coin trades to compute the baseline median & MAD
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
-    return data.filter(point => Math.abs(point.y - mean) <= threshold * stdDev);
+    const values = baseData.map(point => point.y).sort((a, b) => a - b);
+
+    const getMedian = (arr) => {
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    };
+
+    const median = getMedian(values);
+    const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
+    const mad = getMedian(deviations);
+
+    // Scale MAD to approximate standard deviation
+    let madStdDev = 1.4826 * mad;
+
+    // Fallback if MAD is 0 (majority of trades are exactly the same price)
+    if (madStdDev === 0) {
+      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+      madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
+    }
+
+    return data.filter(point => Math.abs(point.y - median) <= threshold * madStdDev);
   };
 
   // Fetch raw market data — no filters applied, uses segment cache
@@ -488,7 +509,7 @@ const ItemMarketVisualizerDesktop = () => {
           {
             label: `${titleCase(item.name)} Sell Trend`,
             data: sellTrend,
-            borderColor: '#6bff7a',
+            borderColor: '#a3ffacff',
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 0,
@@ -502,7 +523,7 @@ const ItemMarketVisualizerDesktop = () => {
           {
             label: `${titleCase(item.name)} Buy Trend`,
             data: buyTrend,
-            borderColor: '#ff6b6b',
+            borderColor: '#ff8585ff',
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 0,
@@ -675,7 +696,7 @@ const ItemMarketVisualizerDesktop = () => {
       <Navbar />
 
       {itemsLoading ? (
-        <div className="items-center justify-center flex h-screen">
+        <div className="items-center justify-center flex h-[calc(100vh-80px)]">
           <Loader size={200} />
         </div>
       ) : (
@@ -941,13 +962,13 @@ const ItemMarketVisualizerDesktop = () => {
                               className="absolute h-[3px] rounded-full pointer-events-none"
                               style={{
                                 background: '#6bff7a',
-                                width: `${((threshold - 1) / (5 - 1)) * 100}%`,
+                                width: `${((threshold - 1) / (10 - 1)) * 100}%`,
                               }}
                             />
                             <input
                               type="range"
                               min="1"
-                              max="5"
+                              max="10"
                               step="0.5"
                               value={threshold}
                               onChange={(e) => {

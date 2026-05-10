@@ -82,9 +82,9 @@ const ItemMultiSelectMobile = ({ items, selectedItems, setSelectedItems, maxSele
           setDropdownOpen(!dropdownOpen);
           setSearchTerm("");
         }}
-        className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
+        className={`w-full h-10 bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
           } text-[#a4bbb0] truncate`}
-        style={{ height: "40px" }}
+        //style={{ height: "40px" }}
         type="button"
       >
         {selectedItems.length === 0

@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+
+const CALENDAR_WIDTH = 288;
+const VIEWPORT_PADDING = 8;
 
 const DatePicker = ({ value, onChange, time = false }) => {
     const today = new Date();
     const wrapperRef = useRef(null);
     const inputRef = useRef(null);
+    const calendarRef = useRef(null);
 
     const [selectedDate, setSelectedDate] = useState(value || null);
     const [inputValue, setInputValue] = useState(
@@ -18,6 +22,37 @@ const DatePicker = ({ value, onChange, time = false }) => {
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const [showMonthPicker, setShowMonthPicker] = useState(false);
     const [showYearPicker, setShowYearPicker] = useState(false);
+    const [calendarLeft, setCalendarLeft] = useState(null);
+
+    const recalcPosition = useCallback(() => {
+        if (!wrapperRef.current) return;
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const vw = window.innerWidth;
+        let left = 0;
+
+        const rightEdge = rect.left + CALENDAR_WIDTH;
+        if (rightEdge > vw - VIEWPORT_PADDING) {
+
+            left = (vw - VIEWPORT_PADDING) - rect.left - CALENDAR_WIDTH - 10;
+        }
+        const finalLeft = rect.left + left;
+        if (finalLeft < VIEWPORT_PADDING) {
+            left = VIEWPORT_PADDING - rect.left;
+        }
+
+        setCalendarLeft(left);
+    }, []);
+
+    useEffect(() => {
+        if (!showCalendar) return;
+        recalcPosition();
+        window.addEventListener("resize", recalcPosition);
+        window.addEventListener("scroll", recalcPosition, true);
+        return () => {
+            window.removeEventListener("resize", recalcPosition);
+            window.removeEventListener("scroll", recalcPosition, true);
+        };
+    }, [showCalendar, recalcPosition]);
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -146,7 +181,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
     };
 
     return (
-        <div ref={wrapperRef} className="relative sm:w-full font-mono custom-scrollbar">
+        <div ref={wrapperRef} className="relative w-full sm:w-[140px] font-mono custom-scrollbar">
             <input
                 ref={inputRef}
                 type="text"
@@ -162,12 +197,16 @@ const DatePicker = ({ value, onChange, time = false }) => {
                 }}
                 inputMode="numeric"
                 maxLength={10}
-                className="bg-[#111816] text-[#a4bbb0] text-center placeholder-[#a4bbb0] border-2 border-transparent px-3 py-[6px] rounded-md focus:border-[#6bff7a] focus:outline-none cursor-text w-[140px]"
+                className="bg-[#111816] text-[#a4bbb0] text-center placeholder-[#a4bbb0] border-2 border-transparent px-3 py-[6px] rounded-md focus:border-[#6bff7a] focus:outline-none cursor-text w-full sm:w-[140px]"
                 placeholder="DD/MM/YYYY"
             />
 
             {showCalendar && (
-                <div className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0">
+                <div
+                    ref={calendarRef}
+                    className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom"
+                    style={{ left: calendarLeft != null ? `${calendarLeft}px` : 0 }}
+                >
                     {/* Calendar Header */}
                     <div className="flex justify-between items-center mb-3">
                         <button onClick={prevMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] not-last:px-2">&lt;</button>

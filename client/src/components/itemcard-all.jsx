@@ -12,9 +12,9 @@ const ItemCardAll = ({ item, onClick, selected }) => {
       <img
         src={item.url}
         alt={item.name}
-        className="w-13 h-13 md:w-16 md:h-16 object-contain mb-2 md:mb-3 shrink-0"
+        className="w-13 h-13 md:w-16 md:h-16 object-contain mb-3 md:mb-3 shrink-0"
       />
-      <h3 className="text-center text-[12px] md:text-[14px] leading-tight md:leading-snug font-mono font-medium line-clamp-2 w-full overflow-hidden text-ellipsis break-words">
+      <h3 className="text-center text-[12px] md:text-[14px] font-mono font-medium line-clamp-2 w-full overflow-hidden text-ellipsis break-words">
         {titleCase(item.name)}
       </h3>
     </div>

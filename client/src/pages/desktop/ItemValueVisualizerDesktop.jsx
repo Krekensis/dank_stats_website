@@ -349,7 +349,7 @@ const ItemValueVisualizerDesktop = () => {
       <Navbar />
 
       {loading ? (
-        <div className="items-center justify-center flex h-screen">
+        <div className="items-center justify-center flex h-[calc(100vh-80px)]">
           <Loader size={200} />
         </div>
       ) : (

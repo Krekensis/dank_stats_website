@@ -48,6 +48,9 @@ const ItemValueVisualizerMobile = () => {
   const dateFormatDropdownRef = useRef(null);
   const chartTypeDropdownRef = useRef(null);
 
+  const [datasetRangeDropdownOpen, setDatasetRangeDropdownOpen] = useState(false);
+  const datasetRangeDropdownRef = useRef(null);
+
   const canDisplay = selectedItems.length > 0 && startDate && endDate && !dateError;
   const { data: itemData, loading } = useMongoData();
 
@@ -88,6 +91,9 @@ const ItemValueVisualizerMobile = () => {
       if (chartTypeDropdownRef.current && !chartTypeDropdownRef.current.contains(event.target)) {
         setChartTypeDropdownOpen(false);
       }
+      if (datasetRangeDropdownRef.current && !datasetRangeDropdownRef.current.contains(event.target)) {
+        setDatasetRangeDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -123,6 +129,7 @@ const ItemValueVisualizerMobile = () => {
       data: chartData,
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         animation: {
           onComplete: () => {
             if (chartRef.current) {
@@ -345,101 +352,109 @@ const ItemValueVisualizerMobile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-6">
+    <div className="min-h-screen bg-[#070e0c] text-white p-4">
       <Navbar />
 
       {loading ? (
-        <div className="items-center justify-center flex h-screen">
+        <div className="items-center justify-center flex h-[calc(100vh-80px)]">
           <Loader size={200} />
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto mt-20 mb-[19px] flex flex-col justify-center items-center space-y-4 px-4">
+        <div className="w-full mx-auto mt-20 mb-[19px] flex flex-col justify-center items-center space-y-4">
           <ItemMultiSelect items={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} maxSelected={MAX_SELECTED_ITEMS} />
-          <div className="relative w-full flex justify-center">
-            <div className="flex space-x-4 items-end">
-              <DatePicker value={startDate} onChange={setStartDate} />
-              <DatePicker value={endDate} onChange={setEndDate} />
+          <div className="relative w-full">
+            <div className="flex space-x-3 items-center w-full">
+              <div className="flex-1 min-w-0"><DatePicker value={startDate} onChange={setStartDate} /></div>
+              <div className="flex-1 min-w-0"><DatePicker value={endDate} onChange={setEndDate} /></div>
+              <button
+                onClick={handleDisplay}
+                disabled={!canDisplay}
+                className={`flex-none font-mono font-extrabold py-[6px] px-4 rounded-md transition ${canDisplay
+                  ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
+                  : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
+                  }`}
+              //style={{ height: "40px" }}
+              >
+                Display
+              </button>
             </div>
             {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
           </div>
-          <button onClick={handleDisplay} disabled={!canDisplay} className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer" : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"}`} style={{ height: "40px" }}>
-            Display
-          </button>
         </div>
       )}
 
       {chartData && (
         <>
           <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
-            <div className="bg-[#111816] rounded-xl p-2 sm:p-3 shadow-lg w-full" id="chart-container">
+            <div className="bg-[#111816] rounded-xl p-2 shadow-lg w-full" id="chart-container">
               {/* Updated Notes Section */}
-              <div className="flex flex-wrap justify-end items-center font-mono text-[12px] text-[#a4bbb0] gap-2 mb-4">
-                <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+              <div className="flex flex-wrap justify-end items-center font-mono text-[#a4bbb0] gap-1 mb-4">
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                {/* Dataset Range Dropdown */}
+                <div className="relative" ref={datasetRangeDropdownRef}>
+                  <button
+                    onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
+                    title="Dataset range"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                  </button>
+                  {datasetRangeDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
+                      Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
+                    </div>
+                  )}
+                </div>
 
                 {/* Date Format Dropdown */}
                 <div className="relative" ref={dateFormatDropdownRef}>
                   <button
                     onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
+                    title="Date format"
                   >
-                    <span>Date format: {dateFormat}</span>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
                   </button>
                   {dateFormatDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max ">
                       <button
                         onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-3 py-2 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
                       >
-                        Date format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
+                        Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
-
                 {/* Chart Type Dropdown */}
-                <div className="relative" ref={chartTypeDropdownRef}>
+                <div className="relative" ref={chartTypeDropdownRef} title="Chart Type">
                   <button
                     onClick={() => setChartTypeDropdownOpen(!chartTypeDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors cursor-pointer"
                   >
-                    <span>Chart type: {chartType}</span>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                     </svg>
                   </button>
                   {chartTypeDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
-                      {/*<button
-                        onClick={() => handleChartTypeChange("bar")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
-                      >
-                        Chart type: bar
-                      </button>
-                      <button
-                        onClick={() => handleChartTypeChange("area")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
-                      >
-                        Chart type: area
-                      </button>*/}
+                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 min-w-max ">
+                      {/* Placeholder for chart type options */}
                     </div>
                   )}
                 </div>
-
-                <div className="text-[#6bff7a] text-[16px]">|</div>
 
                 {/* Zoom Reset Button */}
                 <button
                   onClick={handleZoomReset}
-                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
+                  className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
                     }`}
                   disabled={!isZoomedIn}
+                  title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor" viewBox="0 0 24 24"
@@ -447,11 +462,12 @@ const ItemValueVisualizerMobile = () => {
                     <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
                     <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
                   </svg>
-                  <span>{isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}</span>
                 </button>
               </div>
 
-              <canvas id="myChart" className="w-full" />
+              <div className="relative w-full h-[450px]">
+                <canvas id="myChart" className="w-full h-full" />
+              </div>
             </div>
 
             {/* Simplified Legend Container */}
