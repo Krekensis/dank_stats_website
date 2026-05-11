@@ -39,6 +39,17 @@ const NavbarMobile = () => {
     }
   ];
 
+  const petStatsCards = [
+    {
+      heading: "All pets overview",
+      redirect: "/all-pets-overview",
+    },
+    {
+      heading: "Pet market visualizer",
+      redirect: "/pet-market-visualizer",
+    }
+  ];
+
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}>
       <div className="bg-[#151f19]/90 backdrop-blur-[10px] w-full px-4 py-3 flex flex-col transition-all duration-300 shadow-md">
@@ -67,6 +78,19 @@ const NavbarMobile = () => {
           <div className="flex flex-col space-y-3 font-mono text-[#c6ffcc] text-sm">
             <div className="text-[#6bff7a] font-bold border-b border-[#2a3c31] pb-1">Item Statistics</div>
             {itemStatsCards.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setExpanded(false);
+                  navigate(item.redirect);
+                }}
+                className="text-left pl-4 hover:text-[#6bff7a] transition py-1"
+              >
+                {item.heading}
+              </button>
+            ))}
+            <div className="text-[#6bff7a] font-bold border-b border-[#2a3c31] pb-1 mt-2">Pet Statistics</div>
+            {petStatsCards.map((item, index) => (
               <button
                 key={index}
                 onClick={() => {

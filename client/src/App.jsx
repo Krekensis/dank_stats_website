@@ -4,6 +4,9 @@ import Home from "./pages/HomePage";
 import ItemValueVisualizer from "./pages/ItemValueVisualizer";
 import AllItemsOverview from "./pages/AllItemsOverview";
 import ItemMarketVisualizer from "./pages/ItemMarketVisualizer";
+import AllPetsOverview from "./pages/AllPetsOverview";
+import PetMarketVisualizer from "./pages/PetMarketVisualizer";
+
 import { Analytics } from "@vercel/analytics/react"
 
 const App = () => {
@@ -14,6 +17,8 @@ const App = () => {
         <Route path="/item-value-visualizer" element={<ItemValueVisualizer />} />
         <Route path="/all-items-overview" element={<AllItemsOverview />} />
         <Route path="/item-market-visualizer" element={<ItemMarketVisualizer />} />
+        <Route path="/all-pets-overview" element={<AllPetsOverview />} />
+        <Route path="/pet-market-visualizer" element={<PetMarketVisualizer />} />
       </Routes>
       <Analytics />
     </>

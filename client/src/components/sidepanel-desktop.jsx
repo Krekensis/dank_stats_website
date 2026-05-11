@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
-import { commas, titleCase } from '../functions/stringUtils';
+import { commas, titleCase, formatLargeNumber } from '../functions/stringUtils';
 import { neonizeHex, getAverageColor } from '../functions/colorUtils';
 import {
     Chart as ChartJS,
@@ -381,6 +381,41 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                         </div>
                     </div>
 
+                    {/* Lifetime Statistics */}
+                    {item.stats && (
+                        <div className="mb-4 pb-4 border-b-2 border-[#1e2a27]">
+                            <p className="text-base text-[#a4bbb0] font-mono mb-4">Lifetime Statistics</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Volume</p>
+                                    <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.total.vol)}</p>
+                                </div>
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Volume</p>
+                                    <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.buy.vol + item.stats.private.buy.vol)}</p>
+                                </div>
+                                
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Trades</p>
+                                    <p className="text-base font-mono text-white">{commas(item.stats.total.trades)}</p>
+                                </div>
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Volume</p>
+                                    <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.sell.vol + item.stats.private.sell.vol)}</p>
+                                </div>
+
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Trades</p>
+                                    <p className="text-base font-mono text-white">{commas(item.stats.public.buy.trades + item.stats.private.buy.trades)}</p>
+                                </div>
+                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Trades</p>
+                                    <p className="text-base font-mono text-white">{commas(item.stats.public.sell.trades + item.stats.private.sell.trades)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Value Trend */}
                     <div className='mb-4 border-b-2 border-[#1e2a27]'>
                         <div className="mb-6">
@@ -501,6 +536,7 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                                 </div>
                             </div>
                         )}
+
                     </div>
                 </>
             ) : (

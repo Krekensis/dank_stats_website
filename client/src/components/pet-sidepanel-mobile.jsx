@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { commas, titleCase, formatLargeNumber } from '../functions/stringUtils';
-import { neonizeHex, getAverageColor } from '../functions/colorUtils';
 import {
     Chart as ChartJS,
     LineElement,
@@ -131,11 +130,7 @@ function buildMarketChartData(filtered) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
-
-    const [range, setRange] = useState('Full');
-    const [chartData, setChartData] = useState(null);
-    const [sortedHistory, setSortedHistory] = useState([]);
+const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
 
     // Market stats state
     const [marketRange, setMarketRange] = useState(1000);
@@ -146,46 +141,6 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
     // Track last fetched item to avoid redundant fetches
     const lastFetchedItemId = useRef(null);
 
-    // ── Value trend chart ──────────────────────────────────────────────────────
-    useEffect(() => {
-        if (!item?.history || item.history.length === 0) {
-            setChartData(null);
-            setSortedHistory([]);
-            return;
-        }
-
-        const sorted = [...item.history].sort((a, b) => new Date(a.t) - new Date(b.t));
-        setSortedHistory(sorted);
-
-        let history = [...sorted];
-        if (range === '7d') {
-            const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-            history = history.filter(h => new Date(h.t) >= weekAgo);
-        } else if (range === '30d') {
-            const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-            history = history.filter(h => new Date(h.t) >= monthAgo);
-        }
-
-        if (history.length === 0) { setChartData(null); return; }
-
-        const loadChart = async () => {
-            const avgColor = await getAverageColor(item.url);
-            const color = neonizeHex(avgColor);
-            const values = history.map(h => h.v);
-            const labels = history.map((_, i) => i);
-            setChartData({
-                labels,
-                datasets: [{
-                    data: values,
-                    borderColor: color,
-                    pointRadius: 0,
-                    tension: 0.3,
-                }],
-            });
-        };
-
-        loadChart();
-    }, [item, range]);
 
     // ── Market data fetch + cache ──────────────────────────────────────────────
     const fetchAndCacheMarket = async (itemId) => {
@@ -194,7 +149,7 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
 
         const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : 'http://localhost:3001';
         try {
-            const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
+            const res = await fetch(`${apiBase}/api/petmarketlogs?${new URLSearchParams({
                 item: itemId.toString(),
                 skip: '0',
                 limit: '1000',
@@ -265,58 +220,6 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
     }, [item?.id, marketRange]);
 
 
-    // ── Value chart options ───────────────────────────────────────────────────
-    const currentHistory = sortedHistory ?? [];
-    let visibleHistory = [...currentHistory];
-    if (range === '7d') {
-        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= weekAgo);
-    } else if (range === '30d') {
-        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        visibleHistory = visibleHistory.filter(h => new Date(h.t) >= monthAgo);
-    }
-
-    const oldest = sortedHistory?.[0]?.v ?? null;
-    const current = sortedHistory?.[sortedHistory.length - 1]?.v ?? null;
-    const latest = visibleHistory?.[visibleHistory.length - 1]?.v ?? null;
-    const first = visibleHistory?.[0]?.v ?? null;
-    const percentChange = first && latest ? (((latest - first) / first) * 100).toFixed(2) : null;
-    const min = Math.min(...(sortedHistory?.map(h => h.v) || []));
-    const max = Math.max(...(sortedHistory?.map(h => h.v) || []));
-
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: 'rgba(13, 19, 17, 0.8)',
-                titleColor: '#6bff7a',
-                bodyColor: '#e0f4eb',
-                titleFont: { family: 'monospace', weight: 'bold', size: 12 },
-                bodyFont: { family: 'monospace', size: 12 },
-                displayColors: false,
-                callbacks: {
-                    title: (tooltipItems) => {
-                        const itemIndex = tooltipItems[0].dataIndex;
-                        const timestamp = visibleHistory[itemIndex]?.t;
-                        if (!timestamp) return '';
-                        const date = new Date(timestamp);
-                        return date.toLocaleString('en-GB', {
-                            day: '2-digit', month: 'short', year: 'numeric',
-                        });
-                    },
-                    label: (tooltipItem) => `Value: ⏣ ${tooltipItem.formattedValue}`,
-                },
-            },
-        },
-        scales: {
-            x: { display: false },
-            y: { display: false },
-        },
-    };
 
     // ── Market chart options ──────────────────────────────────────────────────
     // We build a custom plugin to color labels without showing color boxes.
@@ -377,7 +280,7 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                         <img src={item.url} alt={item.name} className="w-12 h-12 object-contain drop-shadow-md" />
                         <div>
                             <h2 className="text-xl font-extrabold font-mono">{titleCase(item.name)}</h2>
-                            <p className="text-sm text-[#a4bbb0] font-mono">Item details &amp; stats</p>
+                            <p className="text-sm text-[#a4bbb0] font-mono">Pet details &amp; stats</p>
                         </div>
                     </div>
 
@@ -391,13 +294,13 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                                     <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.total.vol)}</p>
                                 </div>
                                 <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Volume</p>
-                                    <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.buy.vol + item.stats.private.buy.vol)}</p>
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Trades</p>
+                                    <p className="text-base font-mono text-white">{commas(item.stats.total.trades)}</p>
                                 </div>
                                 
                                 <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Trades</p>
-                                    <p className="text-base font-mono text-white">{commas(item.stats.total.trades)}</p>
+                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Volume</p>
+                                    <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.buy.vol + item.stats.private.buy.vol)}</p>
                                 </div>
                                 <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Volume</p>
@@ -416,62 +319,6 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                         </div>
                     )}
 
-                    {/* Value Trend */}
-                    <div className='mb-4 border-b-2 border-[#1e2a27]'>
-                        <div className="mb-6">
-                            <div className="mb-4 flex items-center justify-between">
-                                <p className="text-base text-[#a4bbb0] font-mono">Value Trend</p>
-                                <div className="flex rounded-md bg-[#0d1311] p-1">
-                                    {['7d', '30d', 'Full'].map((r) => (
-                                        <button
-                                            key={r}
-                                            onClick={() => setRange(r)}
-                                            className={`w-12 py-1 px-1 rounded-[4px] text-xs font-mono border transition ${range === r
-                                                ? 'bg-[#17211d] border-0 text-[#6bff7a]'
-                                                : 'bg-transparent border-0 text-[#a4bbb0]'
-                                                }`}
-                                        >
-                                            {r}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="h-32 mb-2 flex items-center justify-center">
-                                {chartData ? (
-                                    <Line data={chartData} options={chartOptions} />
-                                ) : (
-                                    <p className="text-red-400 font-mono text-sm italic">No data available in this range.</p>
-                                )}
-                            </div>
-
-                            {percentChange && (
-                                <p className={`text-sm font-mono ${percentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    {percentChange >= 0 ? '▲' : '▼'} {percentChange}% over time
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Stat Highlights */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Current Value</p>
-                                <p className="text-base font-mono">⏣ {commas(current ?? '–')}</p>
-                            </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Oldest Value</p>
-                                <p className="text-base font-mono">⏣ {commas(oldest ?? '–')}</p>
-                            </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Minimum</p>
-                                <p className="text-base font-mono">⏣ {commas(min)}</p>
-                            </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Maximum</p>
-                                <p className="text-base font-mono">⏣ {commas(max)}</p>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Market Trend */}
                     <div className="">
@@ -540,10 +387,10 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                     </div>
                 </>
             ) : (
-                <p className="text-gray-500">Select an item to see details.</p>
+                <p className="text-gray-500">Select a pet to see details.</p>
             )}
         </div>
     );
 };
 
-export default SidePanelMobile;
+export default PetSidePanelMobile;

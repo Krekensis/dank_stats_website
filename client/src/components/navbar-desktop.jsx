@@ -11,8 +11,10 @@ const NavbarDesktop = () => {
   const [submenuHeight, setSubmenuHeight] = useState(0);
   const submenuRef = useRef(null);
 
-  const [hoveringTrigger, setHoveringTrigger] = useState(false);
+  const [hoveringItemTrigger, setHoveringItemTrigger] = useState(false);
+  const [hoveringPetTrigger, setHoveringPetTrigger] = useState(false);
   const [hoveringSubmenu, setHoveringSubmenu] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(null); // 'item' or 'pet'
   const collapseTimeout = useRef(null);
 
   const [showNavbar, setShowNavbar] = useState(true);
@@ -65,12 +67,15 @@ const NavbarDesktop = () => {
       collapseTimeout.current = null;
     }
 
-    if (hoveringTrigger || hoveringSubmenu) {
+    if (hoveringItemTrigger || hoveringPetTrigger || hoveringSubmenu) {
       setExpanded(true);
+      if (hoveringItemTrigger) setActiveMenu('item');
+      if (hoveringPetTrigger) setActiveMenu('pet');
     } else {
       // delay
       collapseTimeout.current = setTimeout(() => {
         setExpanded(false);
+        setActiveMenu(null);
       }, COLLAPSE_DELAY_MS);
     }
 
@@ -79,7 +84,7 @@ const NavbarDesktop = () => {
         clearTimeout(collapseTimeout.current);
       }
     };
-  }, [hoveringTrigger, hoveringSubmenu]);
+  }, [hoveringItemTrigger, hoveringPetTrigger, hoveringSubmenu]);
 
   const containerHeight = expanded ? COLLAPSED_HEIGHT + submenuHeight + 18 : COLLAPSED_HEIGHT;
 
@@ -101,6 +106,19 @@ const NavbarDesktop = () => {
     }
   ]
 
+  const petStatsCards = [
+    {
+      heading: "All pets overview",
+      description: "Listed overview of all pets, including their historical market data.",
+      redirect: "/all-pets-overview",
+    },
+    {
+      heading: "Pet market visualizer",
+      description: "Explore the market trends of specific pets with detailed visualizations.",
+      redirect: "/pet-market-visualizer",
+    }
+  ]
+
   return (
     <nav className={`fixed top-0 left-0 w-full flex justify-center z-50 pointer-events-none transition-transform duration-500 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}>
       <div className="mt-4 z-50 relative bg-[#151f19]/70 backdrop-blur-[10px] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden" style={{ height: `${containerHeight}px` }}>
@@ -117,11 +135,19 @@ const NavbarDesktop = () => {
           <div className="flex-1 flex justify-center text-[#c6ffcc] font-mono font-medium space-x-8">
             <a
               href="#"
-              className="hover:text-[#6bff7a] transition cursor-pointer"
-              onMouseEnter={() => setHoveringTrigger(true)}
-              onMouseLeave={() => setHoveringTrigger(false)}
+              className={`hover:text-[#6bff7a] transition cursor-pointer ${activeMenu === 'item' ? 'text-[#6bff7a]' : ''}`}
+              onMouseEnter={() => setHoveringItemTrigger(true)}
+              onMouseLeave={() => setHoveringItemTrigger(false)}
             >
               Item Statistics
+            </a>
+            <a
+              href="#"
+              className={`hover:text-[#6bff7a] transition cursor-pointer ${activeMenu === 'pet' ? 'text-[#6bff7a]' : ''}`}
+              onMouseEnter={() => setHoveringPetTrigger(true)}
+              onMouseLeave={() => setHoveringPetTrigger(false)}
+            >
+              Pet Statistics
             </a>
             <a href="#" className="hover:text-[#6bff7a] transition">
               About
@@ -136,7 +162,15 @@ const NavbarDesktop = () => {
           onMouseEnter={() => setHoveringSubmenu(true)}
           onMouseLeave={() => setHoveringSubmenu(false)}
         >
-          {itemStatsCards.map((item, index) => (
+          {activeMenu === 'item' && itemStatsCards.map((item, index) => (
+            <NavCard
+              key={index}
+              heading={item.heading}
+              description={item.description}
+              redirect={item.redirect}
+            />
+          ))}
+          {activeMenu === 'pet' && petStatsCards.map((item, index) => (
             <NavCard
               key={index}
               heading={item.heading}
