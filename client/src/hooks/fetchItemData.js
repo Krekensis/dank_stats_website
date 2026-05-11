@@ -2,8 +2,8 @@ import localItemData from "../assets/parsed_items4.json";
 
 let memoryCache = null;
 let fetchPromise = null;
-const CACHE_KEY = "dank_stats_items_cache";
-const CACHE_EXPIRY_KEY = "dank_stats_items_cache_expiry";
+const CACHE_KEY = "dank_stats_items_cache_v2";
+const CACHE_EXPIRY_KEY = "dank_stats_items_cache_expiry_v2";
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 export const getCachedData = () => {

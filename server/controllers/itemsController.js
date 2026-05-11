@@ -1,7 +1,7 @@
 export const getItems = (db) => async (req, res) => {
   const itemsCollection = db.collection("items");
   try {
-    const items = await itemsCollection.find({}, { projection: { name: 1, id: 1, url: 1, history: 1 } }).toArray();
+    const items = await itemsCollection.find({}, { projection: { name: 1, id: 1, url: 1, history: 1, stats: 1 } }).toArray();
     res.json(items);
   } catch (err) {
     console.error("Error fetching items:", err);

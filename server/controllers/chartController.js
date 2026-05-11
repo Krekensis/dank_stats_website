@@ -19,8 +19,9 @@ const cache = new LRUCache({
 });
 
 export const getChart = (db1, db2) => async (req, res) => {
-    const logs1 = db1.collection("marketlogs");
-    const logs2 = db2.collection("marketlogs");
+    const isPet = req.query.isPet === "true";
+    const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
+    const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
 
     try {
         const itemId = req.query.item;
@@ -32,7 +33,7 @@ export const getChart = (db1, db2) => async (req, res) => {
         const excludeOneCoin = req.query.ronecoin === "true";
 
         // Check LRU cache before doing any DB work
-        const cacheKey = `${itemId}-${lastN}-${hidePrivate}-${removeOutlierFlag}-${excludeOneCoin}`;
+        const cacheKey = `${itemId}-${isPet}-${lastN}-${hidePrivate}-${removeOutlierFlag}-${excludeOneCoin}`;
         const cachedImage = cache.get(cacheKey);
         if (cachedImage) {
             res.set("Content-Type", "image/png");

@@ -197,7 +197,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
                 }}
                 inputMode="numeric"
                 maxLength={10}
-                className="bg-[#111816] text-[#a4bbb0] text-center placeholder-[#a4bbb0] border-2 border-transparent px-3 py-[6px] rounded-md focus:border-[#6bff7a] focus:outline-none cursor-text w-full sm:w-[140px]"
+                className="bg-[#111816] text-[#a4bbb0] text-center placeholder-[#a4bbb0] border-2 border-transparent px-2 py-1.5 sm:px-3 rounded-md focus:border-[#6bff7a] focus:outline-none cursor-text w-full sm:w-[140px]"
                 placeholder="DD/MM/YYYY"
             />
 

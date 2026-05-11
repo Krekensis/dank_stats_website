@@ -18,6 +18,38 @@ const discordAPI = axios.create({
     headers: { Authorization: DISCORD_TOKEN },
 });
 
+const defaultStats = {
+    total: { trades: 0, vol: 0, num: 0 },
+    public: { buy: { trades: 0, vol: 0, num: 0 }, sell: { trades: 0, vol: 0, num: 0 } },
+    private: { buy: { trades: 0, vol: 0, num: 0 }, sell: { trades: 0, vol: 0, num: 0 } },
+};
+
+async function incrementStats(docs, itemsCol) {
+    if (docs.length === 0) return;
+    const bulkOps = [];
+    for (const doc of docs) {
+        const vis = doc.id.startsWith("PV") ? "private" : "public";
+        const type = doc.s ? "sell" : "buy";
+        const vol = doc.v * doc.n;
+        bulkOps.push({
+            updateOne: {
+                filter: { id: doc.i },
+                update: {
+                    $inc: {
+                        "stats.total.trades": 1,
+                        "stats.total.vol": vol,
+                        "stats.total.num": doc.n,
+                        [`stats.${vis}.${type}.trades`]: 1,
+                        [`stats.${vis}.${type}.vol`]: vol,
+                        [`stats.${vis}.${type}.num`]: doc.n
+                    }
+                }
+            }
+        });
+    }
+    await itemsCol.bulkWrite(bulkOps, { ordered: false }).catch(err => console.error("Stats update error:", err));
+}
+
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -104,6 +136,23 @@ async function main() {
     const items = await itemsCol.find().toArray();
     const itemMap = new Map(items.map(i => [i.name, i.id]));
 
+    async function getNextValidId() {
+        const allItems = await itemsCol.find({}, { projection: { id: 1 } }).toArray();
+        const uniqueIds = Array.from(new Set(allItems.map(i => i.id))).filter(id => typeof id === 'number').sort((a, b) => b - a);
+        const idSet = new Set(uniqueIds);
+        let maxValidId = -1;
+        for (const id of uniqueIds) {
+            if (idSet.has(id - 1) && idSet.has(id - 2)) {
+                maxValidId = id;
+                break;
+            }
+        }
+        if (maxValidId === -1 && uniqueIds.length > 0) {
+            maxValidId = Math.max(...uniqueIds);
+        }
+        return maxValidId >= 0 ? maxValidId + 1 : 1;
+    }
+
     let inserted = 0;
     const BATCH_SIZE = 50;
     let buffer = [];
@@ -175,14 +224,16 @@ async function main() {
                 if (type !== undefined && item && vpu && amt && id) {
 
                     let itemID = itemMap.get(item);
-                    if (!itemID) {
-                        const maxId = Math.max(...itemMap.values(), -1) + 1;
-                        itemID = maxId;
+                    if (itemID === undefined) {
+                        itemID = await getNextValidId();
                         itemMap.set(item, itemID);
 
-                        itemsCol.updateOne(
+                        await itemsCol.updateOne(
                             { name: item },
-                            { $set: { name: item, id: itemID, url: null, history: [{ t: timestamp, v: 0 }] } },
+                            { 
+                                $setOnInsert: { stats: defaultStats },
+                                $set: { name: item, id: itemID, url: null, history: [{ t: timestamp, v: 0 }] } 
+                            },
                             { upsert: true }
                         ).catch(console.error);
                     }
@@ -197,6 +248,7 @@ async function main() {
                             for (const doc of buffer) {
                                 console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                             }
+                            await incrementStats(buffer, itemsCol);
                         } catch (e) {
                             if (e.code === 11000 || (e.writeErrors && e.writeErrors.some(err => err.code === 11000))) {
                                 const insertedIds = e.result?.insertedIds || {};
@@ -208,6 +260,7 @@ async function main() {
                                         console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                                     }
                                     inserted += insertedDocs.length;
+                                    await incrementStats(insertedDocs, itemsCol);
                                 }
 
                                 // Find which ID caused the duplicate
@@ -251,6 +304,7 @@ async function main() {
             for (const doc of buffer) {
                 console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
             }
+            await incrementStats(buffer, itemsCol);
         } catch (e) {
             if (e.code === 11000 || (e.writeErrors && e.writeErrors.some(err => err.code === 11000))) {
                 const insertedIds = e.result?.insertedIds || {};
@@ -262,6 +316,7 @@ async function main() {
                         console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                     }
                     inserted += insertedDocs.length;
+                    await incrementStats(insertedDocs, itemsCol);
                 }
 
                 const dupErr = e.writeErrors?.find(err => err.code === 11000);

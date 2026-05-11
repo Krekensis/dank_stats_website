@@ -21,6 +21,12 @@ const discordAPI = axios.create({
 // --- UTILITY FUNCTIONS ---
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
+const defaultStats = {
+  total: { trades: 0, vol: 0, num: 0 },
+  public: { buy: { trades: 0, vol: 0, num: 0 }, sell: { trades: 0, vol: 0, num: 0 } },
+  private: { buy: { trades: 0, vol: 0, num: 0 }, sell: { trades: 0, vol: 0, num: 0 } },
+};
+
 function extractValue(input) {
   if (!input || typeof input !== "string") return null;
   const cleaned = input.replace(/`/g, "").trim();
@@ -92,6 +98,23 @@ const main = async () => {
   let batch = 1;
   let stopFlag = false;
 
+  async function getNextValidId() {
+      const allItems = await collection.find({}, { projection: { id: 1 } }).toArray();
+      const uniqueIds = Array.from(new Set(allItems.map(i => i.id))).filter(id => typeof id === 'number').sort((a, b) => b - a);
+      const idSet = new Set(uniqueIds);
+      let maxValidId = -1;
+      for (const id of uniqueIds) {
+          if (idSet.has(id - 1) && idSet.has(id - 2)) {
+              maxValidId = id;
+              break;
+          }
+      }
+      if (maxValidId === -1 && uniqueIds.length > 0) {
+          maxValidId = Math.max(...uniqueIds);
+      }
+      return maxValidId >= 0 ? maxValidId + 1 : 1;
+  }
+
   while (!stopFlag) {
     try {
       const { data: messages } = await discordAPI.get(
@@ -150,16 +173,14 @@ const main = async () => {
         if (existing?.id !== undefined) {
           itemId = existing.id;
         } else {
-          const maxDoc = await collection.find().sort({ id: -1 }).limit(1).toArray();
-          const maxId = maxDoc.length ? maxDoc[0].id : -1;
-          itemId = maxId + 1;
+          itemId = await getNextValidId();
         }
 
         // --- Safe update to append to history ---
         await collection.updateOne(
           { name },
           {
-            $setOnInsert: { id: itemId },
+            $setOnInsert: { id: itemId, stats: defaultStats },
             $set: { url: emojiURL || existing?.url || null },
             $push: { history: { t: timestamp, v: parsedValue } },
           },
