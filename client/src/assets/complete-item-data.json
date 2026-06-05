@@ -9,7 +9,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Uncommon",
-        "marketValue": 7500000,
+        "marketValue": 3713000,
         "netValue": 100,
         "flavor": "I think I’m done buying trash bags... I always end up throwing them away anyways. Nvm the world is trash, I need them.",
         "details": "",
@@ -32,7 +32,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Abundant",
-        "marketValue": 1745000,
+        "marketValue": 1034000,
         "netValue": 100,
         "flavor": "What has 6 wheels and flies? A garbage truck!",
         "details": "",
@@ -60,7 +60,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Abundant",
-        "marketValue": 1650000,
+        "marketValue": 870000,
         "netValue": 100,
         "flavor": "What do raccoons eat? Junk food!",
         "details": "",
@@ -172,7 +172,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Common",
-        "marketValue": 81000,
+        "marketValue": 110000,
         "netValue": 3000,
         "flavor": "A bean that isn't green.",
         "details": "",
@@ -495,6 +495,11 @@
                 "name": "Legacy Boar",
                 "rarity": "Rare",
                 "imageURL": "https://cdn.discordapp.com/emojis/861584585656762398.png"
+            },
+            "summersunglassesvariant": {
+                "name": "Summer Sunglasses Variant",
+                "rarity": "Godly",
+                "imageURL": "https://cdn.discordapp.com/emojis/1502770152154988656.png"
             }
         }
     },
@@ -516,7 +521,7 @@
         "skins": {
             "legacy": {
                 "name": "Legacy Dragon Item",
-                "rarity": "Rare",
+                "rarity": "Uncommon",
                 "imageURL": "https://cdn.discordapp.com/emojis/861390869696741396.png"
             }
         }
@@ -788,7 +793,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 10000000,
+        "marketValue": 7100000,
         "netValue": 2000000,
         "flavor": "\"You're either a smart fella or a fart smella.\" -TheLazyTownie",
         "details": "Using this on someone prevents them from running commands for a short while. It has the chance to backfire and hit you instead.",
@@ -807,8 +812,8 @@
         },
         "hasUse": false,
         "rarity": "Godly",
-        "marketValue": 1080000000,
-        "netValue": 216000000,
+        "marketValue": 1514615000,
+        "netValue": 302923000,
         "flavor": "A ribbon? You think I want a RIBBON? Oh it's pepe themed? Count me in.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/890646381482614824.png",
@@ -837,8 +842,8 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 9333000,
-        "netValue": 1866600,
+        "marketValue": 7775000,
+        "netValue": 1555000,
         "flavor": "Celebrate Día de los Muertos by using this, yum!",
         "details": "Using this item changes your embed colors to be Día de los Muertos themed.",
         "imageURL": "https://cdn.discordapp.com/emojis/894597638161326091.png",
@@ -856,8 +861,8 @@
         },
         "hasUse": false,
         "rarity": "Godly",
-        "marketValue": 360000000,
-        "netValue": 72000000,
+        "marketValue": 520500000,
+        "netValue": 104100000,
         "flavor": "Pepe... why are you looking so SUS step bro",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1040611845087694919.gif",
@@ -947,7 +952,7 @@
         "skins": {
             "cursedpeepovariant": {
                 "name": "Cursed Peepo Variant",
-                "rarity": "Epic",
+                "rarity": "Rare",
                 "imageURL": "https://cdn.discordapp.com/emojis/1422610023871152260.gif"
             }
         }
@@ -992,7 +997,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 34000000,
+        "marketValue": 30500000,
         "netValue": 2000000,
         "flavor": "My mom will never know this is missing.",
         "details": "You can use this item to \"buy\" someone or yourself 5 days of premium perks for Dank Memer. (Close to the $3 perk value, missing a few things)",
@@ -1122,7 +1127,7 @@
             },
             "mayflowervariant": {
                 "name": "May Flower Variant",
-                "rarity": "Godly",
+                "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1492299950019579955.gif"
             }
         }
@@ -1137,8 +1142,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 13666000,
-        "netValue": 2733200,
+        "marketValue": 9688000,
+        "netValue": 1937600,
         "flavor": "She wants to speak to your manager.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/860196324762452028.png",
@@ -1210,7 +1215,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 5263000,
+        "marketValue": 6049000,
         "netValue": 2000000,
         "flavor": "Is it just me or is my streak freezing me out of the relationship?",
         "details": "Using this item will turn it into an active item that lasts 7 days. Within those 7 days streaks, marriage, pets and work will be impossible to lose.",
@@ -1333,8 +1338,8 @@
         "emoji": "<:BoltCutters:978074542683611136>",
         "tags": {},
         "hasUse": false,
-        "rarity": "Epic",
-        "marketValue": 79850000,
+        "rarity": "Rare",
+        "marketValue": 80399000,
         "netValue": 100000000,
         "flavor": "I made this item to rob from normies without ever failing, now lots of people have it so I had to nerf it to just break a padlock. Lame devs, L.",
         "details": "Owning this item makes you break padlocks when robbing.",
@@ -1357,8 +1362,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Uncommon",
-        "marketValue": 21000000,
-        "netValue": 4200000,
+        "marketValue": 16028000,
+        "netValue": 3205600,
         "flavor": "Reversal cards were previously used to reverse a steal someone performed on you. Due to being SUPER buggy and causing multiple exploits, they are no longer functional, and never will be.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1040018182322262117.gif",
@@ -1374,8 +1379,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 44025000,
-        "netValue": 8805000,
+        "marketValue": 50000000,
+        "netValue": 10000000,
         "flavor": "The only one who could see the dark globule in the distance, and now watches over the rest.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/993233845174415380.gif",
@@ -1392,7 +1397,7 @@
             },
             "beholdervariant": {
                 "name": "Fantasy Variant",
-                "rarity": "Legendary",
+                "rarity": "Epic",
                 "imageURL": "https://cdn.discordapp.com/emojis/1207031439896485941.gif"
             }
         }
@@ -1578,7 +1583,7 @@
         "skins": {
             "mermaid": {
                 "name": "Mermaid Variant",
-                "rarity": "Rare",
+                "rarity": "Uncommon",
                 "imageURL": "https://cdn.discordapp.com/emojis/1162761422799896627.gif"
             }
         }
@@ -1595,8 +1600,8 @@
         },
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 23197000,
-        "netValue": 4639400,
+        "marketValue": 13612000,
+        "netValue": 2722400,
         "flavor": "Yes, that IS pee around the rim. How did you know?",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1047553147243085826.png",
@@ -1625,8 +1630,8 @@
         },
         "hasUse": false,
         "rarity": "Common",
-        "marketValue": 500000,
-        "netValue": 100000,
+        "marketValue": 650000,
+        "netValue": 130000,
         "flavor": "Everyone is a unique snowflake, but not twins right?",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/920796800774991932.png",
@@ -1667,8 +1672,8 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Uncommon",
-        "marketValue": 1000000,
-        "netValue": 200000,
+        "marketValue": 1225000,
+        "netValue": 245000,
         "flavor": "I get that it is candy, but how is it a cane? It is way too small to use to walk.",
         "details": "Using this item gives nothing of value.",
         "imageURL": "https://cdn.discordapp.com/emojis/1024829646287683626.png",
@@ -1760,8 +1765,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Uncommon",
-        "marketValue": 2400000,
-        "netValue": 480000,
+        "marketValue": 2571000,
+        "netValue": 514200,
         "flavor": "An item for fools. NO I meant April fools...",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/960588198331957278.gif",
@@ -1780,7 +1785,7 @@
         },
         "hasUse": true,
         "rarity": "Common",
-        "marketValue": 950000,
+        "marketValue": 1000000,
         "netValue": 75000,
         "flavor": "Snowballs are not scary until you freeze them. This one is frozen.",
         "details": "Using this on a user will prevent them from doing negative actions to you for a few minutes.",
@@ -1882,8 +1887,8 @@
         },
         "hasUse": true,
         "rarity": "Common",
-        "marketValue": 364000,
-        "netValue": 72800,
+        "marketValue": 350000,
+        "netValue": 70000,
         "flavor": "It is not saltwater taffy. Unless...",
         "details": "Using this item will give a small amount of coins.",
         "imageURL": "https://cdn.discordapp.com/emojis/943637574906417214.png",
@@ -1912,8 +1917,8 @@
         },
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 53000000000,
-        "netValue": 10600000000,
+        "marketValue": 52549085000,
+        "netValue": 10509817000,
         "flavor": "The blob will rise again, look to the sky and ask for forgiveness.",
         "details": "Using this does not consume it, but does nothing of value.",
         "imageURL": "https://cdn.discordapp.com/emojis/933188762782011454.gif",
@@ -1925,7 +1930,7 @@
             },
             "pinkpetitemvariant": {
                 "name": "Pink Pet Item Variant",
-                "rarity": "Legendary",
+                "rarity": "Epic",
                 "imageURL": "https://cdn.discordapp.com/emojis/1120854161894936656.gif"
             },
             "fleshyvariant": {
@@ -1945,7 +1950,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Common",
-        "marketValue": 370000,
+        "marketValue": 800000,
         "netValue": 100000,
         "flavor": "Cupid lost this in a bet. I took it fair and square, legally of course.",
         "details": "Applies a multiplier of **69%** for **69 seconds**.",
@@ -2000,8 +2005,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Rare",
-        "marketValue": 3000000,
-        "netValue": 600000,
+        "marketValue": 3750000,
+        "netValue": 750000,
         "flavor": "Wait, HOW did they get this in a jar?",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/932759942081941515.png",
@@ -2023,8 +2028,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Uncommon",
-        "marketValue": 1250000,
-        "netValue": 250000,
+        "marketValue": 1700000,
+        "netValue": 340000,
         "flavor": "I don't think this is safe to keep around?",
         "details": "Having any amount of this item in your inventory gives you a chance to have it suck up an item you find while using the bot. This happening enters you into a chance of winning a daily black hole lottery containing part of all the items sucked up in a day!",
         "imageURL": "https://cdn.discordapp.com/emojis/932395505382744106.png",
@@ -2115,7 +2120,7 @@
         },
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 45000000,
+        "marketValue": 50000000,
         "netValue": 15000000,
         "flavor": "This is like a fart bottle but like, without the downsides. Crazy item design right?",
         "details": "Use this item to throw at a user to prevent them from running commands for a while, you cannot fail.",
@@ -2149,7 +2154,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 3523000,
+        "marketValue": 4500000,
         "netValue": 1000000,
         "flavor": "Make a wish upon this star and change who the pets are.",
         "details": "You can use this to transform your pet (given it's prestige 5+) to another type of pet with the same name and stats.",
@@ -2433,7 +2438,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 26000000,
+        "marketValue": 28500000,
         "netValue": 5000000,
         "flavor": "This box is the lifeblood of my wallet.",
         "details": "",
@@ -2769,6 +2774,11 @@
                 "name": "Legacy Poster",
                 "rarity": "Common",
                 "imageURL": "https://cdn.discordapp.com/emojis/834080273964072995.png"
+            },
+            "summerpostervariant": {
+                "name": "Summer Poster Variant",
+                "rarity": "Godly",
+                "imageURL": "https://cdn.discordapp.com/emojis/1502770447706492969.png"
             }
         }
     },
@@ -2861,7 +2871,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 18000000,
+        "marketValue": 12000000,
         "netValue": 100000,
         "flavor": "This is a beef taco, but we all know fish tacos are better.",
         "details": "Using this item will double your level up coin/item rewards for 30 minutes. Found from the fast food cook job.",
@@ -3082,7 +3092,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 7023000,
+        "marketValue": 5355000,
         "netValue": 100000,
         "flavor": "Does this ammo even fit the hunting rifle?",
         "details": "While this item is active, you cannot find \"nothing\" while hunting. Found from the professional hunter job.",
@@ -3105,7 +3115,7 @@
             },
             "classic": {
                 "name": "Classic Ammo",
-                "rarity": "Epic",
+                "rarity": "Rare",
                 "imageURL": "https://cdn.discordapp.com/emojis/976514724336402462.png"
             }
         }
@@ -3337,7 +3347,7 @@
         "skins": {
             "legacy": {
                 "name": "Legacy Robbers Mask",
-                "rarity": "Uncommon",
+                "rarity": "Common",
                 "imageURL": "https://cdn.discordapp.com/emojis/834080273889099797.png"
             }
         }
@@ -3484,7 +3494,7 @@
         "emoji": "<:PepeCrown:1036669523593543832>",
         "tags": {},
         "hasUse": true,
-        "rarity": "Epic",
+        "rarity": "Rare",
         "marketValue": 31000000,
         "netValue": 6200000,
         "flavor": "Some say pepe personally gifted this crown to those who own it. That would be absurd though.",
@@ -3513,7 +3523,7 @@
             },
             "flowercrownvariant": {
                 "name": "Flower Crown Variant",
-                "rarity": "Godly",
+                "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1492300093263712276.gif"
             }
         }
@@ -3531,7 +3541,7 @@
         },
         "hasUse": true,
         "rarity": "Abundant",
-        "marketValue": 17000,
+        "marketValue": 20000,
         "netValue": 20000,
         "flavor": "How many of you pee'd in the sandbox as children? Well this item takes from that exact sandbox.",
         "details": "Throw a box of sand in someone's eyes to prevent them from robbing anyone for 30 minutes. There is a small chance the sand will blow back in your own face and give you the negative effects.",
@@ -3783,7 +3793,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Common",
-        "marketValue": 880000,
+        "marketValue": 750000,
         "netValue": 50000,
         "flavor": "This is not safe to take on planes. Not because it's a weapon, but because the pilots would leave the cockpit to partake.",
         "details": "Using this item starts a coinbomb giveaway where users can join and earn a few thousand coins.",
@@ -3884,8 +3894,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Common",
-        "marketValue": 197000,
-        "netValue": 39400,
+        "marketValue": 235000,
+        "netValue": 47000,
         "flavor": "Ironically enough, the rare pepe is not that rare.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/936007340736536626.png",
@@ -4415,7 +4425,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 31000000,
+        "marketValue": 50000000,
         "netValue": 1000000,
         "flavor": "Box in a box in a box in a box in a box in a box in a box.",
         "details": "",
@@ -4508,7 +4518,7 @@
             },
             "classic": {
                 "name": "Classic Sludge",
-                "rarity": "Epic",
+                "rarity": "Rare",
                 "imageURL": "https://cdn.discordapp.com/emojis/998740316565807124.gif"
             }
         }
@@ -4635,7 +4645,7 @@
         "emoji": "<a:HolyBread:1010341373154689164>",
         "tags": {},
         "hasUse": false,
-        "rarity": "Godly",
+        "rarity": "Mythical",
         "marketValue": 300000000,
         "netValue": 60000000,
         "flavor": "This bread might be holy, but it smells TERRIBLE and probably should not be touched with a ten foot pole. This must be 10,000 years old.",
@@ -4672,7 +4682,7 @@
             },
             "supervariant": {
                 "name": "Super Variant",
-                "rarity": "Legendary",
+                "rarity": "Epic",
                 "imageURL": "https://cdn.discordapp.com/emojis/1488267072118063204.gif"
             }
         }
@@ -4687,8 +4697,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 20000000,
-        "netValue": 4000000,
+        "marketValue": 14882000,
+        "netValue": 2976400,
         "flavor": "This item is a paradox. If someone owns it they probably do not touch grass, yet they are currently touching grass.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1009956477814968360.png",
@@ -4697,6 +4707,11 @@
                 "name": "Holiday Lights Variant",
                 "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1182734586099286049.gif"
+            },
+            "summerfruitfulvariant": {
+                "name": "Summer Fruitful Variant",
+                "rarity": "Godly",
+                "imageURL": "https://cdn.discordapp.com/emojis/1502770281905914149.png"
             }
         }
     },
@@ -4710,7 +4725,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 10600000,
+        "marketValue": 10483000,
         "netValue": 10000000,
         "flavor": "Sometimes you need an item to turn into coins. This is that item, duh.",
         "details": "Using this item will turn it into 10 million coins.",
@@ -4754,7 +4769,7 @@
         "skins": {
             "pinkvariant": {
                 "name": "Pink Variant",
-                "rarity": "Godly",
+                "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1468609256092602532.gif"
             }
         }
@@ -4771,7 +4786,7 @@
         },
         "hasUse": true,
         "rarity": "Uncommon",
-        "marketValue": 2575000,
+        "marketValue": 3015000,
         "netValue": 1000000,
         "flavor": "I'm starting to think whoever developed this bot just really likes corn.",
         "details": "Using this item will give you a level instantly. You can use more than one at once to level in bulk!",
@@ -4847,7 +4862,7 @@
         "emoji": "<a:MoleMan:1022972147175526441>",
         "tags": {},
         "hasUse": false,
-        "rarity": "Rare",
+        "rarity": "Uncommon",
         "marketValue": 1375000,
         "netValue": 140000,
         "flavor": "I suggest seeing your dermatologist about this mole as I'm not sure liquid nitrogen works on things with claws.",
@@ -4894,7 +4909,7 @@
             },
             "lostlovevariant": {
                 "name": "Lost Love Variant",
-                "rarity": "Godly",
+                "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1468609373503754316.gif"
             }
         }
@@ -5311,7 +5326,7 @@
         "hasUse": true,
         "rarity": "Rare",
         "marketValue": 8000000,
-        "netValue": 2206000,
+        "netValue": 2251000,
         "flavor": "Merry Christmas from the Dank Memer team!",
         "details": "Opening this will give you some Christmas themed items to celebrate!",
         "imageURL": "https://cdn.discordapp.com/emojis/921193372868309034.png",
@@ -5338,8 +5353,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Rare",
-        "marketValue": 3573000,
-        "netValue": 714600,
+        "marketValue": 4500000,
+        "netValue": 900000,
         "flavor": "According to all known laws of the universe, there is no way a bee should be able to come back from the dead. The bee, of course, rises from the dead anyway because bees don't care what humans think is impossible.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1048290400324026489.gif",
@@ -5414,7 +5429,7 @@
             },
             "holidaylights": {
                 "name": "Holiday Lights Variant",
-                "rarity": "Legendary",
+                "rarity": "Epic",
                 "imageURL": "https://cdn.discordapp.com/emojis/1182734593078611968.gif"
             }
         }
@@ -5511,7 +5526,7 @@
             "CANT_REMOVE": true
         },
         "hasUse": true,
-        "rarity": "Epic",
+        "rarity": "Rare",
         "marketValue": 17050000,
         "netValue": 500000,
         "flavor": "Don’t worry about what this drink is made of. Worry about proving what you’re made of by drinking it.",
@@ -5647,7 +5662,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 5000000,
+        "marketValue": 4000000,
         "netValue": 100000,
         "flavor": "Navigate through life's twists and turns with confidence, and you'll never feel lost or un-compass-ionate about your choices.",
         "details": "While this item is active, you have a small chance to double coins and item rewards from adventure interactions. Found from the adventurer job.",
@@ -5682,7 +5697,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 7063000,
+        "marketValue": 6400000,
         "netValue": 100000,
         "flavor": "Soil your hands, but never your reputation, as you unearth the secrets hidden beneath the surface with this totally NOT stolen amulet.",
         "details": "While this item is active, you cannot find \"nothing\" while digging. Found from the grave digger job.",
@@ -5699,7 +5714,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 92000000,
+        "marketValue": 120000000,
         "netValue": 25000000,
         "flavor": "Gold Gold Gold Gold Gold Titan Holo Titan Holo",
         "details": "This box contains some of the offerings available for purchase for gems only!",
@@ -5716,8 +5731,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Rare",
-        "marketValue": 3700000,
-        "netValue": 740000,
+        "marketValue": 3386000,
+        "netValue": 677200,
         "flavor": "A strawberry topped donut with frosting that suspiciously keeps getting all over your face. You keep wiping but the frosting spreads.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1106341931551825970.png",
@@ -5756,7 +5771,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 10000000,
+        "marketValue": 9702000,
         "netValue": 1000000,
         "flavor": "This box contains baits, similar to how I was baited into giving a scammer my credit card info.",
         "details": "This box contains any bait that are available year-round.",
@@ -5779,7 +5794,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 1110000000,
+        "marketValue": 1070000000,
         "netValue": 1000000000,
         "flavor": "The universe is only as big as you let it be.",
         "details": "Opening this box will instantly grant you 12 hours of 2xp, along with the random possible rewards.",
@@ -5794,6 +5809,11 @@
                 "name": "Black Hole Variant",
                 "rarity": "Epic",
                 "imageURL": "https://cdn.discordapp.com/emojis/1364388357701894295.gif"
+            },
+            "pinkvariant": {
+                "name": "Pink Variant",
+                "rarity": "Godly",
+                "imageURL": "https://cdn.discordapp.com/emojis/1506640928679526632.gif"
             }
         }
     },
@@ -5909,7 +5929,7 @@
         "emoji": "<:jokeBook:1186704670559830086>",
         "tags": {},
         "hasUse": true,
-        "rarity": "Epic",
+        "rarity": "Rare",
         "marketValue": 10000000,
         "netValue": 1000000,
         "flavor": "Imagine needing to read a book to be funny. Nice job, unfunny nerd.",
@@ -5927,7 +5947,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 6500000,
+        "marketValue": 4563000,
         "netValue": 1000000,
         "flavor": "I wish I had a pet feeder that would dispense treats into my mouth as a human.",
         "details": "Using this item will allow one of your pets to instantly learn the skill they are studying.",
@@ -5973,7 +5993,7 @@
             "NO_TRANSFER": true
         },
         "hasUse": true,
-        "rarity": "Legendary",
+        "rarity": "Epic",
         "marketValue": 1,
         "netValue": 1,
         "flavor": "Supposedly can open locks?",
@@ -6107,8 +6127,8 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 6000000,
-        "netValue": 1200000,
+        "marketValue": 3855000,
+        "netValue": 771000,
         "flavor": "The time on this watch seems all out of whack. What's up with this guy?",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1225911028886274048.gif",
@@ -6307,7 +6327,7 @@
         "emoji": "<a:ElectrifyingZing:1116488145182142464>",
         "tags": {},
         "hasUse": true,
-        "rarity": "Godly",
+        "rarity": "Legendary",
         "marketValue": 7500000,
         "netValue": 100000,
         "flavor": "Ignite your taste buds with the \"Electrifying Zing\" — a culinary sensation that harnesses the electrifying essence of the electric eel, delivering a harmonious fusion of flavors that will leave you buzzing with culinary delight.",
@@ -6380,7 +6400,7 @@
         },
         "hasUse": false,
         "rarity": "Rare",
-        "marketValue": 4050000,
+        "marketValue": 7141000,
         "netValue": 75000,
         "flavor": "Lotus flowers do not taste like watermelon.",
         "details": "This item can be planted using the farm command to produce crops.",
@@ -6425,8 +6445,8 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 70000000000,
-        "netValue": 14000000000,
+        "marketValue": 84500000000,
+        "netValue": 16900000000,
         "flavor": "I swear to god I once ate like 8 of these in one sitting.",
         "details": "Using this banana consumes it, and sends Melmsie a DM letting them know you ate their banana. Weird flex but ok.",
         "imageURL": "https://cdn.discordapp.com/emojis/999771598989041794.png",
@@ -6489,7 +6509,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 35000000,
+        "marketValue": 23980000,
         "netValue": 10000000,
         "flavor": "\"Does fireball affect party members? Surely not... right?\"",
         "details": "Using this rolls a d20. On a critical failure, it will break. Every other rolled number has something unique!",
@@ -6648,8 +6668,8 @@
         "emoji": "<a:BeggarsBowlIS:1439595760613326909>",
         "tags": {},
         "hasUse": true,
-        "rarity": "Epic",
-        "marketValue": 5000000,
+        "rarity": "Rare",
+        "marketValue": 4485000,
         "netValue": 500000,
         "flavor": "Despite being used to beg, I'd put my keys here after a long day at work. The bowl looks cozy.",
         "details": "When used, coins from begging are doubled while the item is still active. (After your coin multiplier!)",
@@ -6706,7 +6726,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Rare",
-        "marketValue": 6694000,
+        "marketValue": 4900000,
         "netValue": 250000,
         "flavor": "Did you know pepe lays eggs? Us neither, it freaked us out and I'm not sure where to go from here.",
         "details": "",
@@ -6723,8 +6743,8 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Legendary",
-        "marketValue": 17000000,
-        "netValue": 3400000,
+        "marketValue": 20640000,
+        "netValue": 4128000,
         "flavor": "Worn by the hard working gremlins behind the scenes at Dank Memer HQ while running in circles putting out fires.",
         "details": "Using this gives you construction colored embeds.",
         "imageURL": "https://cdn.discordapp.com/emojis/976128238109736970.png",
@@ -6742,7 +6762,7 @@
         },
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 5000000,
+        "marketValue": 5500000,
         "netValue": 1000000,
         "flavor": "The hand of the undead. Do NOT even think about doing what you're thinking about doing.",
         "details": "When used, the hand is destroyed. Once destroyed, finishing any adventure will cut the cooldown time in half. This effect lasts 12 hours and only affects adventures ended during this time.",
@@ -6750,7 +6770,7 @@
         "skins": {
             "braingraspingvariant": {
                 "name": "Brain Grasping Variant",
-                "rarity": "Godly",
+                "rarity": "Legendary",
                 "imageURL": "https://cdn.discordapp.com/emojis/1415132968032272538.gif"
             }
         }
@@ -6765,8 +6785,8 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 4359000,
-        "netValue": 871800,
+        "marketValue": 3000000,
+        "netValue": 600000,
         "flavor": "This d100 is for display only. Trying to roll it would certainly break it every time. You can obtain this from winning a d100 random event!",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1289651018908565555.gif",
@@ -6808,7 +6828,7 @@
             "HALLOWEEN": true
         },
         "hasUse": true,
-        "rarity": "Epic",
+        "rarity": "Rare",
         "marketValue": 2012000,
         "netValue": 1000000,
         "flavor": "If there's one thing we know for sure, it's that some portion of the population will find the devil sexy.",
@@ -6834,7 +6854,7 @@
         },
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 9990000,
+        "marketValue": 12550000,
         "netValue": 1000000,
         "flavor": "The dead drink it, but drinking it also results in death.",
         "details": "When you drink this, it will kill you. Found from the mortician job.",
@@ -6851,7 +6871,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Legendary",
-        "marketValue": 60000000,
+        "marketValue": 55691000,
         "netValue": 1000000,
         "flavor": "This box is packed with 1000 souls of previous dank players. Once they quit, they died and we shoved them in this box. I think that's the right order of events?",
         "details": "",
@@ -6908,7 +6928,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Rare",
-        "marketValue": 10000000,
+        "marketValue": 9870000,
         "netValue": 1250000,
         "flavor": "Wow I love fishing. Please don't tackle me.",
         "details": "Opening this box will give you some kind of fishing related gear.",
@@ -6925,7 +6945,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 200000000,
+        "marketValue": 300000000,
         "netValue": 25000000,
         "flavor": "AHHHHHHHHHHH. Oh wait it's not a battle pass, it's a season pass. Nevermind.",
         "details": "Opening this box will give you a season pass cosmetic (free or paid track) from any previous season that you missed. If you unlocked everything, this will give you nothing of value.",
@@ -6993,7 +7013,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 936550000,
+        "marketValue": 708395000,
         "netValue": 25000000,
         "flavor": "Omega box tastes like litter boxes, not foxes.",
         "details": "This box contains omega cosmetics and fish gear from omega 30 and under. You also get a 50% luck multi for 7 days. The fish bait has a tiny chance because it is a fallback for once all the cosmetics have been knocked out, just to prevent getting nothing.",
@@ -7010,7 +7030,7 @@
         "tags": {},
         "hasUse": false,
         "rarity": "Epic",
-        "marketValue": 2552000,
+        "marketValue": 2200000,
         "netValue": 2500,
         "flavor": "Go watch \"Cane Toads An Unnatural History 1988\" on Youtube rn.",
         "details": "",
@@ -7043,7 +7063,7 @@
         "emoji": "<a:PepemiteIT:1383145584382316668>",
         "tags": {},
         "hasUse": false,
-        "rarity": "Legendary",
+        "rarity": "Epic",
         "marketValue": 3950000,
         "netValue": 15000,
         "flavor": "Salty, kind of bitter, and loved by Australians. If you're reading this, tell your mother I said g'day!",
@@ -7129,7 +7149,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 5575000,
+        "marketValue": 8064000,
         "netValue": 1000000,
         "flavor": "How many spiders can you count in this box? I count zero. Oh that's because it's behind you.",
         "details": "",
@@ -7171,8 +7191,8 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Godly",
-        "marketValue": 14814117,
-        "netValue": 2962824,
+        "marketValue": 9500000,
+        "netValue": 1900000,
         "flavor": "Greg doesn't go anywhere without his corn and his knife.",
         "details": "",
         "imageURL": "https://cdn.discordapp.com/emojis/1408533840795930776.gif",
@@ -7258,7 +7278,7 @@
         "tags": {},
         "hasUse": true,
         "rarity": "Epic",
-        "marketValue": 16000000,
+        "marketValue": 18000000,
         "netValue": 1000000,
         "flavor": "Gaming so hard it burns.",
         "details": "You cannot accidentally get too greedy while streaming for 6 hours.",
@@ -7277,7 +7297,7 @@
             "NO_TRANSFER": true
         },
         "hasUse": true,
-        "rarity": "Mythical",
+        "rarity": "Legendary",
         "marketValue": 500000,
         "netValue": 500000,
         "flavor": "A lucky lil guy found in the yard. Don't eat it, my dog likes to pee there.",
@@ -7297,7 +7317,7 @@
         },
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 1775000000,
+        "marketValue": 1977500000,
         "netValue": 25000000,
         "flavor": "I don't know how this clover turned gold. Does my dog piss liquid gold? I gotta make money off this, it's just TOO good!",
         "details": "Using this clover gives you a quick 15 minute boost of 100% additional luck, and 500% coin multiplier, as well as 5,000,000 coins. Consumed on use.",
@@ -7316,11 +7336,28 @@
         },
         "hasUse": true,
         "rarity": "Mythical",
-        "marketValue": 80000000000,
+        "marketValue": 59000000000,
         "netValue": 5000000000,
         "flavor": "This clover seems un-human. No way a simple dog pissing caused it to be this OP. Maybe a leprechaun pissed on it?",
         "details": "Using this clover gives you a full day's boost of 150% additional luck, 1000% coin multiplier, 3x XP multiplier, as well as 500,000,000 coins. Consumed on use.",
         "imageURL": "https://cdn.discordapp.com/emojis/1478398967829106748.gif",
+        "skins": {}
+    },
+    {
+        "id": 320,
+        "itemKey": "titlebox",
+        "name": "Title Box",
+        "type": "Loot Box",
+        "value": 10000000,
+        "emoji": "<a:TitleBoxLBC:1508538115801878758>",
+        "tags": {},
+        "hasUse": true,
+        "rarity": "Mythical",
+        "marketValue": 510000000,
+        "netValue": 10000000,
+        "flavor": "The title of this box is a Title Box but the title of my next masterpiece is: Mel x your mother",
+        "details": "This box contains unique titles, and a few skin fragments in case you run out of titles.",
+        "imageURL": "https://cdn.discordapp.com/emojis/1508538115801878758.gif",
         "skins": {}
     }
 ]
