@@ -18,10 +18,11 @@ const cache = new LRUCache({
     sizeCalculation: (v) => v.length,
 });
 
-export const getChart = (db1, db2) => async (req, res) => {
+export const getChart = (db1, db2, pgPool) => async (req, res) => {
     const isPet = req.query.isPet === "true";
-    const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
-    const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
+    // const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
+    // const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
+    const tableName = isPet ? "petmarketlogs" : "marketlogs";
 
     try {
         const itemId = req.query.item;
@@ -42,6 +43,7 @@ export const getChart = (db1, db2) => async (req, res) => {
             return res.send(cachedImage);
         }
 
+        /*
         const query = { i: parseInt(itemId, 10) };
         if (hidePrivate) query.id = { $not: { $regex: /^PV/ } };
         if (excludeOneCoin) query.v = { $ne: 1 };
@@ -66,6 +68,27 @@ export const getChart = (db1, db2) => async (req, res) => {
                 .sort((a, b) => new Date(b.x) - new Date(a.x))
                 .slice(0, lastN);
         }
+        */
+
+        let whereClauses = [`i = $1`];
+        let queryParams = [parseInt(itemId, 10)];
+        let paramIndex = 2;
+
+        if (hidePrivate) whereClauses.push(`id NOT LIKE 'PV%'`);
+        if (excludeOneCoin) whereClauses.push(`v != 1`);
+        
+        const whereString = "WHERE " + whereClauses.join(" AND ");
+        const sqlQuery = `
+            SELECT t as x, v as y, s 
+            FROM ${tableName} 
+            ${whereString} 
+            ORDER BY t DESC 
+            LIMIT $${paramIndex++}
+        `;
+        queryParams.push(lastN);
+
+        const result = await pgPool.query(sqlQuery, queryParams);
+        let merged = result.rows;
 
         if (!merged.length) return res.status(404).json({ error: "No trades found" });
 

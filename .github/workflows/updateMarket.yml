@@ -2,7 +2,7 @@ name: Market log fetch
 
 on:
   schedule:
-    - cron: '*/6 * * * *' 
+    - cron: '*/15 * * * *' 
   workflow_dispatch:      
 
 jobs:
@@ -27,4 +27,6 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_URI2: ${{ secrets.MONGO_URI2 }}
+          COCKROACH_DB_URI: ${{ secrets.COCKROACH_DB_URI }}
         run: node updateMarket.js

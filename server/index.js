@@ -2,6 +2,12 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { MongoClient, ServerApiVersion } from "mongodb";
+import pkg from 'pg';
+const { Pool, types } = pkg;
+
+types.setTypeParser(20, function (val) {
+  return parseInt(val, 10);
+});
 
 import createItemsRouter from "./routes/items.js";
 import createMarketLogsRouter from "./routes/marketlogs.js";
@@ -12,6 +18,10 @@ import createChartsRouter from "./routes/chart.js";
 const app = express();
 app.use(cors());
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 const client1 = new MongoClient(process.env.MONGO_URI, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
@@ -19,19 +29,24 @@ const client2 = new MongoClient(process.env.MONGO_URI2, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
 
+const pgPool = new Pool({ connectionString: process.env.COCKROACH_DB_URI });
+
 async function startServer() {
   try {
     await Promise.all([client1.connect(), client2.connect()]);
     console.log("✅ Connected to both MongoDB clusters");
 
+    await pgPool.query('SELECT 1');
+    console.log("✅ Connected to CockroachDB");
+
     const db1 = client1.db("dankstats");
     const db2 = client2.db("dankstats");
 
-    app.use("/api/items", createItemsRouter(db1));
-    app.use("/api/marketlogs", createMarketLogsRouter(db1, db2));
-    app.use("/api/pets", createPetsRouter(db1));
-    app.use("/api/petmarketlogs", createPetMarketLogsRouter(db1, db2));
-    app.use("/api/chart", createChartsRouter(db1, db2));
+    app.use("/api/items", createItemsRouter(db1, pgPool));
+    app.use("/api/marketlogs", createMarketLogsRouter(db1, db2, pgPool));
+    app.use("/api/pets", createPetsRouter(db1, pgPool));
+    app.use("/api/petmarketlogs", createPetMarketLogsRouter(db1, db2, pgPool));
+    app.use("/api/chart", createChartsRouter(db1, db2, pgPool));
 
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () =>

@@ -1,8 +1,8 @@
 import express from "express";
 import { getPetMarketLogs } from "../controllers/petmarketlogsController.js";
 
-export default function createPetMarketLogsRouter(db1, db2) {
+export default function createPetMarketLogsRouter(db1, db2, pgPool) {
   const router = express.Router();
-  router.get("/", getPetMarketLogs(db1, db2));
+  router.get("/", getPetMarketLogs(db1, db2, pgPool));
   return router;
 }

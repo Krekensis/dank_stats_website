@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import axios from "axios";
 import { MongoClient, ServerApiVersion } from "mongodb";
+import pkg from 'pg';
+const { Pool } = pkg;
 
 dotenv.config();
 
@@ -12,6 +14,7 @@ const ITEMS_COLLECTION = "items";
 const CHANNEL_ID = "1011289984306778283"; // marketplace-logs
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const TARGET_BOT_ID = "270904126974590976"; // dank memer
+const COCKROACH_DB_URI = process.env.COCKROACH_DB_URI;
 
 const discordAPI = axios.create({
     baseURL: "https://discord.com/api/v10",
@@ -24,10 +27,12 @@ const defaultStats = {
     private: { buy: { trades: 0, vol: 0, num: 0 }, sell: { trades: 0, vol: 0, num: 0 } },
 };
 
-async function incrementStats(docs, itemsCol) {
+async function incrementStats(docs, itemsCol, pgPool) {
     if (docs.length === 0) return;
     const bulkOps = [];
+    const uniqueItemIds = new Set();
     for (const doc of docs) {
+        uniqueItemIds.add(doc.i);
         const vis = doc.id.startsWith("PV") ? "private" : "public";
         const type = doc.s ? "sell" : "buy";
         const vol = doc.v * doc.n;
@@ -48,6 +53,30 @@ async function incrementStats(docs, itemsCol) {
         });
     }
     await itemsCol.bulkWrite(bulkOps, { ordered: false }).catch(err => console.error("Stats update error:", err));
+    
+    if (pgPool) {
+        const updatedItems = await itemsCol.find({ id: { $in: Array.from(uniqueItemIds) } }).toArray();
+        for (const item of updatedItems) {
+            await pgPool.query(
+                `INSERT INTO items (id, name, url, history, stats) VALUES ($1, $2, $3, $4, $5) 
+                 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url, history = EXCLUDED.history, stats = EXCLUDED.stats`,
+                [item.id, item.name, item.url, JSON.stringify(item.history || []), JSON.stringify(item.stats || {})]
+            );
+        }
+    }
+}
+
+async function insertLogBatch(pgPool, tableName, docs) {
+    if (docs.length === 0) return;
+    const values = [];
+    const queryParams = [];
+    let i = 1;
+    for (const doc of docs) {
+        values.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+        queryParams.push(doc.id, doc.i, doc.s, new Date(doc.t), doc.v, doc.n);
+    }
+    const query = `INSERT INTO ${tableName} (id, i, s, t, v, n) VALUES ${values.join(", ")} ON CONFLICT (id) DO NOTHING`;
+    await pgPool.query(query, queryParams).catch(err => console.error(`PG Insert error on ${tableName}:`, err));
 }
 
 function sleep(ms) {
@@ -126,6 +155,8 @@ async function main() {
             deprecationErrors: true,
         },
     });
+    
+    const pgPool = new Pool({ connectionString: COCKROACH_DB_URI });
 
     await client.connect();
     const db = client.db(DB_NAME);
@@ -244,11 +275,12 @@ async function main() {
                         try {
                             const result = await col.insertMany(buffer, { ordered: false });
                             inserted += result.insertedCount;
+                            await insertLogBatch(pgPool, "marketlogs", buffer);
                             console.warn(`📦 Inserted ${result.insertedCount} trades`);
                             for (const doc of buffer) {
                                 console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                             }
-                            await incrementStats(buffer, itemsCol);
+                            await incrementStats(buffer, itemsCol, pgPool);
                         } catch (e) {
                             if (e.code === 11000 || (e.writeErrors && e.writeErrors.some(err => err.code === 11000))) {
                                 const insertedIds = e.result?.insertedIds || {};
@@ -260,7 +292,8 @@ async function main() {
                                         console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                                     }
                                     inserted += insertedDocs.length;
-                                    await incrementStats(insertedDocs, itemsCol);
+                                    await insertLogBatch(pgPool, "marketlogs", insertedDocs);
+                                    await incrementStats(insertedDocs, itemsCol, pgPool);
                                 }
 
                                 // Find which ID caused the duplicate
@@ -300,11 +333,12 @@ async function main() {
         try {
             const result = await col.insertMany(buffer, { ordered: false });
             inserted += result.insertedCount;
+            await insertLogBatch(pgPool, "marketlogs", buffer);
             console.warn(`📦 Inserted final batch of ${result.insertedCount}`);
             for (const doc of buffer) {
                 console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
             }
-            await incrementStats(buffer, itemsCol);
+            await incrementStats(buffer, itemsCol, pgPool);
         } catch (e) {
             if (e.code === 11000 || (e.writeErrors && e.writeErrors.some(err => err.code === 11000))) {
                 const insertedIds = e.result?.insertedIds || {};
@@ -316,7 +350,8 @@ async function main() {
                         console.log(`✅ ${doc.id} | ${doc.i} | ⏣ ${doc.v} x ${doc.n}`);
                     }
                     inserted += insertedDocs.length;
-                    await incrementStats(insertedDocs, itemsCol);
+                    await insertLogBatch(pgPool, "marketlogs", insertedDocs);
+                    await incrementStats(insertedDocs, itemsCol, pgPool);
                 }
 
                 const dupErr = e.writeErrors?.find(err => err.code === 11000);
@@ -334,6 +369,7 @@ async function main() {
     }
 
     await client.close();
+    await pgPool.end();
     console.warn(`\n🎉 Done! Inserted: ${inserted}`);
 }
 

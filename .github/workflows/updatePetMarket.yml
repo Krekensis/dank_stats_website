@@ -1,4 +1,4 @@
-name: Daily Discord Item Fetch
+name: Pet Market log fetch
 
 on:
   schedule:
@@ -29,4 +29,4 @@ jobs:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           MONGO_URI2: ${{ secrets.MONGO_URI2 }}
           COCKROACH_DB_URI: ${{ secrets.COCKROACH_DB_URI }}
-        run: node updateItems.js
+        run: node updatePetMarket.js
