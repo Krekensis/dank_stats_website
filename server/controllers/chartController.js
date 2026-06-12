@@ -27,6 +27,7 @@ export const getChart = (db1, db2, pgPool) => async (req, res) => {
     try {
         const itemId = req.query.item;
         if (!itemId) return res.status(400).json({ error: "Missing ?item parameter" });
+        if (isNaN(parseInt(itemId, 10))) return res.status(400).json({ error: "Invalid item ID. Must be an integer." });
 
         const lastN = Math.min(parseInt(req.query.last || "500", 10), 5000);
         const hidePrivate = req.query.private === "false";
@@ -79,7 +80,7 @@ export const getChart = (db1, db2, pgPool) => async (req, res) => {
         
         const whereString = "WHERE " + whereClauses.join(" AND ");
         const sqlQuery = `
-            SELECT t as x, v as y, s 
+            SELECT t as x, v as y, s as "isSell"
             FROM ${tableName} 
             ${whereString} 
             ORDER BY t DESC 
@@ -95,11 +96,11 @@ export const getChart = (db1, db2, pgPool) => async (req, res) => {
         const trades = merged.reverse();
 
         let sellTrades = trades
-            .map((t, idx) => t.s === true ? { x: idx, y: t.y, date: t.x } : null)
+            .map((t, idx) => t.isSell === true ? { x: idx, y: t.y, date: t.x } : null)
             .filter(Boolean);
 
         let buyTrades = trades
-            .map((t, idx) => t.s === false ? { x: idx, y: t.y, date: t.x } : null)
+            .map((t, idx) => t.isSell === false ? { x: idx, y: t.y, date: t.x } : null)
             .filter(Boolean);
 
         if (removeOutlierFlag) {

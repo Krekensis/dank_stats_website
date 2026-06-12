@@ -22,14 +22,14 @@ const AllItemsOverviewDesktop = () => {
                 ...item,
                 history: item.history
                     ?.slice() // shallow copy
-                    .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
+                    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         setItems(filtered);
 
         const allDates = filtered.flatMap((item) =>
-            item.history?.map((entry) => new Date(entry.t)) || []
+            item.history?.map((entry) => new Date(entry.timestamp)) || []
         );
 
         if (allDates.length > 0) {

@@ -105,14 +105,14 @@ const PetMarketVisualizerDesktop = () => {
         ...item,
         history: item.history
           ?.slice()
-          .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     setItems(filtered);
 
     const allDates = filtered.flatMap((item) =>
-      item.history?.map((entry) => new Date(entry.t)) || []
+      item.history?.map((entry) => new Date(entry.timestamp)) || []
     );
 
     if (allDates.length > 0) {
@@ -126,7 +126,7 @@ const PetMarketVisualizerDesktop = () => {
     if (data.length === 0) return data;
 
     // Use only public, non-1-coin trades to compute the baseline median & MAD
-    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.tradeId || !p.tradeId.startsWith('PV')));
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
     const values = baseData.map(point => point.y).sort((a, b) => a - b);
@@ -179,9 +179,15 @@ const PetMarketVisualizerDesktop = () => {
       try {
         // Count
         const countRes = await fetch(`${apiBase}/api/petmarketlogs?${new URLSearchParams({
-          ...baseParams,
-          countOnly: "true"
+          item: itemID,
+          start: start.toISOString(),
+          end: end.toISOString(),
+          countOnly: 'true'
         })}`);
+        if (!countRes.ok) {
+          if (countRes.status === 404) return [];
+          throw new Error("API count fetch failed");
+        }
         const { count } = await countRes.json();
         setDebugInfo(`Fetching ${itemName}: ${count} records`);
 
@@ -191,9 +197,13 @@ const PetMarketVisualizerDesktop = () => {
 
           const res = await fetch(`${apiBase}/api/petmarketlogs?${new URLSearchParams({
             ...baseParams,
-            skip: "0",
-            limit: count.toString()
+            skip: 0,
+            limit: 10000,
           })}`);
+          if (!res.ok) {
+            if (res.status === 404) return [];
+            throw new Error("API fetch failed");
+          }
           const data = await res.json();
           petMarketCache.mergeData(itemID, data, segment.start, segment.end);
           if (onProgress) onProgress(100, 100);
@@ -208,6 +218,10 @@ const PetMarketVisualizerDesktop = () => {
               limit: limit.toString()
             });
             const res = await fetch(`${apiBase}/api/petmarketlogs?${params}`);
+            if (!res.ok) {
+              if (res.status === 404) return [];
+              throw new Error("API fetch failed");
+            }
             const batch = await res.json();
             petMarketCache.mergeData(itemID, batch, segment.start, segment.end);
             if (onProgress) onProgress(i + 1, pages);
@@ -369,9 +383,9 @@ const PetMarketVisualizerDesktop = () => {
                 }
 
                 const originalData = dataset.data[point.dataIndex];
-                const quantity = originalData.n || 1;
-                const tradeId = originalData.id || 'Unknown';
-                const isSell = originalData.s !== undefined ? originalData.s : true;
+                const quantity = originalData.amount || 1;
+                const tradeId = originalData.tradeId || 'Unknown';
+                const isSell = originalData.isSell !== undefined ? originalData.isSell : true;
 
                 tooltipEl.innerHTML = `
                   <div style="display: flex; gap: 16px; align-items: center;">
@@ -455,15 +469,15 @@ const PetMarketVisualizerDesktop = () => {
     // Filter: trade type (skipped in dual mode — dual mode always uses all trades)
     if (!dualMode) {
       if (tradeType === 'sell') {
-        filtered = filtered.filter(p => p.s === true);
+        filtered = filtered.filter(p => p.isSell === true);
       } else if (tradeType === 'buy') {
-        filtered = filtered.filter(p => p.s === false);
+        filtered = filtered.filter(p => p.isSell === false);
       }
     }
 
     // Filter: hide private offers
     if (!showPrivate) {
-      filtered = filtered.filter(p => !p.id || !p.id.startsWith('PV'));
+      filtered = filtered.filter(p => !p.tradeId || !p.tradeId.startsWith('PV'));
     }
 
     // Filter: exclude outliers (per-item threshold)
@@ -499,8 +513,8 @@ const PetMarketVisualizerDesktop = () => {
 
       // Dual Mode: split buy/sell into separate colored datasets
       if (dualMode && items.length === 1) {
-        const sellPoints = scatterData.filter(p => p.s === true);
-        const buyPoints = scatterData.filter(p => p.s === false);
+        const sellPoints = scatterData.filter(p => p.isSell === true);
+        const buyPoints = scatterData.filter(p => p.isSell === false);
 
         const sellTrend = calculateMovingAverage(sellPoints, 100);
         const buyTrend = calculateMovingAverage(buyPoints, 100);
@@ -633,11 +647,11 @@ const PetMarketVisualizerDesktop = () => {
 
         // Store raw unfiltered data
         newRawData[item.name] = rawData.map((entry) => ({
-          x: new Date(entry.x),
-          y: entry.y,
-          n: entry.n,
-          id: entry.id,
-          s: entry.s
+          x: new Date(entry.timestamp),
+          y: entry.value,
+          amount: entry.amount,
+          tradeId: entry.tradeId,
+          isSell: entry.isSell
         }));
       }
 

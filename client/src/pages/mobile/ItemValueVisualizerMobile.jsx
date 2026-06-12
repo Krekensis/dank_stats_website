@@ -63,14 +63,14 @@ const ItemValueVisualizerMobile = () => {
         ...item,
         history: item.history
           ?.slice() // shallow copy
-          .sort((a, b) => new Date(a.t) - new Date(b.t)) || [],
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) || [],
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     setItems(filtered);
 
     const allDates = filtered.flatMap((item) =>
-      item.history?.map((entry) => new Date(entry.t)) || []
+      item.history?.map((entry) => new Date(entry.timestamp)) || []
     );
 
     if (allDates.length > 0) {
@@ -312,8 +312,8 @@ const ItemValueVisualizerMobile = () => {
         const color = neonizeHex(baseColor);
         const dataPoints = item.history
           .map((entry) => ({
-            x: new Date(entry.t),
-            y: entry.v
+            x: new Date(entry.timestamp),
+            y: entry.value
           }))
           .filter((entry) => entry.x >= startDate && entry.x <= endDate);
 

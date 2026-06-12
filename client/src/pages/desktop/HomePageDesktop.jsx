@@ -45,7 +45,7 @@ const generateEmojiPositions = () => {
         url: item.url,
         rotation: Math.random() * 60 - 30,
         name: item.name,
-        latestValue: item.history?.[item.history.length - 1]?.v ?? "N/A",
+        latestValue: item.history?.[item.history.length - 1]?.value ?? "N/A",
         id: crypto.randomUUID(),
       });
     } else {

@@ -149,9 +149,9 @@ const NavbarDesktop = () => {
             >
               Pet Statistics
             </a>
-            <a href="#" className="hover:text-[#6bff7a] transition">
-              About
-            </a>
+            <Link to="/api-docs" className="hover:text-[#6bff7a] transition cursor-pointer">
+              API
+            </Link>
           </div>
         </div>
 

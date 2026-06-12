@@ -2,8 +2,8 @@ import localPetData from "../assets/complete-pet-data.json";
 
 let memoryCache = null;
 let fetchPromise = null;
-const CACHE_KEY = "dank_stats_pets_cache_v1";
-const CACHE_EXPIRY_KEY = "dank_stats_pets_cache_expiry_v1";
+const CACHE_KEY = "dank_stats_pets_cache_v2";
+const CACHE_EXPIRY_KEY = "dank_stats_pets_cache_expiry_v2";
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 export const getCachedPetData = () => {

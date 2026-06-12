@@ -52,7 +52,7 @@ class PetMarketCache {
     if (!entry) return [];
 
     return entry.data.filter(point => {
-      const pointDate = new Date(point.x);
+      const pointDate = new Date(point.timestamp);
       return pointDate >= start && pointDate <= end;
     });
   }
@@ -63,7 +63,7 @@ class PetMarketCache {
 
     if (!entry) {
       this.cache.set(key, {
-        data: [...newData].sort((a, b) => new Date(a.x) - new Date(b.x)),
+        data: [...newData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)),
         rangeStart: fetchedStart,
         rangeEnd: fetchedEnd
       });
@@ -72,16 +72,16 @@ class PetMarketCache {
 
     const existing = new Map();
     for (const point of entry.data) {
-      const k = `${point.x}_${point.y}_${point.id || ''}`;
+      const k = `${point.timestamp}_${point.value}_${point.tradeId || ''}`;
       existing.set(k, point);
     }
     for (const point of newData) {
-      const k = `${point.x}_${point.y}_${point.id || ''}`;
+      const k = `${point.timestamp}_${point.value}_${point.tradeId || ''}`;
       existing.set(k, point);
     }
 
     const merged = Array.from(existing.values()).sort(
-      (a, b) => new Date(a.x) - new Date(b.x)
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
     );
 
     entry.data = merged;

@@ -37,7 +37,7 @@ function setCache(itemId, data) {
 function removeOutliers(data, threshold = 3) {
     if (data.length === 0) return data;
 
-    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.tradeId || !p.tradeId.startsWith('PV')));
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
     const values = baseData.map(point => point.y).sort((a, b) => a - b);
@@ -75,8 +75,8 @@ function calcMA(trades, window = 20) {
 // ── Build chart data from pre-filtered trades ─────────────────────────────────
 function buildMarketChartData(filtered) {
     const sorted = [...filtered].sort((a, b) => new Date(a.x) - new Date(b.x));
-    const sellTrades = sorted.filter(d => d.s === true);
-    const buyTrades = sorted.filter(d => d.s === false);
+    const sellTrades = sorted.filter(d => d.isSell === true);
+    const buyTrades = sorted.filter(d => d.isSell === false);
 
     const sellMA = calcMA(sellTrades, Math.max(10, Math.floor(sellTrades.length / 10)));
     const buyMA = calcMA(buyTrades, Math.max(10, Math.floor(buyTrades.length / 10)));
@@ -154,16 +154,16 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
             return;
         }
 
-        const sorted = [...item.history].sort((a, b) => new Date(a.t) - new Date(b.t));
+        const sorted = [...item.history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         setSortedHistory(sorted);
 
         let history = [...sorted];
         if (range === '7d') {
             const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-            history = history.filter(h => new Date(h.t) >= weekAgo);
+            history = history.filter(h => new Date(h.timestamp) >= weekAgo);
         } else if (range === '30d') {
             const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-            history = history.filter(h => new Date(h.t) >= monthAgo);
+            history = history.filter(h => new Date(h.timestamp) >= monthAgo);
         }
 
         if (history.length === 0) { setChartData(null); return; }
@@ -171,7 +171,7 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
         const loadChart = async () => {
             const avgColor = await getAverageColor(item.url);
             const color = neonizeHex(avgColor);
-            const values = history.map(h => h.v);
+            const values = history.map(h => h.value);
             const labels = history.map((_, i) => i);
             setChartData({
                 labels,
@@ -194,13 +194,24 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
 
         const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : 'http://localhost:3001';
         try {
+            const now = new Date();
+            const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
                 item: itemId.toString(),
+                start: start.toISOString(),
+                end: now.toISOString(),
                 skip: '0',
                 limit: '1000',
                 private: 'false',
                 excludeOneCoin: 'true',
             })}`);
+            if (!res.ok) {
+                if (res.status === 404) {
+                    setCache(itemId, []);
+                    return;
+                }
+                throw new Error('API fetch failed');
+            }
             const data = await res.json();
             if (Array.isArray(data)) {
                 // Client-side outlier removal (threshold 3σ)

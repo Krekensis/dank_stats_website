@@ -4,11 +4,11 @@ import { titleCase, commas } from "../functions/stringUtils";
 const ItemCard = ({ item, startDate, endDate }) => {
     if (!item) return null;
 
-    const allValues = item.history.map((entry) => entry.v);
+    const allValues = item.history.map((entry) => entry.value);
     const rangeValues = item.history.filter((entry) => {
-        const ts = new Date(entry.t);
+        const ts = new Date(entry.timestamp);
         return ts >= startDate && ts <= endDate;
-    }).map((entry) => entry.v);
+    }).map((entry) => entry.value);
 
     const [lowestAll, highestAll, oldestAll, latestAll] = [Math.min(...allValues), Math.max(...allValues), allValues[0], allValues[allValues.length - 1]];
     const totalTimePercentChange = allValues.length > 1 && oldestAll !== 0 ? (((latestAll - oldestAll) / oldestAll) * 100).toFixed(2) : "N/A";

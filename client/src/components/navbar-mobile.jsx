@@ -102,7 +102,14 @@ const NavbarMobile = () => {
                 {item.heading}
               </button>
             ))}
-            <div className="text-[#6bff7a] font-bold border-b border-[#2a3c31] pb-1 mt-2">About</div>
+            <div className="text-[#6bff7a] font-bold border-b border-[#2a3c31] pb-1 mt-2">API</div>
+            <Link
+              to="/api-docs"
+              onClick={() => setExpanded(false)}
+              className="text-left pl-4 hover:text-[#6bff7a] transition py-1"
+            >
+              Documentation
+            </Link>
           </div>
         </div>
       </div>

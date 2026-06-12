@@ -36,7 +36,7 @@ function setCache(itemId, data) {
 function removeOutliers(data, threshold = 3) {
     if (data.length === 0) return data;
 
-    const baselineTrades = data.filter(p => p.y !== 1 && (!p.id || !p.id.startsWith('PV')));
+    const baselineTrades = data.filter(p => p.y !== 1 && (!p.tradeId || !p.tradeId.startsWith('PV')));
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
     const values = baseData.map(point => point.y).sort((a, b) => a - b);
@@ -74,8 +74,8 @@ function calcMA(trades, window = 20) {
 // ── Build chart data from pre-filtered trades ─────────────────────────────────
 function buildMarketChartData(filtered) {
     const sorted = [...filtered].sort((a, b) => new Date(a.x) - new Date(b.x));
-    const sellTrades = sorted.filter(d => d.s === true);
-    const buyTrades = sorted.filter(d => d.s === false);
+    const sellTrades = sorted.filter(d => d.isSell === true);
+    const buyTrades = sorted.filter(d => d.isSell === false);
 
     const sellMA = calcMA(sellTrades, Math.max(10, Math.floor(sellTrades.length / 10)));
     const buyMA = calcMA(buyTrades, Math.max(10, Math.floor(buyTrades.length / 10)));
@@ -156,6 +156,13 @@ const PetSidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                 private: 'false',
                 excludeOneCoin: 'true',
             })}`);
+            if (!res.ok) {
+                if (res.status === 404) {
+                    setCache(itemId, []);
+                    return;
+                }
+                throw new Error('API fetch failed');
+            }
             const data = await res.json();
             if (Array.isArray(data)) {
                 // Client-side outlier removal (threshold 3σ)
