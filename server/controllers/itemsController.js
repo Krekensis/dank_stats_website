@@ -1,6 +1,18 @@
-export const getItems = (db, pgPool) => async (req, res) => {
+export const getItems = (db, pgPool, redisClient) => async (req, res) => {
   try {
     const { id, excludeHistory, sortBy, order } = req.query;
+    
+    // Check Redis Cache
+    const cacheKey = `items:${id || 'all'}:${excludeHistory || 'false'}:${sortBy || 'none'}:${order || 'none'}`;
+    try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            res.set("X-Cache", "HIT");
+            return res.json(JSON.parse(cachedData));
+        }
+    } catch (err) {
+        console.error("Redis get error in items:", err);
+    }
 
     if (excludeHistory && excludeHistory !== 'true' && excludeHistory !== 'false') {
       return res.status(400).json({ error: "Wrong parameter value given. Use from true / false for excludeHistory" });
@@ -53,6 +65,14 @@ export const getItems = (db, pgPool) => async (req, res) => {
       }
       return row;
     });
+
+    try {
+        await redisClient.setex(cacheKey, 3600, JSON.stringify(items));
+    } catch (err) {
+        console.error("Redis setex error in items:", err);
+    }
+    
+    res.set("X-Cache", "MISS");
     res.json(items);
   } catch (err) {
     console.error("Error fetching items:", err);

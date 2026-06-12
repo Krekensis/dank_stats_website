@@ -505,6 +505,7 @@ const endpoints = [
         description: 'Generates a PNG chart for an item.',
         url: '/api/chart?item=125',
         isImage: true,
+        imagePath: '/chart-example-1.png',
         response: `(Returns image/png binary data)`
       },
       {
@@ -512,6 +513,7 @@ const endpoints = [
         description: 'Generates a PNG chart for an item with outliers removed and the last 1000 trades.',
         url: '/api/chart?item=125&routlier=true&last=1000',
         isImage: true,
+        imagePath: '/chart-example-2.png',
         response: `(Returns image/png binary data)`
       },
       {
@@ -519,6 +521,7 @@ const endpoints = [
         description: 'Generates a PNG chart for a pet, removing 1 dmc trades and statistical outliers.',
         url: '/api/chart?item=1&isPet=true&ronecoin=true&routlier=true',
         isImage: true,
+        imagePath: '/chart-example-3.png',
         response: `(Returns image/png binary data)`
       }
     ]
@@ -661,7 +664,7 @@ const ApiPageMobile = () => {
                       <div className="text-[10px] text-[#a4bbb0] uppercase tracking-widest mb-2 mt-1 font-bold">Response</div>
                       {ex.isImage ? (
                         <div className="mt-2 p-3 rounded-lg flex items-center justify-center">
-                          <img src={`${apiBase}${ex.url}`} alt={ex.title} className="max-w-full rounded-md shadow-sm" />
+                          <img src={ex.imagePath || `${apiBase}${ex.url}`} alt={ex.title} className="max-w-full rounded-md shadow-sm" />
                         </div>
                       ) : (
                         <pre className="text-xs overflow-x-auto whitespace-pre pt-1">

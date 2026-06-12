@@ -7,12 +7,12 @@ const MarketItemCard = ({ item, tradeData }) => {
     const data = tradeData || [];
     const totalTrades = data.length;
 
-    const sellTrades = data.filter(t => t.s === true);
-    const buyTrades = data.filter(t => t.s === false);
+    const sellTrades = data.filter(t => t.isSell === true);
+    const buyTrades = data.filter(t => t.isSell === false);
 
-    const totalVolume = data.reduce((sum, t) => sum + (t.n || 1), 0);
-    const sellVolume = sellTrades.reduce((sum, t) => sum + (t.n || 1), 0);
-    const buyVolume = buyTrades.reduce((sum, t) => sum + (t.n || 1), 0);
+    const totalVolume = data.reduce((sum, t) => sum + (t.amount || 1), 0);
+    const sellVolume = sellTrades.reduce((sum, t) => sum + (t.amount || 1), 0);
+    const buyVolume = buyTrades.reduce((sum, t) => sum + (t.amount || 1), 0);
 
     const getMinMaxAvg = (trades) => {
         if (trades.length === 0) return { min: "N/A", max: "N/A", avg: "N/A" };

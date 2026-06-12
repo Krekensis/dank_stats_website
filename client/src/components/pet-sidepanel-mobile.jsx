@@ -36,10 +36,10 @@ function setCache(itemId, data) {
 function removeOutliers(data, threshold = 3) {
     if (data.length === 0) return data;
 
-    const baselineTrades = data.filter(p => p.y !== 1 && (!p.tradeId || !p.tradeId.startsWith('PV')));
+    const baselineTrades = data.filter(p => p.value !== 1 && (!p.tradeId || !p.tradeId.startsWith('PV')));
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
-    const values = baseData.map(point => point.y).sort((a, b) => a - b);
+    const values = baseData.map(point => point.value).sort((a, b) => a - b);
     
     const getMedian = (arr) => {
       const mid = Math.floor(arr.length / 2);
@@ -58,7 +58,7 @@ function removeOutliers(data, threshold = 3) {
         madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
     }
 
-    return data.filter(point => Math.abs(point.y - median) <= threshold * madStdDev);
+    return data.filter(point => Math.abs(point.value - median) <= threshold * madStdDev);
 }
 
 // ── Moving average ────────────────────────────────────────────────────────────
@@ -67,13 +67,13 @@ function calcMA(trades, window = 20) {
     return trades.map((_, i) => {
         const start = Math.max(0, i - window + 1);
         const slice = trades.slice(start, i + 1);
-        return Math.round(slice.reduce((s, t) => s + t.y, 0) / slice.length);
+        return Math.round(slice.reduce((s, t) => s + t.value, 0) / slice.length);
     });
 }
 
 // ── Build chart data from pre-filtered trades ─────────────────────────────────
 function buildMarketChartData(filtered) {
-    const sorted = [...filtered].sort((a, b) => new Date(a.x) - new Date(b.x));
+    const sorted = [...filtered].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     const sellTrades = sorted.filter(d => d.isSell === true);
     const buyTrades = sorted.filter(d => d.isSell === false);
 
@@ -81,8 +81,8 @@ function buildMarketChartData(filtered) {
     const buyMA = calcMA(buyTrades, Math.max(10, Math.floor(buyTrades.length / 10)));
 
     // Keep timestamps aligned to each trade for tooltip
-    const sellTimestamps = sellTrades.map(d => d.x);
-    const buyTimestamps = buyTrades.map(d => d.x);
+    const sellTimestamps = sellTrades.map(d => d.timestamp);
+    const buyTimestamps = buyTrades.map(d => d.timestamp);
 
     const maxLen = Math.max(sellMA.length, buyMA.length);
     const labels = Array.from({ length: maxLen }, (_, i) => i);
@@ -197,7 +197,7 @@ const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
             const sliced = rawData.slice(-marketRange);
             const built = buildMarketChartData(sliced);
             setMarketChartData(built);
-            const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.y, 0) / arr.length) : 0;
+            const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.value, 0) / arr.length) : 0;
             setMarketStats({
                 totalTrades: built._total,
                 sellCount: built._sellTrades.length,

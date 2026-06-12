@@ -1,8 +1,23 @@
-export const getMarketLogs = (db1, db2, pgPool) => async (req, res) => {
+export const getMarketLogs = (db1, db2, pgPool, redisClient) => async (req, res) => {
   // const logs1 = db1.collection("marketlogs");
   // const logs2 = db2.collection("marketlogs");
 
   try {
+    const sortedQueryString = Object.keys(req.query)
+        .sort()
+        .map(key => `${key}=${req.query[key]}`)
+        .join('&');
+    const cacheKey = `marketlogs:?${sortedQueryString}`;
+    if (redisClient) {
+        try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                return res.json(JSON.parse(cachedData));
+            }
+        } catch (err) {
+            console.error("Redis get error in marketlogs:", err);
+        }
+    }
     const {
       item,
       type,
@@ -101,7 +116,15 @@ export const getMarketLogs = (db1, db2, pgPool) => async (req, res) => {
       return res.json({ count: count1 + count2 });
       */
       const countRes = await pgPool.query(`SELECT COUNT(*) FROM marketlogs ${whereString}`, queryParams);
-      return res.json({ count: parseInt(countRes.rows[0].count, 10) });
+      const data = { count: parseInt(countRes.rows[0].count, 10) };
+      if (redisClient) {
+          try {
+              await redisClient.setex(cacheKey, 1800, JSON.stringify(data));
+          } catch (err) {
+              console.error("Redis setex error in marketlogs count:", err);
+          }
+      }
+      return res.json(data);
     }
 
     /*
@@ -151,6 +174,14 @@ export const getMarketLogs = (db1, db2, pgPool) => async (req, res) => {
 
     // Return data as sorted by SQL
     let data = result.rows;
+
+    if (redisClient) {
+        try {
+            await redisClient.setex(cacheKey, 1800, JSON.stringify(data));
+        } catch (err) {
+            console.error("Redis setex error in marketlogs:", err);
+        }
+    }
 
     res.json(data);
   } catch (err) {

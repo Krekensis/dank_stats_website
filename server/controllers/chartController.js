@@ -1,5 +1,4 @@
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
-import { LRUCache } from "lru-cache";
 import { removeOutliers, generateThreeLabels, movingAverageLine } from "../utils/mathUtils.js";
 
 const width = 700;
@@ -11,14 +10,7 @@ const chartJSNodeCanvas = new ChartJSNodeCanvas({
     backgroundColour: "transparent",
 });
 
-const cache = new LRUCache({
-    max: 100,            // max 100 unique charts in memory
-    ttl: 60_000,         // expire after 60 seconds
-    maxSize: 50_000_000, // 50MB total cap
-    sizeCalculation: (v) => v.length,
-});
-
-export const getChart = (db1, db2, pgPool) => async (req, res) => {
+export const getChart = (db1, db2, pgPool, redisClient) => async (req, res) => {
     const isPet = req.query.isPet === "true";
     // const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
     // const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
@@ -34,14 +26,19 @@ export const getChart = (db1, db2, pgPool) => async (req, res) => {
         const removeOutlierFlag = req.query.routlier === "true";
         const excludeOneCoin = req.query.ronecoin === "true";
 
-        // Check LRU cache before doing any DB work
-        const cacheKey = `${itemId}-${isPet}-${lastN}-${hidePrivate}-${removeOutlierFlag}-${excludeOneCoin}`;
-        const cachedImage = cache.get(cacheKey);
-        if (cachedImage) {
-            res.set("Content-Type", "image/png");
-            res.set("Cache-Control", "public, max-age=60, s-maxage=60");
-            res.set("X-Cache", "HIT");
-            return res.send(cachedImage);
+        // Check Redis cache before doing any DB work
+        const cacheKey = `chart:${itemId}-${isPet}-${lastN}-${hidePrivate}-${removeOutlierFlag}-${excludeOneCoin}`;
+        try {
+            const cachedImage = await redisClient.getBuffer(cacheKey);
+            if (cachedImage) {
+                res.set("Content-Type", "image/png");
+                res.set("Cache-Control", "public, max-age=60, s-maxage=60");
+                res.set("X-Cache", "HIT");
+                return res.send(cachedImage);
+            }
+        } catch (err) {
+            console.error("Redis getBuffer error:", err);
+            // If redis fails, continue and generate from DB
         }
 
         /*
@@ -200,8 +197,12 @@ export const getChart = (db1, db2, pgPool) => async (req, res) => {
 
         const image = await chartJSNodeCanvas.renderToBuffer(configuration);
 
-        // Store in LRU cache for subsequent requests
-        cache.set(cacheKey, image);
+        // Store in Redis cache for 60 seconds
+        try {
+            await redisClient.setex(cacheKey, 60, image);
+        } catch (err) {
+            console.error("Redis setex error:", err);
+        }
 
         res.set("Content-Type", "image/png");
         res.set("Cache-Control", "public, max-age=60, s-maxage=60");
