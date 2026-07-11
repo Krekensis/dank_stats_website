@@ -2,17 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import pkg from 'pg';
-const { Pool, types } = pkg;
 
 import Redis from "ioredis";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import compression from "compression";
 
-types.setTypeParser(20, function (val) {
-  return parseInt(val, 10);
-});
+
 
 import createItemsRouter from "./routes/items.js";
 import createMarketLogsRouter from "./routes/marketlogs.js";
@@ -69,26 +65,25 @@ const client2 = new MongoClient(process.env.MONGO_URI2, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
 
-const pgPool = new Pool({ connectionString: process.env.COCKROACH_DB_URI });
+
 
 async function startServer() {
   try {
     await Promise.all([client1.connect(), client2.connect()]);
     console.log("✅ Connected to both MongoDB clusters");
 
-    await pgPool.query('SELECT 1');
-    console.log("✅ Connected to CockroachDB");
+
 
     const db1 = client1.db("dankstats");
     const db2 = client2.db("dankstats");
 
-    app.use("/api/items", createItemsRouter(db1, pgPool, redisClient));
-    app.use("/api/marketlogs", createMarketLogsRouter(db1, db2, pgPool, redisClient));
-    app.use("/api/pets", createPetsRouter(db1, pgPool));
-    app.use("/api/petmarketlogs", createPetMarketLogsRouter(db1, db2, pgPool));
+    app.use("/api/items", createItemsRouter(db1, redisClient));
+    app.use("/api/marketlogs", createMarketLogsRouter(db1, db2, redisClient));
+    app.use("/api/pets", createPetsRouter(db1));
+    app.use("/api/petmarketlogs", createPetMarketLogsRouter(db1, db2));
 
     // Apply stricter limiter explicitly to the chart route, overriding the standard one
-    app.use("/api/chart", chartLimiter, createChartsRouter(db1, db2, pgPool, redisClient));
+    app.use("/api/chart", chartLimiter, createChartsRouter(db1, db2, redisClient));
 
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () =>

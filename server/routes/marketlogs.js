@@ -1,8 +1,8 @@
 import express from "express";
 import { getMarketLogs } from "../controllers/marketlogsController.js";
 
-export default function createMarketLogsRouter(db1, db2, pgPool, redisClient) {
+export default function createMarketLogsRouter(db1, db2, redisClient) {
   const router = express.Router();
-  router.get("/", getMarketLogs(db1, db2, pgPool, redisClient));
+  router.get("/", getMarketLogs(db1, db2, redisClient));
   return router;
 }

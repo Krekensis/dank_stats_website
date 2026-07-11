@@ -1,4 +1,4 @@
-export const getPets = (db, pgPool) => async (req, res) => {
+export const getPets = (db) => async (req, res) => {
   try {
     const { id, excludeHistory, sortBy, order } = req.query;
 
@@ -17,37 +17,41 @@ export const getPets = (db, pgPool) => async (req, res) => {
       return res.status(400).json({ error: "Wrong parameter value given. Use from desc / asc for order" });
     }
 
-    let selectFields = excludeHistory === 'true' 
-        ? 'name, id, url, stats' 
-        : 'name, id, url, history, stats';
-
-    let sqlQuery = `SELECT ${selectFields} FROM pets`;
-    let queryParams = [];
-
+    let query = {};
     if (id) {
       if (isNaN(parseInt(id, 10))) {
         return res.status(400).json({ error: "Invalid id format. Expected integer." });
       }
-      sqlQuery += ' WHERE id = $1';
-      queryParams.push(parseInt(id, 10));
-    } else if (sortBy) {
-        let sortCol = 'id';
-        if (sortBy === 'volume') sortCol = "CAST(stats->'total'->>'vol' AS FLOAT)";
-        else if (sortBy === 'trades') sortCol = "CAST(stats->'total'->>'trades' AS FLOAT)";
-        else if (sortBy === 'id') sortCol = "id";
-        else if (sortBy === 'name') sortCol = "name";
+      query.id = parseInt(id, 10);
+    }
+    
+    const collection = db.collection("pets");
+    const cursor = collection.find(query);
 
-        const sortDir = order && order.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
-        sqlQuery += ` ORDER BY ${sortCol} ${sortDir}`;
+    if (sortBy) {
+        let sortCol = 'id';
+        if (sortBy === 'volume') sortCol = 'stats.total.vol';
+        else if (sortBy === 'trades') sortCol = 'stats.total.trades';
+        else if (sortBy === 'id') sortCol = 'id';
+        else if (sortBy === 'name') sortCol = 'name';
+
+        const sortDir = order && order.toLowerCase() === 'desc' ? -1 : 1;
+        cursor.sort({ [sortCol]: sortDir });
     }
 
-    const result = await pgPool.query(sqlQuery, queryParams);
+    let projection = { name: 1, id: 1, url: 1, stats: 1, _id: 0 };
+    if (excludeHistory !== 'true') {
+        projection.history = 1;
+    }
+    cursor.project(projection);
 
-    if (result.rows.length === 0) {
+    const result = await cursor.toArray();
+
+    if (result.length === 0) {
       return res.status(404).json({ error: "Pet ID not found." });
     }
 
-    const pets = result.rows.map(row => {
+    const pets = result.map(row => {
       if (excludeHistory !== 'true') {
         row.history = row.history?.map(h => ({ timestamp: h.t, value: h.v })) || [];
       }

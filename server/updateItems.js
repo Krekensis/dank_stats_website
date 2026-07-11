@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 import axios from "axios";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import pkg from 'pg';
-const { Pool } = pkg;
 dotenv.config();
 
 // --- CONFIGURATION ---
@@ -12,7 +10,6 @@ const COLLECTION_NAME = "items";
 const CHANNEL_ID = "1011290554233008218";
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const TARGET_BOT_ID = "270904126974590976";
-const COCKROACH_DB_URI = process.env.COCKROACH_DB_URI;
 
 // --- DISCORD API CLIENT ---
 const discordAPI = axios.create({
@@ -91,9 +88,7 @@ const main = async () => {
     },
   });
 
-  const pgPool = new Pool({ connectionString: COCKROACH_DB_URI });
-
-  await client.connect();
+  const client = new MongoClient(MONGO_URI, {
   const db = client.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
 
@@ -191,15 +186,7 @@ const main = async () => {
           { upsert: true }
         );
 
-        // --- NEW: Sync to CockroachDB ---
-        const updatedDoc = await collection.findOne({ name });
-        if (updatedDoc) {
-            await pgPool.query(
-                `INSERT INTO items (id, name, url, history, stats) VALUES ($1, $2, $3, $4, $5) 
-                 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url, history = EXCLUDED.history, stats = EXCLUDED.stats`,
-                [updatedDoc.id, updatedDoc.name, updatedDoc.url, JSON.stringify(updatedDoc.history || []), JSON.stringify(updatedDoc.stats || {})]
-            );
-        }
+        // --- Sync to CockroachDB removed ---
 
         console.log(`💾 Updated: ${name} (id=${itemId}) @ ${timestamp.toISOString()}`);
       }
@@ -215,7 +202,6 @@ const main = async () => {
 
   console.log("🎉 Sync complete!");
   await client.close();
-  await pgPool.end();
 };
 
 main().catch((err) => {

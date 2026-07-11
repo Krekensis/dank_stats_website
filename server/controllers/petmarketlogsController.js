@@ -1,6 +1,6 @@
-export const getPetMarketLogs = (db1, db2, pgPool) => async (req, res) => {
-  // const logs1 = db1.collection("petmarketlogs");
-  // const logs2 = db2.collection("petmarketlogs");
+export const getPetMarketLogs = (db1, db2) => async (req, res) => {
+  const logs1 = db1.collection("petmarketlogs");
+  const logs2 = db2.collection("petmarketlogs");
 
   try {
     const {
@@ -36,7 +36,6 @@ export const getPetMarketLogs = (db1, db2, pgPool) => async (req, res) => {
       return res.status(400).json({ error: "Wrong parameter value given. Use from desc / asc for order" });
     }
 
-    /*
     const query = {};
     if (item) query.i = parseInt(item, 10);
     if (type === "sell") query.s = true;
@@ -47,110 +46,77 @@ export const getPetMarketLogs = (db1, db2, pgPool) => async (req, res) => {
 
     if (start || end) {
       query.t = {};
-      if (start) query.t.$gte = new Date(start);
-      if (end) query.t.$lte = new Date(end);
-    }
-    */
-
-    let whereClauses = [];
-    let queryParams = [];
-    let paramIndex = 1;
-
-    if (item) {
-        if (isNaN(parseInt(item, 10))) return res.status(400).json({ error: "Invalid item format. Expected integer." });
-        whereClauses.push(`i = $${paramIndex++}`);
-        queryParams.push(parseInt(item, 10));
-    }
-    if (type === "sell") {
-        whereClauses.push(`s = true`);
-    } else if (type === "buy") {
-        whereClauses.push(`s = false`);
-    } else if (type && type !== "sell" && type !== "buy") {
-        return res.status(400).json({ error: "Invalid type. Must be 'sell' or 'buy'." });
-    }
-    
-    if (isPrivate === "false") {
-        whereClauses.push(`id NOT LIKE 'PV%'`);
-    }
-    if (excludeOneCoin === "true") {
-        whereClauses.push(`v != 1`);
-    }
-    if (start) {
+      if (start) {
         if (isNaN(Date.parse(start))) return res.status(400).json({ error: "Invalid start date format." });
-        whereClauses.push(`t >= $${paramIndex++}`);
-        queryParams.push(new Date(start));
-    }
-    if (end) {
+        query.t.$gte = new Date(start);
+      }
+      if (end) {
         if (isNaN(Date.parse(end))) return res.status(400).json({ error: "Invalid end date format." });
-        whereClauses.push(`t <= $${paramIndex++}`);
-        queryParams.push(new Date(end));
+        query.t.$lte = new Date(end);
+      }
     }
 
-    if (skip !== undefined && isNaN(parseInt(skip))) return res.status(400).json({ error: "Invalid skip format. Expected integer." });
-    if (limit !== undefined && isNaN(parseInt(limit))) return res.status(400).json({ error: "Invalid limit format. Expected integer." });
-
-    const whereString = whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
+    if (skip !== undefined && isNaN(parseInt(skip, 10))) return res.status(400).json({ error: "Invalid skip format. Expected integer." });
+    if (limit !== undefined && isNaN(parseInt(limit, 10))) return res.status(400).json({ error: "Invalid limit format. Expected integer." });
 
     // Count mode
     if (countOnly === "true") {
-      /*
       const [count1, count2] = await Promise.all([
         logs1.countDocuments(query),
         logs2.countDocuments(query),
       ]);
       return res.json({ count: count1 + count2 });
-      */
-      const countRes = await pgPool.query(`SELECT COUNT(*) FROM petmarketlogs ${whereString}`, queryParams);
-      return res.json({ count: parseInt(countRes.rows[0].count, 10) });
     }
-
-    /*
-    // Fetch data from both
-    const [docs1, docs2] = await Promise.all([
-      logs1.find(query).project({ x: "$t", y: "$v", n: "$n", id: 1, s: 1, i: 1 }).toArray(),
-      logs2.find(query).project({ x: "$t", y: "$v", n: "$n", id: 1, s: 1, i: 1 }).toArray(),
-    ]);
-
-    // Merge + sort descending (latest first) then slice for "latest N" semantics
-    const merged = [...docs1, ...docs2].sort((a, b) => b.x - a.x);
-    const sliced = merged.slice(
-      parseInt(skip),
-      parseInt(skip) + Math.min(parseInt(limit), 10000)
-    );
-
-    // Return in chronological order
-    sliced.sort((a, b) => a.x - b.x);
-
-    res.json(sliced);
-    */
 
     const limitVal = Math.min(parseInt(limit), 10000);
     const skipVal = parseInt(skip);
+    const fetchLimit = skipVal + limitVal;
 
-    let sortCol = 't';
-    if (sortBy === 'value') sortCol = 'v';
-    else if (sortBy === 'amount') sortCol = 'n';
-    else if (sortBy === 'time') sortCol = 't';
-
-    const sortDir = order && order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
-
-    const sqlQuery = `
-        SELECT t as timestamp, v as value, n as amount, id as "tradeId", s as "isSell", i as "itemId" 
-        FROM petmarketlogs 
-        ${whereString} 
-        ORDER BY ${sortCol} ${sortDir} 
-        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-    queryParams.push(limitVal, skipVal);
-
-    const result = await pgPool.query(sqlQuery, queryParams);
+    let mongoSort = { t: -1 };
+    let sortDir = order && order.toLowerCase() === 'asc' ? 1 : -1;
     
-    if (result.rows.length === 0) {
+    if (sortBy === 'value') mongoSort = { v: sortDir };
+    else if (sortBy === 'amount') mongoSort = { n: sortDir };
+    else if (sortBy === 'time') mongoSort = { t: sortDir };
+    else if (order) mongoSort = { t: sortDir };
+
+    // Fetch data from both, pushing sort and limit down to MongoDB
+    const [docs1, docs2] = await Promise.all([
+      logs1.find(query).sort(mongoSort).limit(fetchLimit).project({ x: "$t", y: "$v", n: "$n", id: 1, s: 1, i: 1 }).toArray(),
+      logs2.find(query).sort(mongoSort).limit(fetchLimit).project({ x: "$t", y: "$v", n: "$n", id: 1, s: 1, i: 1 }).toArray(),
+    ]);
+
+    // Merge the results
+    const merged = [...docs1, ...docs2];
+
+    if (merged.length === 0) {
       return res.status(404).json({ error: "No market data found for these parameters." });
     }
 
-    // Return data as sorted by SQL
-    let data = result.rows;
+    // Re-sort the merged array
+    merged.sort((a, b) => {
+        let valA, valB;
+        if (sortBy === 'value') { valA = a.y; valB = b.y; }
+        else if (sortBy === 'amount') { valA = a.n; valB = b.n; }
+        else { valA = new Date(a.x).getTime(); valB = new Date(b.x).getTime(); }
+
+        if (valA < valB) return -1 * sortDir;
+        if (valA > valB) return 1 * sortDir;
+        return 0;
+    });
+
+    // Apply exact pagination on the merged/sorted dataset
+    const sliced = merged.slice(skipVal, skipVal + limitVal);
+
+    // Format for client
+    let data = sliced.map((d) => ({
+      timestamp: d.x,
+      value: d.y,
+      amount: d.n,
+      tradeId: d.id,
+      isSell: d.s,
+      itemId: d.i
+    }));
 
     res.json(data);
   } catch (err) {

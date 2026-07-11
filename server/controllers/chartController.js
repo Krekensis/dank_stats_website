@@ -10,11 +10,10 @@ const chartJSNodeCanvas = new ChartJSNodeCanvas({
     backgroundColour: "transparent",
 });
 
-export const getChart = (db1, db2, pgPool, redisClient) => async (req, res) => {
+export const getChart = (db1, db2, redisClient) => async (req, res) => {
     const isPet = req.query.isPet === "true";
-    // const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
-    // const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
-    const tableName = isPet ? "petmarketlogs" : "marketlogs";
+    const logs1 = db1.collection(isPet ? "petmarketlogs" : "marketlogs");
+    const logs2 = db2.collection(isPet ? "petmarketlogs" : "marketlogs");
 
     try {
         const itemId = req.query.item;
@@ -41,7 +40,6 @@ export const getChart = (db1, db2, pgPool, redisClient) => async (req, res) => {
             // If redis fails, continue and generate from DB
         }
 
-        /*
         const query = { i: parseInt(itemId, 10) };
         if (hidePrivate) query.id = { $not: { $regex: /^PV/ } };
         if (excludeOneCoin) query.v = { $ne: 1 };
@@ -66,38 +64,17 @@ export const getChart = (db1, db2, pgPool, redisClient) => async (req, res) => {
                 .sort((a, b) => new Date(b.x) - new Date(a.x))
                 .slice(0, lastN);
         }
-        */
-
-        let whereClauses = [`i = $1`];
-        let queryParams = [parseInt(itemId, 10)];
-        let paramIndex = 2;
-
-        if (hidePrivate) whereClauses.push(`id NOT LIKE 'PV%'`);
-        if (excludeOneCoin) whereClauses.push(`v != 1`);
-        
-        const whereString = "WHERE " + whereClauses.join(" AND ");
-        const sqlQuery = `
-            SELECT t as x, v as y, s as "isSell"
-            FROM ${tableName} 
-            ${whereString} 
-            ORDER BY t DESC 
-            LIMIT $${paramIndex++}
-        `;
-        queryParams.push(lastN);
-
-        const result = await pgPool.query(sqlQuery, queryParams);
-        let merged = result.rows;
 
         if (!merged.length) return res.status(404).json({ error: "No trades found" });
 
         const trades = merged.reverse();
 
         let sellTrades = trades
-            .map((t, idx) => t.isSell === true ? { x: idx, y: t.y, date: t.x } : null)
+            .map((t, idx) => t.s === true ? { x: idx, y: t.y, date: t.x } : null)
             .filter(Boolean);
 
         let buyTrades = trades
-            .map((t, idx) => t.isSell === false ? { x: idx, y: t.y, date: t.x } : null)
+            .map((t, idx) => t.s === false ? { x: idx, y: t.y, date: t.x } : null)
             .filter(Boolean);
 
         if (removeOutlierFlag) {
