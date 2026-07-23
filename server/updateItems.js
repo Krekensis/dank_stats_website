@@ -88,7 +88,6 @@ const main = async () => {
     },
   });
 
-  const client = new MongoClient(MONGO_URI, {
   const db = client.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
 
