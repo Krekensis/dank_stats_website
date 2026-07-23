@@ -41,18 +41,18 @@ function removeOutliers(data, threshold = 3) {
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
     const values = baseData.map(point => point.value).sort((a, b) => a - b);
-    
+
     const getMedian = (arr) => {
-      const mid = Math.floor(arr.length / 2);
-      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+        const mid = Math.floor(arr.length / 2);
+        return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
     };
 
     const median = getMedian(values);
     const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
     const mad = getMedian(deviations);
-    
+
     let madStdDev = 1.4826 * mad;
-    
+
     if (madStdDev === 0) {
         const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
         const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
@@ -194,14 +194,10 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
 
         const apiBase = import.meta.env.PROD ? import.meta.env.VITE_API_BASE : 'http://localhost:3001';
         try {
-            const now = new Date();
-            const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             const res = await fetch(`${apiBase}/api/marketlogs?${new URLSearchParams({
                 item: itemId.toString(),
-                start: start.toISOString(),
-                end: now.toISOString(),
                 skip: '0',
-                limit: '1000',
+                limit: '2500',
                 private: 'false',
                 excludeOneCoin: 'true',
             })}`);
@@ -242,8 +238,8 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
         }
 
         const buildFromCache = (rawData) => {
-            // Take the latest `marketRange` records (data is already sorted chrono)
-            const sliced = rawData.slice(-marketRange);
+            // Take the latest `marketRange` records (API returns newest first)
+            const sliced = rawData.slice(0, marketRange);
             const built = buildMarketChartData(sliced);
             setMarketChartData(built);
             const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.value, 0) / arr.length) : 0;
@@ -405,7 +401,7 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Volume</p>
                                     <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.buy.vol + item.stats.private.buy.vol)}</p>
                                 </div>
-                                
+
                                 <div className="bg-[#0d1311] rounded-md py-3 px-2">
                                     <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Trades</p>
                                     <p className="text-base font-mono text-white">{commas(item.stats.total.trades)}</p>

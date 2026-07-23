@@ -152,7 +152,7 @@ const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
             const res = await fetch(`${apiBase}/api/petmarketlogs?${new URLSearchParams({
                 item: itemId.toString(),
                 skip: '0',
-                limit: '1000',
+                limit: '2500',
                 private: 'false',
                 excludeOneCoin: 'true',
             })}`);
@@ -193,8 +193,8 @@ const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
         }
 
         const buildFromCache = (rawData) => {
-            // Take the latest `marketRange` records (data is already sorted chrono)
-            const sliced = rawData.slice(-marketRange);
+            // Take the latest `marketRange` records (API returns newest first)
+            const sliced = rawData.slice(0, marketRange);
             const built = buildMarketChartData(sliced);
             setMarketChartData(built);
             const avgPrice = (arr) => arr.length > 0 ? Math.round(arr.reduce((s, t) => s + t.value, 0) / arr.length) : 0;
