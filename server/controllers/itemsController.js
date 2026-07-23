@@ -65,7 +65,10 @@ export const getItems = (db, redisClient) => async (req, res) => {
 
     const items = result.map(row => {
       if (excludeHistory !== 'true') {
-        row.history = row.history?.map(h => ({ timestamp: h.t, value: h.v })) || [];
+        row.history = row.history?.map(h => ({
+          timestamp: h.t || h.timestamp,
+          value: h.v !== undefined ? h.v : h.value
+        })) || [];
       }
       return row;
     });
