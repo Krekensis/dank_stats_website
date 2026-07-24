@@ -15,6 +15,7 @@ import createMarketLogsRouter from "./routes/marketlogs.js";
 import createPetsRouter from "./routes/pets.js";
 import createPetMarketLogsRouter from "./routes/petmarketlogs.js";
 import createChartsRouter from "./routes/chart.js";
+import createScrapedRouter from "./routes/scraped.js";
 
 const app = express();
 
@@ -81,6 +82,7 @@ async function startServer() {
     app.use("/api/marketlogs", createMarketLogsRouter(db1, db2, redisClient));
     app.use("/api/pets", createPetsRouter(db1));
     app.use("/api/petmarketlogs", createPetMarketLogsRouter(db1, db2));
+    app.use("/api/scraped", createScrapedRouter(db1, redisClient));
 
     // Apply stricter limiter explicitly to the chart route, overriding the standard one
     app.use("/api/chart", chartLimiter, createChartsRouter(db1, db2, redisClient));
