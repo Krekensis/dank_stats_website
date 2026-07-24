@@ -128,6 +128,30 @@ function buildMarketChartData(filtered) {
     };
 }
 
+// ── Custom Plugin for Vertical Crosshair ──────────────────────────────────────
+const crosshairPlugin = {
+    id: 'crosshair',
+    afterDraw: (chart) => {
+        if (chart.tooltip?._active && chart.tooltip._active.length) {
+            const activePoint = chart.tooltip._active[0];
+            const ctx = chart.ctx;
+            const x = activePoint.element.x;
+            const topY = chart.scales.y.top;
+            const bottomY = chart.scales.y.bottom;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, topY);
+            ctx.lineTo(x, bottomY);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#4a5e56';
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
@@ -233,7 +257,6 @@ const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
     const marketChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        animation: false,
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -351,7 +374,7 @@ const PetSidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                             {marketLoading ? (
                                 <p className="text-[#a4bbb0] font-mono text-sm animate-pulse">Loading trades...</p>
                             ) : marketChartData ? (
-                                <Line data={marketChartData} options={marketChartOptions} />
+                                <Line data={marketChartData} options={marketChartOptions} plugins={[crosshairPlugin]} />
                             ) : (
                                 <p className="text-[#4a5e56] font-mono text-sm italic">No market data available.</p>
                             )}

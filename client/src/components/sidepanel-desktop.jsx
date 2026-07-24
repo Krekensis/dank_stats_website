@@ -9,9 +9,10 @@ import {
     CategoryScale,
     LinearScale,
     Tooltip,
+    Filler,
 } from 'chart.js';
 
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip);
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Filler);
 
 // ── Persistent market cache (survives item switching) ─────────────────────────
 // Structure: { [itemId]: { data: [...], fetchedAt: timestamp } }
@@ -129,6 +130,30 @@ function buildMarketChartData(filtered) {
     };
 }
 
+// ── Custom Plugin for Vertical Crosshair ──────────────────────────────────────
+const crosshairPlugin = {
+    id: 'crosshair',
+    afterDraw: (chart) => {
+        if (chart.tooltip?._active && chart.tooltip._active.length) {
+            const activePoint = chart.tooltip._active[0];
+            const ctx = chart.ctx;
+            const x = activePoint.element.x;
+            const topY = chart.scales.y.top;
+            const bottomY = chart.scales.y.bottom;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, topY);
+            ctx.lineTo(x, bottomY);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#4a5e56';
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
@@ -178,6 +203,14 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                 datasets: [{
                     data: values,
                     borderColor: color,
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 128); // 128px is roughly h-32
+                        gradient.addColorStop(0, `${color}80`); // 50% opacity neon color
+                        gradient.addColorStop(1, `${color}00`); // transparent
+                        return gradient;
+                    },
+                    fill: true,
                     pointRadius: 0,
                     tension: 0.3,
                 }],
@@ -330,7 +363,6 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
     const marketChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        animation: false,
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -446,7 +478,7 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
 
                             <div className="h-32 mb-2 flex items-center justify-center">
                                 {chartData ? (
-                                    <Line data={chartData} options={chartOptions} />
+                                    <Line data={chartData} options={chartOptions} plugins={[crosshairPlugin]} />
                                 ) : (
                                     <p className="text-red-400 font-mono text-sm italic">No data available in this range.</p>
                                 )}
@@ -504,7 +536,7 @@ const SidePanelDesktop = ({ item, prefetchItemIds = [] }) => {
                             {marketLoading ? (
                                 <p className="text-[#a4bbb0] font-mono text-sm animate-pulse">Loading trades...</p>
                             ) : marketChartData ? (
-                                <Line data={marketChartData} options={marketChartOptions} />
+                                <Line data={marketChartData} options={marketChartOptions} plugins={[crosshairPlugin]} />
                             ) : (
                                 <p className="text-[#4a5e56] font-mono text-sm italic">No market data available.</p>
                             )}
