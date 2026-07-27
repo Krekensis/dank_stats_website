@@ -161,12 +161,12 @@ const ItemValueVisualizerMobile = () => {
               unit: "day"
             },
             title: { display: false },
-            ticks: { color: "#a4bbb0", maxTicksLimit: 10 },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', maxTicksLimit: 10 },
             grid: { display: false },
           },
           y: {
             title: { display: false },
-            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${formatLargeNumber(value)}` },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', callback: (value) => `⏣ ${formatLargeNumber(value)}` },
             grid: { display: false },
           },
         },
@@ -178,12 +178,12 @@ const ItemValueVisualizerMobile = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
+                div.style.cssText = `position: absolute; background-color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg4').trim() || '#111816' : '#111816'}; opacity: 0.9; color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0'}; border: 2px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'}; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 // Create triangle pointer
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
-                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #6bff7a;`;
+                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'};`;
                 div.appendChild(triangle);
 
                 document.body.appendChild(div);
@@ -352,7 +352,7 @@ const ItemValueVisualizerMobile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-4">
+    <div className="min-h-screen bg-bg0 text-white p-4">
       <Navbar />
 
       {loading ? (
@@ -370,141 +370,146 @@ const ItemValueVisualizerMobile = () => {
                 onClick={handleDisplay}
                 disabled={!canDisplay}
                 className={`flex-none font-mono font-extrabold py-[6px] px-4 rounded-md transition ${canDisplay
-                  ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
-                  : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
+                  ? "bg-primary hover:bg-primaryHover text-bg0 cursor-pointer"
+                  : "bg-primary/50 text-bg0 cursor-not-allowed"
                   }`}
               //style={{ height: "40px" }}
               >
-                Display
+              Display
+            </button>
+          </div>
+          {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
+        </div>
+        </div>
+  )
+}
+
+{
+  chartData && (
+    <>
+      <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
+        <div className="bg-bg4 rounded-xl p-2 shadow-lg w-full" id="chart-container">
+          {/* Updated Notes Section */}
+          <div className="flex flex-wrap justify-end items-center font-mono text-textMuted gap-1 mb-4">
+
+            {/* Dataset Range Dropdown */}
+            <div className="relative" ref={datasetRangeDropdownRef}>
+              <button
+                onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors"
+                title="Dataset range"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
               </button>
+              {datasetRangeDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
+                  Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
+                </div>
+              )}
             </div>
-            {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
+
+            {/* Date Format Dropdown */}
+            <div className="relative" ref={dateFormatDropdownRef}>
+              <button
+                onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors"
+                title="Date format"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                </svg>
+              </button>
+              {dateFormatDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 w-max ">
+                  <button
+                    onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
+                    className="w-full text-left rounded-md px-3 py-2 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
+                  >
+                    Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Chart Type Dropdown */}
+            <div className="relative" ref={chartTypeDropdownRef} title="Chart Type">
+              <button
+                onClick={() => setChartTypeDropdownOpen(!chartTypeDropdownOpen)}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                </svg>
+              </button>
+              {chartTypeDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 min-w-max ">
+                  {/* Placeholder for chart type options */}
+                </div>
+              )}
+            </div>
+
+            {/* Zoom Reset Button */}
+            <button
+              onClick={handleZoomReset}
+              className={`flex items-center justify-center w-8 h-8 rounded-md bg-bg0 transition-colors ${isZoomedIn ? 'hover:text-primary cursor-pointer' : 'cursor-default'
+                }`}
+              disabled={!isZoomedIn}
+              title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor" viewBox="0 0 24 24"
+                className="w-4 h-4">
+                <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
+                <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="relative w-full h-[450px]">
+            <canvas id="myChart" className="w-full h-full" />
           </div>
         </div>
-      )}
 
-      {chartData && (
-        <>
-          <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
-            <div className="bg-[#111816] rounded-xl p-2 shadow-lg w-full" id="chart-container">
-              {/* Updated Notes Section */}
-              <div className="flex flex-wrap justify-end items-center font-mono text-[#a4bbb0] gap-1 mb-4">
-
-                {/* Dataset Range Dropdown */}
-                <div className="relative" ref={datasetRangeDropdownRef}>
-                  <button
-                    onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
-                    title="Dataset range"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                  </button>
-                  {datasetRangeDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
-                      Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
-                    </div>
-                  )}
-                </div>
-
-                {/* Date Format Dropdown */}
-                <div className="relative" ref={dateFormatDropdownRef}>
-                  <button
-                    onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
-                    title="Date format"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                  </button>
-                  {dateFormatDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max ">
-                      <button
-                        onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-3 py-2 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
-                      >
-                        Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Chart Type Dropdown */}
-                <div className="relative" ref={chartTypeDropdownRef} title="Chart Type">
-                  <button
-                    onClick={() => setChartTypeDropdownOpen(!chartTypeDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors cursor-pointer"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-                    </svg>
-                  </button>
-                  {chartTypeDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 min-w-max ">
-                      {/* Placeholder for chart type options */}
-                    </div>
-                  )}
-                </div>
-
-                {/* Zoom Reset Button */}
-                <button
-                  onClick={handleZoomReset}
-                  className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
-                    }`}
-                  disabled={!isZoomedIn}
-                  title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor" viewBox="0 0 24 24"
-                    className="w-4 h-4">
-                    <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
-                    <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
-                  </svg>
-                </button>
+        {/* Simplified Legend Container */}
+        <div className="bg-bg4 p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-textMuted w-full" id="legend-container">
+          <div className="flex flex-col space-y-1">
+            <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
+            {chartData?.datasets.map((ds) => (
+              <div key={ds.label} className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: ds.borderColor }} />
+                <img src={ds.url} alt={ds.label} className="w-5 h-5 shrink-0" />
+                <span className="truncate">{ds.label}</span>
               </div>
-
-              <div className="relative w-full h-[450px]">
-                <canvas id="myChart" className="w-full h-full" />
-              </div>
-            </div>
-
-            {/* Simplified Legend Container */}
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0] w-full" id="legend-container">
-              <div className="flex flex-col space-y-1">
-                <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
-                {chartData?.datasets.map((ds) => (
-                  <div key={ds.label} className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: ds.borderColor }} />
-                    <img src={ds.url} alt={ds.label} className="w-5 h-5 shrink-0" />
-                    <span className="truncate">{ds.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col mx-auto space-y-4 w-full" id="cards-container">
-            {displayedItems.map((item) => (
-              <ItemCard key={item.id || item.name} item={item} startDate={startDate} endDate={endDate} />
             ))}
           </div>
-        </>
-      )}
-
-      {!chartData && !loading && (
-        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
-          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-          </svg>
-          <h2 className="text-xl font-bold mb-2">Item Value Visualizer</h2>
-          <p className="max-w-md">
-            Select up to 15 items, choose your date range, and click "Display" to visualize their historical value trends.
-          </p>
         </div>
-      )}
+      </div>
+
+      <div className="flex flex-col mx-auto space-y-4 w-full" id="cards-container">
+        {displayedItems.map((item) => (
+          <ItemCard key={item.id || item.name} item={item} startDate={startDate} endDate={endDate} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+{
+  !chartData && !loading && (
+    <div className="flex flex-col items-center justify-center mt-32 text-textMuted opacity-50 font-mono text-center">
+      <svg className="w-24 h-24 mb-4 text-border1" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+      </svg>
+      <h2 className="text-xl font-bold mb-2">Item Value Visualizer</h2>
+      <p className="max-w-md">
+        Select up to 15 items, choose your date range, and click "Display" to visualize their historical value trends.
+      </p>
     </div>
+  )
+}
+    </div >
   );
 };
 

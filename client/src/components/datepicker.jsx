@@ -197,34 +197,34 @@ const DatePicker = ({ value, onChange, time = false }) => {
                 }}
                 inputMode="numeric"
                 maxLength={10}
-                className="bg-[#111816] text-[#a4bbb0] text-center placeholder-[#a4bbb0] border-2 border-transparent px-2 py-1.5 sm:px-3 rounded-md focus:border-[#6bff7a] focus:outline-none cursor-text w-full sm:w-[140px]"
+                className="bg-bg4 text-textMuted text-center placeholder-textMuted border-2 border-transparent px-2 py-1.5 sm:px-3 rounded-md focus:border-primary focus:outline-none cursor-text w-full sm:w-[140px]"
                 placeholder="DD/MM/YYYY"
             />
 
             {showCalendar && (
                 <div
                     ref={calendarRef}
-                    className="absolute z-10 mt-2 bg-[#111816] text-white rounded-md w-72 p-4 shadow-custom"
+                    className="absolute z-10 mt-2 bg-bg4 text-white rounded-md w-72 p-4 shadow-custom"
                     style={{ left: calendarLeft != null ? `${calendarLeft}px` : 0 }}
                 >
                     {/* Calendar Header */}
                     <div className="flex justify-between items-center mb-3">
-                        <button onClick={prevMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] not-last:px-2">&lt;</button>
+                        <button onClick={prevMonth} className="text-primary hover:text-[#67ff76ce] not-last:px-2">&lt;</button>
                         <div className="flex space-x-2 text-white text-sm">
                             <button onClick={() => {
                                 setShowMonthPicker(prev => !prev);
                                 setShowYearPicker(false);
-                            }} className="hover:text-[#6bff7a]">{monthNames[currentMonth]}</button>
+                            }} className="hover:text-primary">{monthNames[currentMonth]}</button>
                             <button onClick={() => {
                                 setShowYearPicker(prev => !prev);
                                 setShowMonthPicker(false);
-                            }} className="hover:text-[#6bff7a]">{currentYear}</button>
+                            }} className="hover:text-primary">{currentYear}</button>
                         </div>
-                        <button onClick={nextMonth} className="text-[#6bff7a] hover:text-[#67ff76ce] px-2">&gt;</button>
+                        <button onClick={nextMonth} className="text-primary hover:text-[#67ff76ce] px-2">&gt;</button>
                     </div>
 
                     {showMonthPicker && (
-                        <div className="bg-[#0d1311] rounded-md grid grid-cols-3 gap-2 my-3 py-3 px-3">
+                        <div className="bg-bg3 rounded-md grid grid-cols-3 gap-2 my-3 py-3 px-3">
                             {monthNames.map((month, i) => (
                                 <button key={month} onClick={() => {
                                     setCurrentMonth(i);
@@ -233,13 +233,13 @@ const DatePicker = ({ value, onChange, time = false }) => {
                                     setSelectedDate(newDate);
                                     setInputValue(newDate.toLocaleDateString("en-GB"));
                                     onChange && onChange(newDate);
-                                }} className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]">{month}</button>
+                                }} className="text-sm text-textMuted hover:text-primary">{month}</button>
                             ))}
                         </div>
                     )}
 
                     {showYearPicker && (
-                        <div className="bg-[#0d1311] rounded-md grid grid-cols-4 gap-2 max-h-32 overflow-y-auto my-3 py-3 px-3 custom-scrollbar">
+                        <div className="bg-bg3 rounded-md grid grid-cols-4 gap-2 max-h-32 overflow-y-auto my-3 py-3 px-3 custom-scrollbar">
                             {years.map((year) => (
                                 <button key={year} onClick={() => {
                                     setCurrentYear(year);
@@ -248,7 +248,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
                                     setSelectedDate(newDate);
                                     setInputValue(newDate.toLocaleDateString("en-GB"));
                                     onChange && onChange(newDate);
-                                }} className="text-sm text-[#a4bbb0] hover:text-[#6bff7a]">{year}</button>
+                                }} className="text-sm text-textMuted hover:text-primary">{year}</button>
                             ))}
                         </div>
                     )}
@@ -267,11 +267,11 @@ const DatePicker = ({ value, onChange, time = false }) => {
                             <button
                                 key={day + 1}
                                 onClick={() => handleDateClick(day + 1)}
-                                className={`text-sm rounded-md w-8 h-8 border-2 border-transparent hover:bg-[#111816] hover:border-[#6bff7a] hover:text-[#6bff7a] ${selectedDate?.getDate() === day + 1 &&
+                                className={`text-sm rounded-md w-8 h-8 border-2 border-transparent hover:bg-bg4 hover:border-primary hover:text-primary ${selectedDate?.getDate() === day + 1 &&
                                     currentMonth === selectedDate.getMonth() &&
                                     currentYear === selectedDate.getFullYear()
-                                    ? "bg-[#6bff7a] text-[#111816]"
-                                    : "text-[#a4bbb0]"
+                                    ? "bg-primary text-bg4"
+                                    : "text-textMuted"
                                     }`}
                             >
                                 {day + 1}
@@ -288,7 +288,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
                                 max={23}
                                 value={hours.toString().padStart(2, '0')}
                                 onChange={(e) => handleTimeChange("hours", e.target.value)}
-                                className="w-10 bg-[#0d1311] text-[#ffffff] text-center rounded-md outline-none"
+                                className="w-10 bg-bg3 text-[#ffffff] text-center rounded-md outline-none"
                             />
                             <span className="text-[#ffffff]">:</span>
                             <input
@@ -297,7 +297,7 @@ const DatePicker = ({ value, onChange, time = false }) => {
                                 max={59}
                                 value={minutes.toString().padStart(2, '0')}
                                 onChange={(e) => handleTimeChange("minutes", e.target.value)}
-                                className="w-10 bg-[#0d1311] text-[#ffffff] text-center rounded-md outline-none"
+                                className="w-10 bg-bg3 text-[#ffffff] text-center rounded-md outline-none"
                             />
                         </div>
                     )}
@@ -309,16 +309,16 @@ const DatePicker = ({ value, onChange, time = false }) => {
                     width: 8px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #0d1311;
+                    background: var(--theme-bg3);
                     border-radius: 6px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: #2b473e;
+                    background-color: var(--theme-border1);
                     border-radius: 6px;
-                    border: 2px solid #0d1311;
+                    border: 2px solid var(--theme-bg3);
                 }
                 ::-webkit-inner-spin-button {
-                    background-color: #2b473e;
+                    background-color: var(--theme-border1);
                     border-radius: 50%;
                     width: 4px;
                     height: 4px;

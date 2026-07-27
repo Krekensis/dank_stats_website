@@ -6,7 +6,7 @@ export const getScrapedData = (db, redisClient) => async (req, res) => {
       return res.status(400).json({ error: "Missing required query parameter: id (e.g., ?id=items)" });
     }
 
-    const validIds = ["changelogs", "items", "pets", "fish"];
+    const validIds = ["changelogs", "items", "pets", "fish", "market_trends"];
     if (!validIds.includes(id)) {
       return res.status(400).json({ error: `Invalid id parameter. Allowed values: ${validIds.join(", ")}` });
     }
@@ -32,10 +32,10 @@ export const getScrapedData = (db, redisClient) => async (req, res) => {
       return res.status(404).json({ error: "No data found for this id." });
     }
 
-    // Cache the result (expire in 5 minutes / 300 seconds)
+    // Cache the result (expire in 30 minutes / 1800 seconds)
     if (redisClient) {
       try {
-        await redisClient.setex(cacheKey, 300, JSON.stringify(doc));
+        await redisClient.setex(cacheKey, 1800, JSON.stringify(doc));
       } catch (err) {
         console.error("Redis set error in scraped:", err);
       }

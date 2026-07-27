@@ -106,7 +106,7 @@ function buildMarketChartData(filtered) {
                 label: 'Sell Avg',
                 data: padded(sellMA, maxLen),
                 timestamps: paddedSellTS,
-                borderColor: '#6bff7a',
+                borderColor: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a',
                 pointRadius: 0,
                 tension: 0.3,
                 borderWidth: 3,
@@ -146,7 +146,7 @@ const crosshairPlugin = {
             ctx.moveTo(x, topY);
             ctx.lineTo(x, bottomY);
             ctx.lineWidth = 1;
-            ctx.strokeStyle = '#4a5e56';
+            ctx.strokeStyle = typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-border2').trim() || 'rgba(164, 187, 176, 0.2)' : 'rgba(164, 187, 176, 0.2)';
             ctx.setLineDash([4, 4]);
             ctx.stroke();
             ctx.restore();
@@ -333,7 +333,7 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(13, 19, 17, 0.8)',
-                titleColor: '#6bff7a',
+                titleColor: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a',
                 bodyColor: '#e0f4eb',
                 titleFont: { family: 'monospace', weight: 'bold', size: 12 },
                 bodyFont: { family: 'monospace', size: 12 },
@@ -369,7 +369,7 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(13, 19, 17, 0.92)',
-                titleColor: '#6bff7a',
+                titleColor: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a',
                 bodyColor: '#e0f4eb',
                 titleFont: { family: 'monospace', weight: 'bold', size: 12 },
                 bodyFont: { family: 'monospace', size: 12 },
@@ -408,47 +408,47 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
     };
 
     return (
-        <div className="w-full bg-[#111816] border-0 rounded-md p-4 h-full overflow-y-auto flex-shrink-0">
+        <div className="w-full bg-bg4 border-0 rounded-md p-4 h-full overflow-y-auto flex-shrink-0">
             {item ? (
                 <>
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-4 pb-4 border-b-2 border-[#1e2a27]">
+                    <div className="flex items-center gap-4 mb-4 pb-4 border-b-2 border-bg10">
                         <img src={item.url} alt={item.name} className="w-12 h-12 object-contain drop-shadow-md" />
                         <div>
                             <h2 className="text-xl font-extrabold font-mono">{titleCase(item.name)}</h2>
-                            <p className="text-sm text-[#a4bbb0] font-mono">Item details &amp; stats</p>
+                            <p className="text-sm text-textMuted font-mono">Item details &amp; stats</p>
                         </div>
                     </div>
 
                     {/* Lifetime Statistics */}
                     {item.stats && (
-                        <div className="mb-4 pb-4 border-b-2 border-[#1e2a27]">
-                            <p className="text-base text-[#a4bbb0] font-mono mb-4">Lifetime Statistics</p>
+                        <div className="mb-4 pb-4 border-b-2 border-bg10">
+                            <p className="text-base text-textMuted font-mono mb-4">Lifetime Statistics</p>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Volume</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Total Volume</p>
                                     <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.total.vol)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Volume</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Buy Volume</p>
                                     <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.buy.vol + item.stats.private.buy.vol)}</p>
                                 </div>
                                 
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Total Trades</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Total Trades</p>
                                     <p className="text-base font-mono text-white">{commas(item.stats.total.trades)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Volume</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Sell Volume</p>
                                     <p className="text-base font-mono text-white">⏣ {formatLargeNumber(item.stats.public.sell.vol + item.stats.private.sell.vol)}</p>
                                 </div>
 
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Trades</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Buy Trades</p>
                                     <p className="text-base font-mono text-white">{commas(item.stats.public.buy.trades + item.stats.private.buy.trades)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Trades</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Sell Trades</p>
                                     <p className="text-base font-mono text-white">{commas(item.stats.public.sell.trades + item.stats.private.sell.trades)}</p>
                                 </div>
                             </div>
@@ -456,18 +456,18 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                     )}
 
                     {/* Value Trend */}
-                    <div className='mb-4 border-b-2 border-[#1e2a27]'>
+                    <div className='mb-4 border-b-2 border-bg10'>
                         <div className="mb-6">
                             <div className="mb-4 flex items-center justify-between">
-                                <p className="text-base text-[#a4bbb0] font-mono">Value Trend</p>
-                                <div className="flex rounded-md bg-[#0d1311] p-1">
+                                <p className="text-base text-textMuted font-mono">Value Trend</p>
+                                <div className="flex rounded-md bg-bg3 p-1">
                                     {['7d', '30d', 'Full'].map((r) => (
                                         <button
                                             key={r}
                                             onClick={() => setRange(r)}
                                             className={`w-12 py-1 px-1 rounded-[4px] text-xs font-mono border transition ${range === r
-                                                ? 'bg-[#17211d] border-0 text-[#6bff7a]'
-                                                : 'bg-transparent border-0 text-[#a4bbb0]'
+                                                ? 'bg-bg6 border-0 text-primary'
+                                                : 'bg-transparent border-0 text-textMuted'
                                                 }`}
                                         >
                                             {r}
@@ -493,20 +493,20 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
 
                         {/* Stat Highlights */}
                         <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Current Value</p>
+                            <div className="bg-bg3 rounded-md py-3 px-2">
+                                <p className="text-xs font-mono text-textMuted mb-1">Current Value</p>
                                 <p className="text-base font-mono">⏣ {commas(current ?? '–')}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Oldest Value</p>
+                            <div className="bg-bg3 rounded-md py-3 px-2">
+                                <p className="text-xs font-mono text-textMuted mb-1">Oldest Value</p>
                                 <p className="text-base font-mono">⏣ {commas(oldest ?? '–')}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Minimum</p>
+                            <div className="bg-bg3 rounded-md py-3 px-2">
+                                <p className="text-xs font-mono text-textMuted mb-1">Minimum</p>
                                 <p className="text-base font-mono">⏣ {commas(min)}</p>
                             </div>
-                            <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                <p className="text-xs font-mono text-[#a4bbb0] mb-1">Maximum</p>
+                            <div className="bg-bg3 rounded-md py-3 px-2">
+                                <p className="text-xs font-mono text-textMuted mb-1">Maximum</p>
                                 <p className="text-base font-mono">⏣ {commas(max)}</p>
                             </div>
                         </div>
@@ -515,15 +515,15 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
                     {/* Market Trend */}
                     <div className="">
                         <div className="mb-4 flex items-center justify-between">
-                            <p className="text-base text-[#a4bbb0] font-mono">Market Trend</p>
-                            <div className="flex rounded-md bg-[#0d1311] p-1">
+                            <p className="text-base text-textMuted font-mono">Market Trend</p>
+                            <div className="flex rounded-md bg-bg3 p-1">
                                 {[100, 500, 1000].map((n) => (
                                     <button
                                         key={n}
                                         onClick={() => setMarketRange(n)}
                                         className={`w-12 py-1 px-1 rounded-[4px] text-xs font-mono border transition ${marketRange === n
-                                            ? 'bg-[#17211d] border-0 text-[#6bff7a]'
-                                            : 'bg-transparent border-0 text-[#a4bbb0]'
+                                            ? 'bg-bg6 border-0 text-primary'
+                                            : 'bg-transparent border-0 text-textMuted'
                                             }`}
                                     >
                                         {n}
@@ -534,43 +534,43 @@ const SidePanelMobile = ({ item, prefetchItemIds = [] }) => {
 
                         <div className="h-32 mb-2 flex items-center justify-center">
                             {marketLoading ? (
-                                <p className="text-[#a4bbb0] font-mono text-sm animate-pulse">Loading trades...</p>
+                                <p className="text-textMuted font-mono text-sm animate-pulse">Loading trades...</p>
                             ) : marketChartData ? (
                                 <Line data={marketChartData} options={marketChartOptions} plugins={[crosshairPlugin]} />
                             ) : (
-                                <p className="text-[#4a5e56] font-mono text-sm italic">No market data available.</p>
+                                <p className="text-border2 font-mono text-sm italic">No market data available.</p>
                             )}
                         </div>
 
                         {/* Legend */}
                         <div className="flex items-center gap-4 text-xs font-mono mb-3">
                             <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-0.5 bg-[#6bff7a] rounded-full" />
-                                <span className="text-[#a4bbb0]">Sell Avg</span>
+                                <div className="w-3 h-0.5 bg-primary rounded-full" />
+                                <span className="text-textMuted">Sell Avg</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div className="w-3 h-0.5 bg-[#ff6b6b] rounded-full" />
-                                <span className="text-[#a4bbb0]">Buy Avg</span>
+                                <span className="text-textMuted">Buy Avg</span>
                             </div>
                         </div>
 
                         {/* Market stat tiles */}
                         {marketStats && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Sell Trades</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Sell Trades</p>
                                     <p className="text-base font-mono">{commas(marketStats.sellCount)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Buy Trades</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Buy Trades</p>
                                     <p className="text-base font-mono">{commas(marketStats.buyCount)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Avg Sell Price</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Avg Sell Price</p>
                                     <p className="text-base font-mono">⏣ {commas(marketStats.avgSellPrice)}</p>
                                 </div>
-                                <div className="bg-[#0d1311] rounded-md py-3 px-2">
-                                    <p className="text-xs font-mono text-[#a4bbb0] mb-1">Avg Buy Price</p>
+                                <div className="bg-bg3 rounded-md py-3 px-2">
+                                    <p className="text-xs font-mono text-textMuted mb-1">Avg Buy Price</p>
                                     <p className="text-base font-mono">⏣ {commas(marketStats.avgBuyPrice)}</p>
                                 </div>
                             </div>

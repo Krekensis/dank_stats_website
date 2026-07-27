@@ -29,4 +29,6 @@ jobs:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           MONGO_URI2: ${{ secrets.MONGO_URI2 }}
           COCKROACH_DB_URI: ${{ secrets.COCKROACH_DB_URI }}
-        run: node updateMarket.js
+        run: |
+          node updateMarket.js
+          node calculateTrends.js

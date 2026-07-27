@@ -5,6 +5,17 @@
     <link rel="icon" type="image/png" href="/src/assets/DankStats.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dank Stats</title>
+    <script>
+      try {
+        const themeStr = localStorage.getItem('dank_stats_theme_colors');
+        if (themeStr) {
+          const themeObj = JSON.parse(themeStr);
+          for (const key in themeObj) {
+            document.documentElement.style.setProperty(`--theme-${key}`, themeObj[key]);
+          }
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

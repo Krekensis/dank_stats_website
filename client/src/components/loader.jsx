@@ -18,7 +18,7 @@ const Loader = ({ size = 100 }) => {
           left: `${0 * scale}px`,
           width: `${10 * scale}px`,
           height: `${50 * scale}px`,
-          backgroundColor: '#182521',
+          backgroundColor: 'var(--theme-bg7)',
           transformOrigin: 'center bottom',
           animation: 'barUp1 4s infinite',
         }}
@@ -30,7 +30,7 @@ const Loader = ({ size = 100 }) => {
           left: `${15 * scale}px`,
           width: `${10 * scale}px`,
           height: `${50 * scale}px`,
-          backgroundColor: '#182521',
+          backgroundColor: 'var(--theme-bg7)',
           transformOrigin: 'center bottom',
           animation: 'barUp2 4s infinite',
         }}
@@ -42,7 +42,7 @@ const Loader = ({ size = 100 }) => {
           left: `${30 * scale}px`,
           width: `${10 * scale}px`,
           height: `${50 * scale}px`,
-          backgroundColor: '#182521',
+          backgroundColor: 'var(--theme-bg7)',
           transformOrigin: 'center bottom',
           animation: 'barUp3 4s infinite',
         }}
@@ -54,7 +54,7 @@ const Loader = ({ size = 100 }) => {
           left: `${45 * scale}px`,
           width: `${10 * scale}px`,
           height: `${50 * scale}px`,
-          backgroundColor: '#182521',
+          backgroundColor: 'var(--theme-bg7)',
           transformOrigin: 'center bottom',
           animation: 'barUp4 4s infinite',
         }}
@@ -66,7 +66,7 @@ const Loader = ({ size = 100 }) => {
           left: `${60 * scale}px`,
           width: `${10 * scale}px`,
           height: `${50 * scale}px`,
-          backgroundColor: '#182521',
+          backgroundColor: 'var(--theme-bg7)',
           transformOrigin: 'center bottom',
           animation: 'barUp5 4s infinite',
         }}
@@ -80,7 +80,7 @@ const Loader = ({ size = 100 }) => {
           left: `${0 * scale}px`,
           width: `${10 * scale}px`,
           height: `${10 * scale}px`,
-          backgroundColor: '#2d5a47',
+          backgroundColor: 'var(--theme-primary)',
           animation: 'ball624 4s infinite',
           transform: `scale(${scale})`,
           transformOrigin: 'bottom left',

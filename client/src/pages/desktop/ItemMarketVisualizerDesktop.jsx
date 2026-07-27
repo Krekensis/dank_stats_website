@@ -5,6 +5,7 @@ import DatePicker from "../../components/datepicker";
 import Loader from "../../components/loader";
 import MarketItemCard from "../../components/itemcard-market"
 import ItemMultiSelect from "../../components/itemmultiselect";
+import MarketTrends from "../../components/market-trends";
 
 import { useMongoData } from "../../hooks/useMongoData";
 import marketCache from "../../hooks/marketCache";
@@ -322,13 +323,13 @@ const ItemMarketVisualizerDesktop = () => {
               unit: "day"
             },
             title: { display: false },
-            ticks: { color: "#a4bbb0", maxTicksLimit: 10 },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', maxTicksLimit: 10 },
             grid: { display: false },
           },
           y: {
             title: { display: false },
             ticks: {
-              color: "#a4bbb0",
+              color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0',
               callback: (value) => `⏣ ${commas(Number(value).toFixed(2))}`
             },
             grid: { display: false },
@@ -343,11 +344,11 @@ const ItemMarketVisualizerDesktop = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
+                div.style.cssText = `position: absolute; background-color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg4').trim() || '#111816' : '#111816'}; opacity: 0.9; color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0'}; border: 2px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'}; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
-                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #6bff7a;`;
+                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'};`;
                 div.appendChild(triangle);
 
                 document.body.appendChild(div);
@@ -396,7 +397,7 @@ const ItemMarketVisualizerDesktop = () => {
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">${dataset.label}</div>
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">⏣ ${commas(value)}</div>
                       <div style="color: #a4bbb0; font-size: 11px; margin-bottom: 1px;">Qty: ${quantity}</div>
-                      <div style="color: ${isSell ? '#6bff7a' : '#ff6b6b'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
+                      <div style="color: ${isSell ? 'var(--theme-primary)' : '#ff6b6b'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
                     </div>
                     <div style="display: flex; align-items: center;">
                       <img src="${dataset.url}" alt="" style="width: 40px; height: 40px;">
@@ -551,8 +552,8 @@ const ItemMarketVisualizerDesktop = () => {
           {
             label: `${titleCase(item.name)} (Sell)`,
             data: sellPoints,
-            backgroundColor: '#6bff7a80',
-            borderColor: '#6bff7a',
+            backgroundColor: (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a') + '80',
+            borderColor: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a',
             pointRadius: 3,
             pointHoverRadius: 5,
             showLine: false,
@@ -706,7 +707,7 @@ const ItemMarketVisualizerDesktop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-6">
+    <div className="min-h-screen bg-bg0 text-white p-6">
       <Navbar />
 
       {itemsLoading ? (
@@ -728,8 +729,8 @@ const ItemMarketVisualizerDesktop = () => {
             onClick={handleDisplay}
             disabled={!canDisplay || loading}
             className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay && !loading
-              ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
-              : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
+              ? "bg-primary hover:bg-primaryHover text-bg0 cursor-pointer"
+              : "bg-primary/40 text-bg0 cursor-not-allowed"
               }`}
             style={{ height: "40px" }}
           >
@@ -741,17 +742,17 @@ const ItemMarketVisualizerDesktop = () => {
       {chartData && (
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
-            <div className="bg-[#111816] rounded-xl p-3 shadow-lg relative" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
+            <div className="bg-bg4 rounded-xl p-3 shadow-lg relative" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
 
               {loading && (
-                <div className="absolute inset-0 bg-[#111816] bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
+                <div className="absolute inset-0 bg-bg4 bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
                   {/* Main Loader */}
                   <Loader size={200} />
 
                   {/* Progress Bar */}
-                  <div className="w-[250px] h-2 mt-6 bg-[#182521] rounded-full overflow-hidden shadow-inner">
+                  <div className="w-[250px] h-2 mt-6 bg-bg7 rounded-full overflow-hidden shadow-inner">
                     <div
-                      className="h-full bg-[#6bff7a] transition-all duration-300 ease-linear rounded-full"
+                      className="h-full bg-primary transition-all duration-300 ease-linear rounded-full"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -761,16 +762,16 @@ const ItemMarketVisualizerDesktop = () => {
                 </div>
               )}
 
-              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-1">
-                <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+              <div className="flex justify-end items-center font-mono text-[12px] text-textMuted space-x-1">
+                <div className="px-2 py-1 rounded-md bg-bg0 space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Data Options Dropdown */}
                 <div className="relative" ref={dataOptionsDropdownRef}>
                   <button
                     onClick={() => setDataOptionsDropdownOpen(!dataOptionsDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center px-2 py-1 rounded-md bg-bg0 space-x-1 hover:text-primary transition-colors"
                   >
                     <span>Data options</span>
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -778,7 +779,7 @@ const ItemMarketVisualizerDesktop = () => {
                     </svg>
                   </button>
                   {dataOptionsDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-5 w-max p-2">
+                    <div className="absolute top-full left-0 mt-1 bg-bg0 rounded-md shadow-custom z-5 w-max p-2">
                       <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -787,12 +788,12 @@ const ItemMarketVisualizerDesktop = () => {
                           className="hidden"
                         />
                         <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${showPrivate ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${showPrivate ? "border-primary" : "border-border1"}`}
+                          style={{ backgroundColor: "var(--theme-bg3)" }}
                           aria-hidden="true"
                         >
                           {showPrivate && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
@@ -807,12 +808,12 @@ const ItemMarketVisualizerDesktop = () => {
                           className="hidden"
                         />
                         <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOutliers ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOutliers ? "border-primary" : "border-border1"}`}
+                          style={{ backgroundColor: "var(--theme-bg3)" }}
                           aria-hidden="true"
                         >
                           {excludeOutliers && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
@@ -827,12 +828,12 @@ const ItemMarketVisualizerDesktop = () => {
                           className="hidden"
                         />
                         <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOneCoinTrades ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
+                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOneCoinTrades ? "border-primary" : "border-border1"}`}
+                          style={{ backgroundColor: "var(--theme-bg3)" }}
                           aria-hidden="true"
                         >
                           {excludeOneCoinTrades && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           )}
@@ -840,7 +841,7 @@ const ItemMarketVisualizerDesktop = () => {
                         <span>Exclude ⏣ 1 trades</span>
                       </label>
                       {displayedItems.length === 1 && (
-                        <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none border-t border-[#1e2a27] pt-2 mt-1">
+                        <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none border-t border-bg10 pt-2 mt-1">
                           <input
                             type="checkbox"
                             checked={dualMode}
@@ -848,12 +849,12 @@ const ItemMarketVisualizerDesktop = () => {
                             className="hidden"
                           />
                           <div
-                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${dualMode ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                            style={{ backgroundColor: "#0d1311" }}
+                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${dualMode ? "border-primary" : "border-border1"}`}
+                            style={{ backgroundColor: "var(--theme-bg3)" }}
                             aria-hidden="true"
                           >
                             {dualMode && (
-                              <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
@@ -865,13 +866,13 @@ const ItemMarketVisualizerDesktop = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Date Format Dropdown */}
                 <div className="relative" ref={dateFormatDropdownRef}>
                   <button
                     onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center px-2 py-1 rounded-md bg-bg0 space-x-1 hover:text-primary transition-colors"
                   >
                     <span>Date format: {dateFormat}</span>
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -879,10 +880,10 @@ const ItemMarketVisualizerDesktop = () => {
                     </svg>
                   </button>
                   {dateFormatDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full left-0 mt-1 bg-bg0 rounded-md shadow-custom z-1 min-w-full">
                       <button
                         onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
                       >
                         Date format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
                       </button>
@@ -890,13 +891,13 @@ const ItemMarketVisualizerDesktop = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Trade Type Dropdown */}
                 <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : ""}>
                   <button
                     onClick={() => !dualMode && setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
-                    className={`flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-[#6bff7a] cursor-pointer'}`}
+                    className={`flex items-center px-2 py-1 rounded-md bg-bg0 space-x-1 transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-primary cursor-pointer'}`}
                     disabled={dualMode}
                   >
                     <span>{dualMode ? 'All trades' : getTradeTypeLabel(tradeType)}</span>
@@ -905,12 +906,12 @@ const ItemMarketVisualizerDesktop = () => {
                     </svg>
                   </button>
                   {tradeTypeDropdownOpen && !dualMode && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full left-0 mt-1 bg-bg0 rounded-md shadow-custom z-1 min-w-full">
                       {["all", "buy", "sell"].map((type) => (
                         <button
                           key={type}
                           onClick={() => handleTradeTypeChange(type)}
-                          className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                          className="w-full text-left rounded-md px-2 py-1 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
                         >
                           {getTradeTypeLabel(type)}
                         </button>
@@ -919,12 +920,12 @@ const ItemMarketVisualizerDesktop = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Zoom Reset Button */}
                 <button
                   onClick={handleZoomReset}
-                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
+                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-bg0 space-x-1 transition-colors ${isZoomedIn ? 'hover:text-primary cursor-pointer' : 'cursor-default'
                     }`}
                   disabled={!isZoomedIn}
                 >
@@ -942,14 +943,14 @@ const ItemMarketVisualizerDesktop = () => {
             </div>
 
             {/* Legend Container */}
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+            <div className="bg-bg4 p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-textMuted" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
               <div className="flex flex-col space-y-1">
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Market Data — {displayedItems.length}</h2>
                 {displayedItems.map((item) => {
                   const itemName = item.name;
                   const filteredData = marketData[itemName] || [];
                   const totalTrades = filteredData.length;
-                  const color = itemColors[itemName] || '#6bff7a';
+                  const color = itemColors[itemName] || (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a');
                   const threshold = outlierThresholds[itemName] ?? 3;
                   return (
                     <div key={itemName} className="mb-3">
@@ -958,24 +959,24 @@ const ItemMarketVisualizerDesktop = () => {
                         <img src={item.url} alt={titleCase(itemName)} className="w-5 h-5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="truncate text-xs">{titleCase(itemName)}</span>
-                          <span className="text-xs text-[#6bff7a]">{totalTrades} trades</span>
+                          <span className="text-xs text-primary">{totalTrades} trades</span>
                         </div>
                       </div>
                       {excludeOutliers && (
                         <div className="ml-1 mt-2">
-                          <div className="flex items-center justify-between text-[10px] text-[#a4bbb0] mb-1">
+                          <div className="flex items-center justify-between text-[10px] text-textMuted mb-1">
                             <span>Outlier σ</span>
-                            <span className="text-[#6bff7a] font-bold">{threshold.toFixed(1)}</span>
+                            <span className="text-primary font-bold">{threshold.toFixed(1)}</span>
                           </div>
                           <div className="relative w-full h-4 flex items-center">
                             <div
                               className="absolute w-full h-[3px] rounded-full"
-                              style={{ background: '#1e2a27' }}
+                              style={{ background: 'var(--theme-bg10)' }}
                             />
                             <div
                               className="absolute h-[3px] rounded-full pointer-events-none"
                               style={{
-                                background: '#6bff7a',
+                                background: 'var(--theme-primary)',
                                 width: `${((threshold - 1) / (10 - 1)) * 100}%`,
                               }}
                             />
@@ -1014,8 +1015,10 @@ const ItemMarketVisualizerDesktop = () => {
       )}
 
       {!chartData && !loading && !itemsLoading && (
-        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
-          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <MarketTrends items={items} />
+        /*
+        <div className="flex flex-col items-center justify-center mt-32 text-textMuted opacity-50 font-mono text-center">
+          <svg className="w-24 h-24 mb-4 text-border1" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
           </svg>
           <h2 className="text-xl font-bold mb-2">Item Market Visualizer</h2>
@@ -1023,6 +1026,7 @@ const ItemMarketVisualizerDesktop = () => {
             Select up to 10 items, choose your date range, and click "Display" to visualize their market trades, trends, and pricing history.
           </p>
         </div>
+        */
       )}
     </div>
   );

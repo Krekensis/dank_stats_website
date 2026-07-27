@@ -546,7 +546,7 @@ const ThemeDropdown = ({ jsonTheme, setJsonTheme }) => {
     <div className="absolute top-3 right-4 z-10" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center px-2 py-1 rounded-md bg-[#111816] space-x-2 transition-colors text-[11px] text-[#a4bbb0]"
+        className="flex items-center px-2 py-1 rounded-md bg-bg4 space-x-2 transition-colors text-[11px] text-textMuted"
       >
         <span>Theme: {jsonTheme}</span>
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -554,7 +554,7 @@ const ThemeDropdown = ({ jsonTheme, setJsonTheme }) => {
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-lg z-50 min-w-[150px] max-h-48 overflow-y-auto">
+        <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-lg z-50 min-w-[150px] max-h-48 overflow-y-auto">
           {Object.keys(jsonThemes).map((themeName) => (
             <button
               key={themeName}
@@ -562,7 +562,7 @@ const ThemeDropdown = ({ jsonTheme, setJsonTheme }) => {
                 setJsonTheme(themeName);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-3 py-2 text-[11px] hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors ${jsonTheme === themeName ? 'text-[#6bff7a] bg-[#111816]' : 'text-[#a4bbb0]'}`}
+              className={`w-full text-left px-3 py-2 text-[11px] hover:bg-bg9 hover:text-primary transition-colors ${jsonTheme === themeName ? 'text-primary bg-bg4' : 'text-textMuted'}`}
             >
               {themeName}
             </button>
@@ -581,87 +581,87 @@ const ApiPageMobile = () => {
   const activeEndpoint = endpoints.find(ep => ep.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white font-mono selection:bg-[#6bff7a] selection:text-black">
+    <div className="min-h-screen bg-bg0 text-white font-mono selection:bg-primary selection:text-black">
       <NavbarMobile />
 
       <div className="mt-[100px] pb-20 px-4 w-full">
         <div className="mb-8 text-center pb-6">
-          <h1 className="text-3xl text-[#c6ffcc] tracking-wide mb-3">API Documentation</h1>
-          <p className="text-[#a4bbb0] text-sm leading-relaxed">Complete reference for all Dank Stats public API endpoints.</p>
+          <h1 className="text-3xl text-textLight tracking-wide mb-3">API Documentation</h1>
+          <p className="text-textMuted text-sm leading-relaxed">Complete reference for all Dank Stats public API endpoints.</p>
         </div>
 
         <div className="flex flex-col gap-10">
           {endpoints.map(ep => (
             <div key={ep.id} className={`${activeTab === ep.id ? 'block' : 'hidden'} animate-fade-in`}>
               <div className="mb-4">
-                <h2 className="text-2xl text-[#c6ffcc] font-bold tracking-wide mb-2">{ep.title}</h2>
-                <p className="text-[#a4bbb0] text-sm">{ep.description}</p>
+                <h2 className="text-2xl text-textLight font-bold tracking-wide mb-2">{ep.title}</h2>
+                <p className="text-textMuted text-sm">{ep.description}</p>
               </div>
 
-              <div className="bg-[#111816] shadow-lg rounded-xl p-4 mb-4 flex flex-col gap-2">
-                <code className="text-lg text-[#6bff7a]">{ep.method} <span className="text-white break-all">{ep.path}</span></code>
-                <div className="text-[10px] text-[#a4bbb0] tracking-widest bg-[#070e0c]/50 px-2 py-1.5 rounded-md mt-1 w-fit">BASE URL: https://dankstats.onrender.com</div>
+              <div className="bg-bg4 shadow-lg rounded-xl p-4 mb-4 flex flex-col gap-2">
+                <code className="text-lg text-primary">{ep.method} <span className="text-white break-all">{ep.path}</span></code>
+                <div className="text-[10px] text-textMuted tracking-widest bg-bg0/50 px-2 py-1.5 rounded-md mt-1 w-fit">BASE URL: https://dankstats.onrender.com</div>
               </div>
 
               {/* Errors Section Moved Up */}
-              <h3 className="text-lg text-[#c6ffcc] tracking-wide mb-3 flex items-center gap-2">
+              <h3 className="text-lg text-textLight tracking-wide mb-3 flex items-center gap-2">
                 Error Responses
               </h3>
               <div className="flex flex-col gap-2 mb-6">
                 {ep.errors.map((err, i) => (
-                  <div key={i} className="bg-[#111816] shadow-md rounded-lg p-3 flex gap-3 items-center">
+                  <div key={i} className="bg-bg4 shadow-md rounded-lg p-3 flex gap-3 items-center">
                     <span className="text-[#ff4736] font-bold text-sm bg-[#ff3636]/10 px-2 py-1 rounded shrink-0">{err.code}</span>
-                    <p className="text-xs text-[#a4bbb0] leading-relaxed">{err.desc}</p>
+                    <p className="text-xs text-textMuted leading-relaxed">{err.desc}</p>
                   </div>
                 ))}
               </div>
 
-              <h3 className="text-lg text-[#c6ffcc] tracking-wide mb-3 flex items-center gap-2">
+              <h3 className="text-lg text-textLight tracking-wide mb-3 flex items-center gap-2">
                 Query Parameters
               </h3>
               <div className="flex flex-col gap-2 mb-6">
                 {ep.params.map((p, i) => (
-                  <div key={i} className="bg-[#111816] shadow-md rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
+                  <div key={i} className="bg-bg4 shadow-md rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
                     {/* Top Row: Name and Required Badge */}
                     <div className="flex justify-between items-center pb-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#6bff7a] font-mono font-bold text-[13px] bg-[#6bff7a]/10 px-2 py-0.5 rounded-md">{p.name}</span>
-                        <span className="text-[#a4bbb0] text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-[#070e0c]">{p.type}</span>
+                        <span className="text-primary font-mono font-bold text-[13px] bg-primary/10 px-2 py-0.5 rounded-md">{p.name}</span>
+                        <span className="text-textMuted text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-bg0">{p.type}</span>
                       </div>
                       {p.required
-                        ? <span className="text-[#a4bbb0] text-[9px] uppercase tracking-widest bg-[#a4bbb0]/10 px-2 py-1 rounded">Required</span>
-                        : <span className="text-[#a4bbb0] text-[9px] uppercase tracking-widest bg-[#a4bbb0]/10 px-2 py-1 rounded">Optional</span>}
+                        ? <span className="text-textMuted text-[9px] uppercase tracking-widest bg-textMuted/10 px-2 py-1 rounded">Required</span>
+                        : <span className="text-textMuted text-[9px] uppercase tracking-widest bg-textMuted/10 px-2 py-1 rounded">Optional</span>}
                     </div>
                     {/* Middle: Description */}
-                    <p className="text-xs text-[#a4bbb0] leading-relaxed mt-1">{p.desc}</p>
+                    <p className="text-xs text-textMuted leading-relaxed mt-1">{p.desc}</p>
                     {/* Bottom: Values */}
-                    <div className="mt-1 bg-[#070e0c]/80 p-2.5 rounded-lg flex items-center gap-2">
-                      <span className="text-[9px] text-[#a4bbb0]/70 uppercase tracking-widest font-bold shrink-0">Accepts:</span>
-                      <code className="text-xs text-[#c6ffcc] font-mono break-words">{p.values || 'Any'}</code>
+                    <div className="mt-1 bg-bg0/80 p-2.5 rounded-lg flex items-center gap-2">
+                      <span className="text-[9px] text-textMuted/70 uppercase tracking-widest font-bold shrink-0">Accepts:</span>
+                      <code className="text-xs text-textLight font-mono break-words">{p.values || 'Any'}</code>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="mb-3">
-                <h3 className="text-lg text-[#c6ffcc] tracking-wide flex items-center gap-2">
+                <h3 className="text-lg text-textLight tracking-wide flex items-center gap-2">
                   Examples
                 </h3>
               </div>
               <div className="flex flex-col gap-4 mb-6">
                 {ep.examples.map((ex, i) => (
-                  <div key={i} className="bg-[#111816] shadow-lg rounded-xl overflow-hidden">
+                  <div key={i} className="bg-bg4 shadow-lg rounded-xl overflow-hidden">
                     <div className="p-4">
-                      <h4 className="text-[15px] font-bold text-[#6bff7a] mb-1">{ex.title}</h4>
-                      <p className="text-[#a4bbb0] text-[11px] mb-3 leading-relaxed">{ex.description}</p>
-                      <div className="bg-[#070e0c] px-3 py-2 rounded-lg flex items-center overflow-x-auto">
-                        <span className="text-[#a4bbb0] mr-2 text-[10px] font-bold uppercase tracking-widest">GET</span>
-                        <code className="text-[#c6ffcc] text-xs whitespace-nowrap">{ex.url}</code>
+                      <h4 className="text-[15px] font-bold text-primary mb-1">{ex.title}</h4>
+                      <p className="text-textMuted text-[11px] mb-3 leading-relaxed">{ex.description}</p>
+                      <div className="bg-bg0 px-3 py-2 rounded-lg flex items-center overflow-x-auto">
+                        <span className="text-textMuted mr-2 text-[10px] font-bold uppercase tracking-widest">GET</span>
+                        <code className="text-textLight text-xs whitespace-nowrap">{ex.url}</code>
                       </div>
                     </div>
-                    <div className="p-4 bg-[#070e0c]/50 relative">
+                    <div className="p-4 bg-bg0/50 relative">
                       {!ex.isImage && <ThemeDropdown jsonTheme={jsonTheme} setJsonTheme={setJsonTheme} />}
-                      <div className="text-[10px] text-[#a4bbb0] uppercase tracking-widest mb-2 mt-1 font-bold">Response</div>
+                      <div className="text-[10px] text-textMuted uppercase tracking-widest mb-2 mt-1 font-bold">Response</div>
                       {ex.isImage ? (
                         <div className="mt-2 p-3 rounded-lg flex items-center justify-center">
                           <img src={ex.imagePath || `${apiBase}${ex.url}`} alt={ex.title} className="max-w-full rounded-md shadow-sm" />
@@ -684,7 +684,7 @@ const ApiPageMobile = () => {
       {/* Bottom Floating Dropdown Navigation */}
       <div className="fixed bottom-6 left-4 right-4 z-50">
         {isNavOpen && (
-          <div className="mb-2 bg-[#111816] backdrop-blur-xl rounded-xl shadow-[0_0_40px_rgba(0,0,0,1)] border border-[#6bff7a]/30 overflow-hidden flex flex-col animate-fade-in">
+          <div className="mb-2 bg-bg4 backdrop-blur-xl rounded-xl shadow-[0_0_40px_rgba(0,0,0,1)] border border-primary/30 overflow-hidden flex flex-col animate-fade-in">
             {endpoints.map(ep => (
               <button
                 key={`nav-${ep.id}`}
@@ -693,13 +693,13 @@ const ApiPageMobile = () => {
                   setIsNavOpen(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`text-left px-4 py-4 text-sm transition-colors border-b border-[#a4bbb0]/10 last:border-0 ${activeTab === ep.id ? 'bg-[#6bff7a]/10' : 'hover:bg-[#070e0c]/50'}`}
+                className={`text-left px-4 py-4 text-sm transition-colors border-b border-textMuted/10 last:border-0 ${activeTab === ep.id ? 'bg-primary/10' : 'hover:bg-bg0/50'}`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#070e0c] ${ep.method === 'GET' ? 'text-[#6bff7a]' : 'text-[#ffcabf]'}`}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded bg-bg0 ${ep.method === 'GET' ? 'text-primary' : 'text-[#ffcabf]'}`}>
                     {ep.method}
                   </span>
-                  <span className={activeTab === ep.id ? 'text-[#c6ffcc]' : 'text-[#a4bbb0]'}>{ep.path}</span>
+                  <span className={activeTab === ep.id ? 'text-textLight' : 'text-textMuted'}>{ep.path}</span>
                 </div>
               </button>
             ))}
@@ -708,15 +708,15 @@ const ApiPageMobile = () => {
 
         <button
           onClick={() => setIsNavOpen(!isNavOpen)}
-          className="w-full bg-[#0b120f]/95 backdrop-blur-xl border border-[#6bff7a]/40 shadow-[0_0_40px_rgba(0,0,0,1),_0_0_20px_rgba(107,255,122,0.1)] rounded-xl p-4 flex items-center justify-between transition-all"
+          className="w-full bg-[#0b120f]/95 backdrop-blur-xl border border-primary/40 shadow-[0_0_40px_rgba(0,0,0,1),_0_0_20px_rgba(107,255,122,0.1)] rounded-xl p-4 flex items-center justify-between transition-all"
         >
           <div className="flex items-center gap-3">
-            <span className={`text-xs font-bold px-2 py-1 rounded bg-[#070e0c] ${activeEndpoint.method === 'GET' ? 'text-[#6bff7a]' : 'text-[#ffcabf]'}`}>
+            <span className={`text-xs font-bold px-2 py-1 rounded bg-bg0 ${activeEndpoint.method === 'GET' ? 'text-primary' : 'text-[#ffcabf]'}`}>
               {activeEndpoint.method}
             </span>
             <span className="text-white text-sm font-mono tracking-wide">{activeEndpoint.path}</span>
           </div>
-          <svg className={`w-5 h-5 text-[#6bff7a] transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+          <svg className={`w-5 h-5 text-primary transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
         </button>
       </div>
     </div>

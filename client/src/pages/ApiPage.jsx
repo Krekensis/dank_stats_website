@@ -7,7 +7,7 @@ const ApiPage = () => {
     const isMobile = useIsMobile();
 
     return (
-        <div className="w-full min-h-screen bg-[#070e0c]">
+        <div className="w-full min-h-screen bg-bg0">
             {isMobile ? <ApiPageMobile /> : <ApiPageDesktop />}
         </div>
     );

@@ -30,3 +30,9 @@ jobs:
           MONGO_URI2: ${{ secrets.MONGO_URI2 }}
           COCKROACH_DB_URI: ${{ secrets.COCKROACH_DB_URI }}
         run: node updateItems.js
+
+      - name: Sync item IDs with official API
+        working-directory: server
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: node syncItemIds.js

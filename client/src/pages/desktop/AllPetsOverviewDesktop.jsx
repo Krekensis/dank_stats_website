@@ -38,7 +38,7 @@ const AllPetsOverviewDesktop = () => {
     }, [filteredPets]);
 
     return (
-        <div className="min-h-screen bg-[#070e0c] text-white flex">
+        <div className="min-h-screen bg-bg0 text-white flex">
             <div className="flex-1 p-6">
                 <Navbar />
 
@@ -56,12 +56,12 @@ const AllPetsOverviewDesktop = () => {
                                     placeholder="Search for a pet..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full p-3 pr-20 bg-[#111816] text-[#a4bbb0] placeholder-[#a4bbb0] placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-[#6bff7a] focus:border-[#6bff7a] transition duration-300"
+                                    className="w-full p-3 pr-20 bg-bg4 text-textMuted placeholder-textMuted placeholder-opacity-100 rounded-md font-mono text-left cursor-pointer outline-0 border-2 border-transparent hover:border-primary focus:border-primary transition duration-300"
                                 />
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                                     <button
                                         onClick={() => setSearchMode(searchMode === 'startsWith' ? 'contains' : 'startsWith')}
-                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-primary/20 text-primary' : 'text-border2 hover:text-textMuted'}`}
                                         title="Starts with"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -71,7 +71,7 @@ const AllPetsOverviewDesktop = () => {
                                     </button>
                                     <button
                                         onClick={() => setSearchMode(searchMode === 'exact' ? 'contains' : 'exact')}
-                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                                        className={`w-8 h-8 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-primary/20 text-primary' : 'text-border2 hover:text-textMuted'}`}
                                         title="Exact match"
                                     >
                                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

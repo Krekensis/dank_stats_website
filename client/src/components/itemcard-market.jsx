@@ -27,17 +27,17 @@ const MarketItemCard = ({ item, tradeData }) => {
     const buyStats = getMinMaxAvg(buyTrades);
 
     return (
-        <div key={item.name} className="bg-[#111816] border border-transparent rounded-xl p-4 shadow-lg font-mono flex flex-col w-full sm:w-[235px] sm:shrink-0">
-            <div className="flex items-center space-x-3 mb-5 pb-4 border-b-2 border-[#1e2a27]">
+        <div key={item.name} className="bg-bg4 border border-transparent rounded-xl p-4 shadow-lg font-mono flex flex-col w-full sm:w-[235px] sm:shrink-0">
+            <div className="flex items-center space-x-3 mb-5 pb-4 border-b-2 border-bg10">
                 <div className="p-2 rounded-lg shrink-0">
                     <img src={item.url} className="w-10 h-10 object-contain" draggable={false} />
                 </div>
                 <div className="text-white font-bold text-sm leading-snug line-clamp-2 w-full break-words">{titleCase(item.name)}</div>
             </div>
 
-            <div className="text-[12px] text-[#a4bbb0] space-y-4 w-full flex-grow">
-                <div className="bg-[#0a0f0d] p-3 rounded-lg border border-transparent">
-                    <div className="text-[#6bff7a] font-bold text-[12px] uppercase tracking-wider mb-2 flex justify-between">
+            <div className="text-[12px] text-textMuted space-y-4 w-full flex-grow">
+                <div className="bg-bg1 p-3 rounded-lg border border-transparent">
+                    <div className="text-primary font-bold text-[12px] uppercase tracking-wider mb-2 flex justify-between">
                         <span>Sell Orders</span>
                         <span>{sellTrades.length} trades</span>
                     </div>
@@ -45,11 +45,11 @@ const MarketItemCard = ({ item, tradeData }) => {
                         <div className="flex justify-between"><span>Volume:</span> <span className="text-white">{commas(sellVolume)}</span></div>
                         <div className="flex justify-between"><span>Minimum:</span> <span className="text-white">{sellStats.min !== "N/A" ? `⏣ ${commas(sellStats.min)}` : "N/A"}</span></div>
                         <div className="flex justify-between"><span>Maximum:</span> <span className="text-white">{sellStats.max !== "N/A" ? `⏣ ${commas(sellStats.max)}` : "N/A"}</span></div>
-                        <div className="flex justify-between"><span>Average:</span> <span className="text-[#6bff7a]">{sellStats.avg !== "N/A" ? `⏣ ${commas(sellStats.avg)}` : "N/A"}</span></div>
+                        <div className="flex justify-between"><span>Average:</span> <span className="text-primary">{sellStats.avg !== "N/A" ? `⏣ ${commas(sellStats.avg)}` : "N/A"}</span></div>
                     </div>
                 </div>
 
-                <div className="bg-[#0a0f0d] p-3 rounded-lg border border-transparent">
+                <div className="bg-bg1 p-3 rounded-lg border border-transparent">
                     <div className="text-[#ff6b6b] font-bold text-[12px] uppercase tracking-wider mb-2 flex justify-between">
                         <span>Buy Orders</span>
                         <span>{buyTrades.length} trades</span>

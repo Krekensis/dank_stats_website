@@ -6,8 +6,8 @@ const ItemCardAll = ({ item, onClick, selected }) => {
     <div
       onClick={onClick}
       className={`cursor-pointer p-2 md:p-3 rounded-md shadow-custom border-2 transition 
-        ${selected ? 'bg-[#17211d] border-transparent' : 'bg-[#111816] border-transparent'} 
-        hover:border-[#6bff7a] transition duration-300 aspect-square flex flex-col items-center justify-center overflow-hidden`}
+        ${selected ? 'bg-bg6 border-transparent' : 'bg-bg4 border-transparent'} 
+        hover:border-primary transition duration-300 aspect-square flex flex-col items-center justify-center overflow-hidden`}
     >
       <img
         src={item.url}

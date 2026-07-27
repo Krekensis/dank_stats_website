@@ -82,8 +82,8 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
           setDropdownOpen(!dropdownOpen);
           setSearchTerm("");
         }}
-        className={`w-full bg-[#111816] rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-[#6bff7a]" : "border-transparent"
-          } text-[#a4bbb0] truncate`}
+        className={`w-full bg-bg4 rounded-md px-4 py-2 font-mono text-left cursor-pointer leading-none border-2 ${dropdownOpen ? "border-primary" : "border-transparent"
+          } text-textMuted truncate`}
         style={{ height: "40px" }}
         type="button"
       >
@@ -93,11 +93,11 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
       </button>
 
       {dropdownOpen && (
-        <div className="absolute z-1 mt-1 w-full max-h-64 overflow-y-auto bg-[#111816] border-transparent rounded-md shadow-custom custom-scrollbar">
+        <div className="absolute z-1 mt-1 w-full max-h-64 overflow-y-auto bg-bg4 border-transparent rounded-md shadow-custom custom-scrollbar">
           <style>{`
             .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-            .custom-scrollbar::-webkit-scrollbar-track { background: #0d1311; border-radius: 6px; }
-            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #2b473e; border-radius: 6px; border: 2px solid #0d1311; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: var(--theme-bg3); border-radius: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--theme-border1); border-radius: 6px; border: 2px solid var(--theme-bg3); }
           `}</style>
           <div className="p-2">
             <div className="relative">
@@ -106,13 +106,13 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
                 placeholder="Type to search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-md px-3 py-1 pr-16 bg-[#0d1311] font-mono text-[#a4bbb0] border-2 border-transparent focus:outline-none placeholder-[#a4bbb0] placeholder-opacity-100"
+                className="w-full rounded-md px-3 py-1 pr-16 bg-bg3 font-mono text-textMuted border-2 border-transparent focus:outline-none placeholder-textMuted placeholder-opacity-100"
               />
               <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                 {/* Starts With toggle */}
                 <button
                   onClick={() => setSearchMode(searchMode === 'startsWith' ? 'contains' : 'startsWith')}
-                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'startsWith' ? 'bg-primary/20 text-primary' : 'text-border2 hover:text-textMuted'}`}
                   title="Starts with"
                 >
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -123,7 +123,7 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
                 {/* Exact Match toggle */}
                 <button
                   onClick={() => setSearchMode(searchMode === 'exact' ? 'contains' : 'exact')}
-                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-[#6bff7a20] text-[#6bff7a]' : 'text-[#4a5e56] hover:text-[#a4bbb0]'}`}
+                  className={`w-7 h-7 p-0 flex items-center justify-center rounded transition-colors duration-150 ${searchMode === 'exact' ? 'bg-primary/20 text-primary' : 'text-border2 hover:text-textMuted'}`}
                   title="Exact match"
                 >
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -136,7 +136,7 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
           </div>
           <div>
             {filteredItems.length === 0 ? (
-              <div className="px-4 py-2 font-mono text-[#a4bbb0]">No such item found.</div>
+              <div className="px-4 py-2 font-mono text-textMuted">No such item found.</div>
             ) : (
               filteredItems.map((item) => {
                 const isSelected = selectedItems.some(sel => sel.name === item.name);
@@ -145,7 +145,7 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
                 return (
                   <label
                     key={item.name}
-                    className={`flex items-center space-x-2 px-4 py-2 hover:bg-[#1e2a27] cursor-pointer select-none ${disabled ? "opacity-50 cursor-not-allowed" : ""
+                    className={`flex items-center space-x-2 px-4 py-2 hover:bg-bg10 cursor-pointer select-none ${disabled ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                   >
                     <input
@@ -156,14 +156,14 @@ const ItemMultiSelectDesktop = ({ items, selectedItems, setSelectedItems, maxSel
                       className="hidden"
                     />
                     <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${isSelected ? "border-[#6bff7a]" : "border-[#2b473e]"
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-50 ${isSelected ? "border-primary" : "border-border1"
                         } ${disabled ? "opacity-50" : ""}`}
-                      style={{ backgroundColor: "#0d1311" }}
+                      style={{ backgroundColor: "var(--theme-bg3)" }}
                       aria-hidden="true"
                     >
                       {isSelected && (
                         <svg
-                          className="w-4 h-4 text-[#6bff7a]"
+                          className="w-4 h-4 text-primary"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="3"

@@ -154,12 +154,12 @@ const ItemValueVisualizerDesktop = () => {
               unit: "day"
             },
             title: { display: false },
-            ticks: { color: "#a4bbb0", maxTicksLimit: 10 },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', maxTicksLimit: 10 },
             grid: { display: false },
           },
           y: {
             title: { display: false },
-            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${commas(value)}` },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', callback: (value) => `⏣ ${commas(value)}` },
             grid: { display: false },
           },
         },
@@ -171,12 +171,12 @@ const ItemValueVisualizerDesktop = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
+                div.style.cssText = `position: absolute; background-color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg4').trim() || '#111816' : '#111816'}; opacity: 0.9; color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0'}; border: 2px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'}; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 // Create triangle pointer
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
-                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #6bff7a;`;
+                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'};`;
                 div.appendChild(triangle);
 
                 document.body.appendChild(div);
@@ -345,7 +345,7 @@ const ItemValueVisualizerDesktop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-6">
+    <div className="min-h-screen bg-bg0 text-white p-6">
       <Navbar />
 
       {loading ? (
@@ -362,7 +362,7 @@ const ItemValueVisualizerDesktop = () => {
             </div>
             {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
           </div>
-          <button onClick={handleDisplay} disabled={!canDisplay} className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer" : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"}`} style={{ height: "40px" }}>
+          <button onClick={handleDisplay} disabled={!canDisplay} className={`font-mono font-extrabold py-[6px] px-6 rounded-md transition ${canDisplay ? "bg-primary hover:bg-primaryHover text-bg0 cursor-pointer" : "bg-primary text-bg0 cursor-not-allowed"}`} style={{ height: "40px" }}>
             Display
           </button>
         </div>
@@ -371,18 +371,18 @@ const ItemValueVisualizerDesktop = () => {
       {chartData && (
         <>
           <div className="flex justify-between m-[19px]" id="chart-legend-container" style={{ width: "1251px", margin: "0 auto", gap: "19px" }}>
-            <div className="bg-[#111816] rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
+            <div className="bg-bg4 rounded-xl p-3 shadow-lg" id="chart-container" style={{ flex: "0 0 997px", maxWidth: "997px" }}>
               {/* Updated Notes Section */}
-              <div className="flex justify-end items-center font-mono text-[12px] text-[#a4bbb0] space-x-1">
-                <div className="px-2 py-1 rounded-md bg-[#070e0c] space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
+              <div className="flex justify-end items-center font-mono text-[12px] text-textMuted space-x-1">
+                <div className="px-2 py-1 rounded-md bg-bg0 space-x-1">Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}</div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Date Format Dropdown */}
                 <div className="relative" ref={dateFormatDropdownRef}>
                   <button
                     onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center px-2 py-1 rounded-md bg-bg0 space-x-1 hover:text-primary transition-colors"
                   >
                     <span>Date format: {dateFormat}</span>
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -390,10 +390,10 @@ const ItemValueVisualizerDesktop = () => {
                     </svg>
                   </button>
                   {dateFormatDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full left-0 mt-1 bg-bg0 rounded-md shadow-custom z-1 min-w-full">
                       <button
                         onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
                       >
                         Date format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
                       </button>
@@ -401,13 +401,13 @@ const ItemValueVisualizerDesktop = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Chart Type Dropdown */}
                 <div className="relative" ref={chartTypeDropdownRef}>
                   <button
                     onClick={() => setChartTypeDropdownOpen(!chartTypeDropdownOpen)}
-                    className="flex items-center px-2 py-1 rounded-md bg-[#070e0c] space-x-1 hover:text-[#6bff7a] transition-colors"
+                    className="flex items-center px-2 py-1 rounded-md bg-bg0 space-x-1 hover:text-primary transition-colors"
                   >
                     <span>Chart type: {chartType}</span>
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -415,16 +415,16 @@ const ItemValueVisualizerDesktop = () => {
                     </svg>
                   </button>
                   {chartTypeDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-1 min-w-full">
+                    <div className="absolute top-full left-0 mt-1 bg-bg0 rounded-md shadow-custom z-1 min-w-full">
                       {/*<button
                         onClick={() => handleChartTypeChange("bar")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
                       >
                         Chart type: bar
                       </button>
                       <button
                         onClick={() => handleChartTypeChange("area")}
-                        className="w-full text-left rounded-md px-2 py-1 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
+                        className="w-full text-left rounded-md px-2 py-1 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
                       >
                         Chart type: area
                       </button>*/}
@@ -432,12 +432,12 @@ const ItemValueVisualizerDesktop = () => {
                   )}
                 </div>
 
-                <div className="text-[#6bff7a] text-[16px]">|</div>
+                <div className="text-primary text-[16px]">|</div>
 
                 {/* Zoom Reset Button */}
                 <button
                   onClick={handleZoomReset}
-                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-[#070e0c] space-x-1 transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
+                  className={`flex items-center pl-1 pr-2 py-1 rounded-md bg-bg0 space-x-1 transition-colors ${isZoomedIn ? 'hover:text-primary cursor-pointer' : 'cursor-default'
                     }`}
                   disabled={!isZoomedIn}
                 >
@@ -455,7 +455,7 @@ const ItemValueVisualizerDesktop = () => {
             </div>
 
             {/* Simplified Legend Container */}
-            <div className="bg-[#111816] p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0]" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
+            <div className="bg-bg4 p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-textMuted" id="legend-container" style={{ flex: "0 0 235px", minWidth: "235px" }}>
               <div className="flex flex-col space-y-1">
                 <h2 className="text-base font-semibold text-[#ffffff] mb-2">Items — {displayedItems.length}</h2>
                 {chartData?.datasets.map((ds) => (
@@ -480,8 +480,8 @@ const ItemValueVisualizerDesktop = () => {
       )}
 
       {!chartData && !loading && (
-        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
-          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <div className="flex flex-col items-center justify-center mt-32 text-textMuted opacity-50 font-mono text-center">
+          <svg className="w-24 h-24 mb-4 text-border1" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
           </svg>
           <h2 className="text-xl font-bold mb-2">Item Value Visualizer</h2>

@@ -4,6 +4,7 @@ import itemData from "../../assets/parsed_items4.json";
 import { titleCase, formatLargeNumber } from "../../functions/stringUtils";
 import logoUrl from "../../assets/DankStats.png";
 import { fetchItemData } from "../../hooks/fetchItemData";
+import AnimatedNumber from "../../components/animated-number";
 
 const emojiSize = 45;
 const emojiNum = 200;
@@ -45,7 +46,7 @@ const generateEmojiPositions = () => {
         url: item.url,
         rotation: Math.random() * 60 - 30,
         name: item.name,
-        latestValue: item.history?.[item.history.length - 1]?.value ?? "N/A",
+        latestValue: item.history?.[item.history.length - 1]?.v ?? "N/A",
         id: crypto.randomUUID(),
       });
     } else {
@@ -62,49 +63,59 @@ const StatCategory = ({ title, data, isCurrency }) => {
   const format = (val) => isCurrency ? formatLargeNumber(val) : val.toLocaleString();
 
   return (
-    <div className="bg-[#070e0c]/80 border border-[#a4bbb0]/20 rounded-2xl p-6 flex flex-col w-full transition-all hover:bg-[#070e0c]/90">
-      <div className="text-[#a4bbb0] text-lg uppercase tracking-widest mb-4 font-audiowide border-b border-[#a4bbb0]/20 pb-2 text-center">
+    <div className="bg-bg0/80 border border-textMuted/20 rounded-2xl p-6 flex flex-col w-full transition-all hover:bg-bg0/90">
+      <div className="text-textMuted text-lg uppercase tracking-widest mb-4 font-audiowide border-b border-textMuted/20 pb-2 text-center">
         {title}
       </div>
-      
+
       {/* Total Main Highlight */}
       <div className="flex flex-col items-center justify-center mb-6">
-        <div className="text-[#a4bbb0] text-xs uppercase tracking-widest mb-1 font-mono">Total</div>
-        <div className="text-[#6bff7a] text-3xl font-bold font-mono tracking-tight">{isCurrency && "⏣ "}{format(data.total)}</div>
+        <div className="text-textMuted text-xs uppercase tracking-widest mb-1 font-mono">Total</div>
+        <div className="text-primary text-3xl font-bold font-mono tracking-tight">
+          <AnimatedNumber value={data.total} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 mt-2">
         {/* Buy / Sell */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
-            <span className="text-[#a4bbb0]">Buy:</span>
-            <span className="text-white whitespace-nowrap">{isCurrency && "⏣ "}{format(data.buy)}</span>
+            <span className="text-textMuted">Buy:</span>
+            <span className="text-white whitespace-nowrap">
+              <AnimatedNumber value={data.buy} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
-            <span className="text-[#a4bbb0]">Sell:</span>
-            <span className="text-white whitespace-nowrap">{isCurrency && "⏣ "}{format(data.sell)}</span>
+            <span className="text-textMuted">Sell:</span>
+            <span className="text-white whitespace-nowrap">
+              <AnimatedNumber value={data.sell} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           {/* Progress bar Buy vs Sell */}
-          <div className="w-full h-1.5 bg-[#111816] rounded-full overflow-hidden flex border border-[#a4bbb0]/10 mt-1">
-            <div style={{ width: `${(data.buy / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-[#6bff7a] relative"></div>
-            <div style={{ width: `${(data.sell / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-[#3d7a4d] relative"></div>
+          <div className="w-full h-1.5 bg-bg4 rounded-full overflow-hidden flex border border-textMuted/10 mt-1">
+            <div style={{ width: `${(data.buy / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-primary relative transition-all duration-[3000ms]"></div>
+            <div className="h-full bg-bg13 relative flex-1"></div>
           </div>
         </div>
 
         {/* Public / Private */}
         <div className="flex flex-col gap-2 mt-2">
           <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
-            <span className="text-[#a4bbb0]">Public:</span>
-            <span className="text-white whitespace-nowrap">{isCurrency && "⏣ "}{format(data.public)}</span>
+            <span className="text-textMuted">Public:</span>
+            <span className="text-white whitespace-nowrap">
+              <AnimatedNumber value={data.public} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
-            <span className="text-[#a4bbb0]">Private:</span>
-            <span className="text-white whitespace-nowrap">{isCurrency && "⏣ "}{format(data.private)}</span>
+            <span className="text-textMuted">Private:</span>
+            <span className="text-white whitespace-nowrap">
+              <AnimatedNumber value={data.private} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           {/* Progress bar Public vs Private */}
-          <div className="w-full h-1.5 bg-[#111816] rounded-full overflow-hidden flex border border-[#a4bbb0]/10 mt-1">
-            <div style={{ width: `${(data.public / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-[#6bff7a] relative"></div>
-            <div style={{ width: `${(data.private / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-[#3d7a4d] relative"></div>
+          <div className="w-full h-1.5 bg-bg4 rounded-full overflow-hidden flex border border-textMuted/10 mt-1">
+            <div style={{ width: `${(data.public / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-primary relative transition-all duration-[3000ms]"></div>
+            <div className="h-full bg-bg13 relative flex-1"></div>
           </div>
         </div>
       </div>
@@ -121,7 +132,11 @@ const HomePageDesktop = () => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadedIds, setLoadedIds] = useState([]);
   const [savedPositions, setSavedPositions] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    trades: { total: 0, sell: 0, buy: 0, public: 0, private: 0 },
+    volume: { total: 0, sell: 0, buy: 0, public: 0, private: 0 },
+    count: { total: 0, sell: 0, buy: 0, public: 0, private: 0 }
+  });
 
   useEffect(() => {
     setPositions(generateEmojiPositions());
@@ -216,29 +231,25 @@ const HomePageDesktop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] relative overflow-hidden">
+    <div className="min-h-screen bg-bg0 relative overflow-hidden">
       <Navbar />
 
       {/* Hero Banner */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20 px-4" style={{ paddingTop: '40px' }}>
-        <div className="bg-[#111816]/70 backdrop-blur-md border border-[#a4bbb0]/20 p-8 rounded-2xl flex flex-col items-center text-center w-full max-w-5xl xl:max-w-6xl pointer-events-auto transition-all">
-          <h1 className="text-4xl md:text-5xl text-[#6bff7a] mb-4 font-audiowide flex items-center justify-center gap-4">
-            <img src={logoUrl} alt="Logo" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
+        <div className="bg-bg4/70 backdrop-blur-md border border-textMuted/20 p-8 rounded-2xl flex flex-col items-center text-center w-full max-w-5xl xl:max-w-6xl pointer-events-auto transition-all">
+          <h1 className="text-4xl md:text-5xl text-primary mb-4 font-audiowide flex items-center justify-center gap-4">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-primary" style={{ maskImage: `url(${logoUrl})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${logoUrl})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
             Dank Stats
           </h1>
-          <p className="text-[#a4bbb0] mb-8 font-mono text-lg max-w-2xl leading-relaxed">
+          <p className="text-textMuted mb-8 font-mono text-lg max-w-2xl leading-relaxed">
             The Ultimate Analytics Platform for Dank Memer. Dive into deep market trends, visualizers, and data insights.
           </p>
 
-          {stats ? (
-            <div className="w-full flex flex-col md:flex-row gap-6">
-              <StatCategory title="Market Volume" data={stats.volume} isCurrency />
-              <StatCategory title="Trades Executed" data={stats.trades} />
-              <StatCategory title="Items Exchanged" data={stats.count} />
-            </div>
-          ) : (
-            <div className="text-[#6bff7a] font-mono animate-pulse py-12 text-xl tracking-widest">Loading global statistics...</div>
-          )}
+          <div className="w-full flex flex-col md:flex-row gap-6">
+            <StatCategory title="Market Volume" data={stats.volume} isCurrency />
+            <StatCategory title="Trades Executed" data={stats.trades} />
+            <StatCategory title="Items Exchanged" data={stats.count} />
+          </div>
         </div>
       </div>
 
@@ -296,13 +307,13 @@ const HomePageDesktop = () => {
       {/* Tooltip */}
       {hovered && !absorbingIds.includes(positions[hovered.i]?.id) && !vomitingIds.includes(positions[hovered.i]?.id) && (
         <div
-          className="absolute bg-[#111816]/80 text-white px-[10px] py-[6px] rounded-md text-sm pointer-events-none whitespace-nowrap z-10"
+          className="absolute bg-bg4/80 text-white px-[10px] py-[6px] rounded-md text-sm pointer-events-none whitespace-nowrap z-10"
           style={{
             top: Math.min(window.innerHeight - 60, hovered.y - 10),
             left: Math.min(window.innerWidth - 200, hovered.x + emojiSize + 15),
           }}
         >
-          <div className="font-semibold font-mono text-[#6bff7a]">{titleCase(hovered.name)}</div>
+          <div className="font-semibold font-mono text-primary">{titleCase(hovered.name)}</div>
           <div className="font-mono"> ⏣ {hovered.latestValue.toLocaleString()}</div>
         </div>
       )}

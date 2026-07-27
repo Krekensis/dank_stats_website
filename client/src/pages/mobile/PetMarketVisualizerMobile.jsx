@@ -135,7 +135,7 @@ const PetMarketVisualizerMobile = () => {
     const baseData = baselineTrades.length > 0 ? baselineTrades : data;
 
     const values = baseData.map(point => point.y).sort((a, b) => a - b);
-    
+
     const getMedian = (arr) => {
       const mid = Math.floor(arr.length / 2);
       return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
@@ -144,15 +144,15 @@ const PetMarketVisualizerMobile = () => {
     const median = getMedian(values);
     const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
     const mad = getMedian(deviations);
-    
+
     // Scale MAD to approximate standard deviation
     let madStdDev = 1.4826 * mad;
-    
+
     // Fallback if MAD is 0 (majority of trades are exactly the same price)
     if (madStdDev === 0) {
-        const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-        const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
-        madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
+      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+      madStdDev = stdDev > 0 ? stdDev : Math.max(1, median * 0.01);
     }
 
     return data.filter(point => Math.abs(point.y - median) <= threshold * madStdDev);
@@ -328,12 +328,12 @@ const PetMarketVisualizerMobile = () => {
               unit: "day"
             },
             title: { display: false },
-            ticks: { color: "#a4bbb0", maxTicksLimit: 5 },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', maxTicksLimit: 5 },
             grid: { display: false },
           },
           y: {
             title: { display: false },
-            ticks: { color: "#a4bbb0", callback: (value) => `⏣ ${formatLargeNumber(value)}` },
+            ticks: { color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0', callback: (value) => `⏣ ${formatLargeNumber(value)}` },
             grid: { display: false },
           },
         },
@@ -346,11 +346,11 @@ const PetMarketVisualizerMobile = () => {
               const tooltipEl = document.getElementById('chartjs-tooltip') || (() => {
                 const div = document.createElement('div');
                 div.id = 'chartjs-tooltip';
-                div.style.cssText = `position: absolute; background-color: #111816; opacity: 0.9; color: #a4bbb0; border: 2px solid #6bff7a; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
+                div.style.cssText = `position: absolute; background-color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg4').trim() || '#111816' : '#111816'}; opacity: 0.9; color: ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-textMuted').trim() || '#a4bbb0' : '#a4bbb0'}; border: 2px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'}; border-radius: 6px; padding: 10px; pointer-events: none; transform: translate(-50%, -120%); font-family: Monaco, monospace; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: opacity 0.2s ease, transform 0.2s ease; line-height: 1.3; min-width: 200px; width: max-content; white-space: nowrap;`;
 
                 const triangle = document.createElement('div');
                 triangle.className = 'tooltip-triangle';
-                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #6bff7a;`;
+                triangle.style.cssText = `position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a'};`;
                 div.appendChild(triangle);
 
                 document.body.appendChild(div);
@@ -399,7 +399,7 @@ const PetMarketVisualizerMobile = () => {
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">${dataset.label}</div>
                       <div style="color: #a4bbb0; font-size: 12px; margin-bottom: 1px;">⏣ ${commas(value)}</div>
                       <div style="color: #a4bbb0; font-size: 11px; margin-bottom: 1px;">Qty: ${quantity}</div>
-                      <div style="color: ${isSell ? '#6bff7a' : '#ff6b6b'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
+                      <div style="color: ${isSell ? 'var(--theme-primary)' : '#ff6b6b'}; font-size: 11px;">${isSell ? 'SELL' : 'BUY'}</div>
                     </div>
                     <div style="display: flex; align-items: center;">
                       <img src="${dataset.url}" alt="" style="width: 40px; height: 40px;">
@@ -547,8 +547,8 @@ const PetMarketVisualizerMobile = () => {
           {
             label: `${titleCase(item.name)} (Sell)`,
             data: sellPoints,
-            backgroundColor: '#6bff7a80',
-            borderColor: '#6bff7a',
+            backgroundColor: (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a') + '80',
+            borderColor: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a',
             pointRadius: 3,
             pointHoverRadius: 5,
             showLine: false,
@@ -702,7 +702,7 @@ const PetMarketVisualizerMobile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070e0c] text-white p-4">
+    <div className="min-h-screen bg-bg0 text-white p-4">
       <Navbar />
 
       {itemsLoading ? (
@@ -720,8 +720,8 @@ const PetMarketVisualizerMobile = () => {
                 onClick={handleDisplay}
                 disabled={!canDisplay || loading}
                 className={`flex-none font-mono font-extrabold py-[6px] px-4 rounded-md transition ${canDisplay && !loading
-                  ? "bg-[#6bff7a] hover:bg-[#58e36b] text-[#070e0c] cursor-pointer"
-                  : "bg-[#6bff7a63] text-[#070e0c] cursor-not-allowed"
+                  ? "bg-primary hover:bg-primaryHover text-bg0 cursor-pointer"
+                  : "bg-primary/50 text-bg0 cursor-not-allowed"
                   }`}
               //style={{ height: "40px" }}
               >
@@ -731,306 +731,310 @@ const PetMarketVisualizerMobile = () => {
             {dateError && <div className="absolute left-0 top-full mt-1 text-red-500 font-mono text-sm">Start date cannot be after end date.</div>}
           </div>
         </div>
-      )}
+      )
+      }
 
-      {chartData && (
-        <>
-          <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
-            <div className="bg-[#111816] rounded-xl p-2 sm:p-3 shadow-lg relative w-full" id="chart-container">
+      {
+        chartData && (
+          <>
+            <div className="flex flex-col justify-between mt-4 mb-4 space-y-4 w-full mx-auto" id="chart-legend-container">
+              <div className="bg-bg4 rounded-xl p-2 sm:p-3 shadow-lg relative w-full" id="chart-container">
 
-              {loading && (
-                <div className="absolute inset-0 bg-[#111816] bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
-                  {/* Main Loader */}
-                  <Loader size={200} />
+                {loading && (
+                  <div className="absolute inset-0 bg-bg4 bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
+                    {/* Main Loader */}
+                    <Loader size={200} />
 
-                  {/* Progress Bar */}
-                  <div className="w-[250px] h-2 mt-6 bg-[#182521] rounded-full overflow-hidden shadow-inner">
-                    <div
-                      className="h-full bg-[#6bff7a] transition-all duration-300 ease-linear rounded-full"
-                      style={{ width: `${progress}%` }}
-                    />
+                    {/* Progress Bar */}
+                    <div className="w-[250px] h-2 mt-6 bg-bg7 rounded-full overflow-hidden shadow-inner">
+                      <div
+                        className="h-full bg-primary transition-all duration-300 ease-linear rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+
+                    <p className="text-sm text-gray-300 mt-2">{progress}%</p>
+                    <p className="text-xs text-gray-400 mt-1">{debugInfo}</p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap justify-end items-center font-mono text-textMuted gap-1 mb-4">
+
+                  {/* Dataset Range Dropdown */}
+                  <div className="relative" ref={datasetRangeDropdownRef}>
+                    <button
+                      onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors"
+                      title="Dataset range"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                    </button>
+                    {datasetRangeDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
+                        Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
+                      </div>
+                    )}
                   </div>
 
-                  <p className="text-sm text-gray-300 mt-2">{progress}%</p>
-                  <p className="text-xs text-gray-400 mt-1">{debugInfo}</p>
-                </div>
-              )}
-
-              <div className="flex flex-wrap justify-end items-center font-mono text-[#a4bbb0] gap-1 mb-4">
-
-                {/* Dataset Range Dropdown */}
-                <div className="relative" ref={datasetRangeDropdownRef}>
-                  <button
-                    onClick={() => setDatasetRangeDropdownOpen(!datasetRangeDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
-                    title="Dataset range"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                  </button>
-                  {datasetRangeDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-2 text-[12px] ">
-                      Dataset: {formatDate(datasetSpan.oldest)} - {formatDate(datasetSpan.latest)}
-                    </div>
-                  )}
-                </div>
-
-                {/* Data Options Dropdown */}
-                <div className="relative" ref={dataOptionsDropdownRef}>
-                  <button
-                    onClick={() => setDataOptionsDropdownOpen(!dataOptionsDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
-                    title="Data options"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                    </svg>
-                  </button>
-                  {dataOptionsDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max p-3 ">
-                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={showPrivate}
-                          onChange={(e) => setShowPrivate(e.target.checked)}
-                          className="hidden"
-                        />
-                        <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${showPrivate ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
-                          aria-hidden="true"
-                        >
-                          {showPrivate && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                        <span>Private offers</span>
-                      </label>
-                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={excludeOutliers}
-                          onChange={(e) => setExcludeOutliers(e.target.checked)}
-                          className="hidden"
-                        />
-                        <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOutliers ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
-                          aria-hidden="true"
-                        >
-                          {excludeOutliers && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                        <span>Exclude outliers</span>
-                      </label>
-                      <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={excludeOneCoinTrades}
-                          onChange={(e) => setExcludeOneCoinTrades(e.target.checked)}
-                          className="hidden"
-                        />
-                        <div
-                          className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOneCoinTrades ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                          style={{ backgroundColor: "#0d1311" }}
-                          aria-hidden="true"
-                        >
-                          {excludeOneCoinTrades && (
-                            <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                        <span>Exclude ⏣ 1 trades</span>
-                      </label>
-                      {displayedItems.length === 1 && (
-                        <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none border-t border-[#1e2a27] pt-2 mt-1">
+                  {/* Data Options Dropdown */}
+                  <div className="relative" ref={dataOptionsDropdownRef}>
+                    <button
+                      onClick={() => setDataOptionsDropdownOpen(!dataOptionsDropdownOpen)}
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors"
+                      title="Data options"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                      </svg>
+                    </button>
+                    {dataOptionsDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 w-max p-3 ">
+                        <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
                           <input
                             type="checkbox"
-                            checked={dualMode}
-                            onChange={(e) => setDualMode(e.target.checked)}
+                            checked={showPrivate}
+                            onChange={(e) => setShowPrivate(e.target.checked)}
                             className="hidden"
                           />
                           <div
-                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${dualMode ? "border-[#6bff7a]" : "border-[#2b473e]"}`}
-                            style={{ backgroundColor: "#0d1311" }}
+                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${showPrivate ? "border-primary" : "border-border1"}`}
+                            style={{ backgroundColor: "var(--theme-bg3)" }}
                             aria-hidden="true"
                           >
-                            {dualMode && (
-                              <svg className="w-[10px] h-[10px] text-[#6bff7a]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            {showPrivate && (
+                              <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
-                          <span>Dual Mode</span>
+                          <span>Private offers</span>
                         </label>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Date Format Dropdown */}
-                <div className="relative" ref={dateFormatDropdownRef}>
-                  <button
-                    onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] hover:text-[#6bff7a] transition-colors"
-                    title="Date format"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                  </button>
-                  {dateFormatDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 w-max ">
-                      <button
-                        onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
-                        className="w-full text-left rounded-md px-3 py-2 hover:bg-[#1d2a24] hover:text-[#6bff7a] transition-colors text-[12px]"
-                      >
-                        Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Trade Type Dropdown */}
-                <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : "Trade Type"}>
-                  <button
-                    onClick={() => !dualMode && setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
-                    className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-[#6bff7a] cursor-pointer'}`}
-                    disabled={dualMode}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                    </svg>
-                  </button>
-                  {tradeTypeDropdownOpen && !dualMode && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#070e0c] rounded-md shadow-custom z-10 min-w-25 ">
-                      {["all", "buy", "sell"].map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => handleTradeTypeChange(type)}
-                          className={`w-full text-left rounded-md px-3 py-2 transition-colors text-[12px] ${
-                            tradeType === type 
-                              ? "bg-[#1d2a24] text-[#6bff7a]" 
-                              : "hover:bg-[#1d2a24] hover:text-[#6bff7a]"
-                          }`}
-                        >
-                          {getTradeTypeLabel(type)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Zoom Reset Button */}
-                <button
-                  onClick={handleZoomReset}
-                  className={`flex items-center justify-center w-8 h-8 rounded-md bg-[#070e0c] transition-colors ${isZoomedIn ? 'hover:text-[#6bff7a] cursor-pointer' : 'cursor-default'
-                    }`}
-                  disabled={!isZoomedIn}
-                  title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor" viewBox="0 0 24 24"
-                    className="w-4 h-4">
-                    <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
-                    <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="relative w-full h-[450px]">
-                <canvas id="myChart" className="w-full h-full" />
-              </div>
-            </div>
-
-            {/* Legend Container */}
-            <div className="bg-[#111816] mx-auto p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-[#a4bbb0] w-full" id="legend-container">
-              <div className="flex flex-col space-y-1">
-                <h2 className="text-base font-semibold text-[#ffffff] mb-2">Market Data — {displayedItems.length}</h2>
-                {displayedItems.map((item) => {
-                  const itemName = item.name;
-                  const filteredData = marketData[itemName] || [];
-                  const totalTrades = filteredData.length;
-                  const color = itemColors[itemName] || '#6bff7a';
-                  const threshold = outlierThresholds[itemName] ?? 3;
-                  return (
-                    <div key={itemName} className="mb-3">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: color }} />
-                        <img src={item.url} alt={titleCase(itemName)} className="w-5 h-5 shrink-0" />
-                        <div className="flex flex-col">
-                          <span className="truncate text-xs">{titleCase(itemName)}</span>
-                          <span className="text-xs text-[#6bff7a]">{totalTrades} trades</span>
-                        </div>
-                      </div>
-                      {excludeOutliers && (
-                        <div className="ml-1 mt-2">
-                          <div className="flex items-center justify-between text-[10px] text-[#a4bbb0] mb-1">
-                            <span>Outlier σ</span>
-                            <span className="text-[#6bff7a] font-bold">{threshold.toFixed(1)}</span>
+                        <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={excludeOutliers}
+                            onChange={(e) => setExcludeOutliers(e.target.checked)}
+                            className="hidden"
+                          />
+                          <div
+                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOutliers ? "border-primary" : "border-border1"}`}
+                            style={{ backgroundColor: "var(--theme-bg3)" }}
+                            aria-hidden="true"
+                          >
+                            {excludeOutliers && (
+                              <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
                           </div>
-                          <div className="relative w-full h-4 flex items-center">
-                            <div
-                              className="absolute w-full h-[3px] rounded-full"
-                              style={{ background: '#1e2a27' }}
-                            />
-                            <div
-                              className="absolute h-[3px] rounded-full pointer-events-none"
-                              style={{
-                                background: '#6bff7a',
-                                width: `${((threshold - 1) / (10 - 1)) * 100}%`,
-                              }}
-                            />
+                          <span>Exclude outliers</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-[12px] mb-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={excludeOneCoinTrades}
+                            onChange={(e) => setExcludeOneCoinTrades(e.target.checked)}
+                            className="hidden"
+                          />
+                          <div
+                            className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${excludeOneCoinTrades ? "border-primary" : "border-border1"}`}
+                            style={{ backgroundColor: "var(--theme-bg3)" }}
+                            aria-hidden="true"
+                          >
+                            {excludeOneCoinTrades && (
+                              <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </div>
+                          <span>Exclude ⏣ 1 trades</span>
+                        </label>
+                        {displayedItems.length === 1 && (
+                          <label className="flex items-center space-x-2 text-[12px] cursor-pointer select-none border-t border-bg10 pt-2 mt-1">
                             <input
-                              type="range"
-                              min="1"
-                              max="10"
-                              step="0.5"
-                              value={threshold}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                shouldAnimate.current = false;
-                                setOutlierThresholds(prev => ({ ...prev, [itemName]: val }));
-                              }}
-                              className="outlier-slider relative w-full"
+                              type="checkbox"
+                              checked={dualMode}
+                              onChange={(e) => setDualMode(e.target.checked)}
+                              className="hidden"
                             />
+                            <div
+                              className={`w-[14px] h-[14px] rounded-[3px] border-[1.5px] flex items-center justify-center transition-all duration-50 ${dualMode ? "border-primary" : "border-border1"}`}
+                              style={{ backgroundColor: "var(--theme-bg3)" }}
+                              aria-hidden="true"
+                            >
+                              {dualMode && (
+                                <svg className="w-[10px] h-[10px] text-primary" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </div>
+                            <span>Dual Mode</span>
+                          </label>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Date Format Dropdown */}
+                  <div className="relative" ref={dateFormatDropdownRef}>
+                    <button
+                      onClick={() => setDateFormatDropdownOpen(!dateFormatDropdownOpen)}
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-bg0 hover:text-primary transition-colors"
+                      title="Date format"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>
+                    </button>
+                    {dateFormatDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 w-max ">
+                        <button
+                          onClick={() => handleDateFormatChange(dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy")}
+                          className="w-full text-left rounded-md px-3 py-2 hover:bg-bg9 hover:text-primary transition-colors text-[12px]"
+                        >
+                          Format: {dateFormat === "dd/mm/yyyy" ? "mm/dd/yyyy" : "dd/mm/yyyy"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trade Type Dropdown */}
+                  <div className="relative" ref={tradeTypeDropdownRef} title={dualMode ? "This option is disabled as 'Dual Mode' is enabled." : "Trade Type"}>
+                    <button
+                      onClick={() => !dualMode && setTradeTypeDropdownOpen(!tradeTypeDropdownOpen)}
+                      className={`flex items-center justify-center w-8 h-8 rounded-md bg-bg0 transition-colors ${dualMode ? 'opacity-40 cursor-not-allowed' : 'hover:text-primary cursor-pointer'}`}
+                      disabled={dualMode}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                      </svg>
+                    </button>
+                    {tradeTypeDropdownOpen && !dualMode && (
+                      <div className="absolute top-full right-0 mt-1 bg-bg0 rounded-md shadow-custom z-10 min-w-25 ">
+                        {["all", "buy", "sell"].map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => handleTradeTypeChange(type)}
+                            className={`w-full text-left rounded-md px-3 py-2 transition-colors text-[12px] ${tradeType === type
+                              ? "bg-bg9 text-primary"
+                              : "hover:bg-bg9 hover:text-primary"
+                              }`}
+                          >
+                            {getTradeTypeLabel(type)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Zoom Reset Button */}
+                  <button
+                    onClick={handleZoomReset}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md bg-bg0 transition-colors ${isZoomedIn ? 'hover:text-primary cursor-pointer' : 'cursor-default'
+                      }`}
+                    disabled={!isZoomedIn}
+                    title={isZoomedIn ? "Reset the zoom" : "Scroll to zoom"}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor" viewBox="0 0 24 24"
+                      className="w-4 h-4">
+                      <rect x="7" y="3" width="12" height="18" rx="5" ry="5" />
+                      <rect x="12" y="7" width="2" height="7" rx="1" ry="1" fill="#000" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="relative w-full h-[450px]">
+                  <canvas id="myChart" className="w-full h-full" />
+                </div>
+              </div>
+
+              {/* Legend Container */}
+              <div className="bg-bg4 mx-auto p-4 justify-between rounded-xl shadow-lg flex flex-col font-mono space-y-1 text-textMuted w-full" id="legend-container">
+                <div className="flex flex-col space-y-1">
+                  <h2 className="text-base font-semibold text-[#ffffff] mb-2">Market Data — {displayedItems.length}</h2>
+                  {displayedItems.map((item) => {
+                    const itemName = item.name;
+                    const filteredData = marketData[itemName] || [];
+                    const totalTrades = filteredData.length;
+                    const color = itemColors[itemName] || (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#6bff7a' : '#6bff7a');
+                    const threshold = outlierThresholds[itemName] ?? 3;
+                    return (
+                      <div key={itemName} className="mb-3">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: color }} />
+                          <img src={item.url} alt={titleCase(itemName)} className="w-5 h-5 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="truncate text-xs">{titleCase(itemName)}</span>
+                            <span className="text-xs text-primary">{totalTrades} trades</span>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        {excludeOutliers && (
+                          <div className="ml-1 mt-2">
+                            <div className="flex items-center justify-between text-[10px] text-textMuted mb-1">
+                              <span>Outlier σ</span>
+                              <span className="text-primary font-bold">{threshold.toFixed(1)}</span>
+                            </div>
+                            <div className="relative w-full h-4 flex items-center">
+                              <div
+                                className="absolute w-full h-[3px] rounded-full"
+                                style={{ background: 'var(--theme-bg10)' }}
+                              />
+                              <div
+                                className="absolute h-[3px] rounded-full pointer-events-none"
+                                style={{
+                                  background: 'var(--theme-primary)',
+                                  width: `${((threshold - 1) / (10 - 1)) * 100}%`,
+                                }}
+                              />
+                              <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                step="0.5"
+                                value={threshold}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  shouldAnimate.current = false;
+                                  setOutlierThresholds(prev => ({ ...prev, [itemName]: val }));
+                                }}
+                                className="outlier-slider relative w-full"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col mx-auto px-0 space-y-4 w-full" id="cards-container">
-            {displayedItems.map((item) => (
-              <MarketItemCard key={item.name} item={item} tradeData={marketData[item.name]} />
-            ))}
-          </div>
-        </>
-      )}
+            <div className="flex flex-col mx-auto px-0 space-y-4 w-full" id="cards-container">
+              {displayedItems.map((item) => (
+                <MarketItemCard key={item.name} item={item} tradeData={marketData[item.name]} />
+              ))}
+            </div>
+          </>
+        )
+      }
 
-      {!chartData && !loading && !itemsLoading && (
-        <div className="flex flex-col items-center justify-center mt-32 text-[#a4bbb0] opacity-50 font-mono text-center">
-          <svg className="w-24 h-24 mb-4 text-[#2b473e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
-          </svg>
-          <h2 className="text-xl font-bold mb-2">Pet Market Visualizer</h2>
-          <p className="max-w-md">
-            Select up to 10 pets, choose your date range, and click "Display" to visualize their market trades, trends, and pricing history.
-          </p>
-        </div>
-      )}
-    </div>
+      {
+        !chartData && !loading && !itemsLoading && (
+          <div className="flex flex-col items-center justify-center mt-32 text-textMuted opacity-50 font-mono text-center">
+            <svg className="w-24 h-24 mb-4 text-border1" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+            </svg>
+            <h2 className="text-xl font-bold mb-2">Pet Market Visualizer</h2>
+            <p className="max-w-md">
+              Select up to 10 pets, choose your date range, and click "Display" to visualize their market trades, trends, and pricing history.
+            </p>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

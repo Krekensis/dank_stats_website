@@ -4,6 +4,7 @@ import itemData from "../../assets/parsed_items4.json";
 import { titleCase, formatLargeNumber } from "../../functions/stringUtils";
 import logoUrl from "../../assets/DankStats.png";
 import { fetchItemData } from "../../hooks/fetchItemData";
+import AnimatedNumber from "../../components/animated-number";
 
 // ==================================== [ Component ] ====================================
 
@@ -11,49 +12,59 @@ const StatCategory = ({ title, data, isCurrency }) => {
   const format = (val) => isCurrency ? formatLargeNumber(val) : val.toLocaleString();
 
   return (
-    <div className="bg-[#070e0c]/80 border border-[#a4bbb0]/20 rounded-xl p-4 flex flex-col w-full">
-      <div className="text-[#a4bbb0] text-sm uppercase tracking-widest mb-3 font-audiowide border-b border-[#a4bbb0]/20 pb-2 text-center">
+    <div className="bg-bg0/80 border border-textMuted/20 rounded-xl p-4 flex flex-col w-full">
+      <div className="text-textMuted text-sm uppercase tracking-widest mb-3 font-audiowide border-b border-textMuted/20 pb-2 text-center">
         {title}
       </div>
 
       {/* Total Main Highlight */}
       <div className="flex flex-col items-center justify-center mb-4">
-        <div className="text-[#a4bbb0] text-[10px] uppercase tracking-widest mb-1 font-mono">Total</div>
-        <div className="text-[#6bff7a] text-xl font-bold font-mono tracking-tight">{isCurrency && "⏣ "}{format(data.total)}</div>
+        <div className="text-textMuted text-[10px] uppercase tracking-widest mb-1 font-mono">Total</div>
+        <div className="text-primary text-xl font-bold font-mono tracking-tight">
+          <AnimatedNumber value={data.total} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {/* Buy / Sell */}
-        <div className="flex flex-col gap-1 border-r border-[#a4bbb0]/10 pr-3">
+        <div className="flex flex-col gap-1 border-r border-textMuted/10 pr-3">
           <div className="flex justify-between items-center text-[10px] font-mono">
-            <span className="text-[#a4bbb0]">Buy:</span>
-            <span className="text-white">{isCurrency && "⏣ "}{format(data.buy)}</span>
+            <span className="text-textMuted">Buy:</span>
+            <span className="text-white">
+              <AnimatedNumber value={data.buy} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           <div className="flex justify-between items-center text-[10px] font-mono">
-            <span className="text-[#a4bbb0]">Sell:</span>
-            <span className="text-white">{isCurrency && "⏣ "}{format(data.sell)}</span>
+            <span className="text-textMuted">Sell:</span>
+            <span className="text-white">
+              <AnimatedNumber value={data.sell} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           {/* Progress bar Buy vs Sell */}
-          <div className="w-full h-1 bg-[#111816] rounded-full overflow-hidden flex border border-[#a4bbb0]/10 mt-1">
-            <div style={{ width: `${(data.buy / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-[#6bff7a] relative"></div>
-            <div style={{ width: `${(data.sell / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-[#3d7a4d] relative"></div>
+          <div className="w-full h-1 bg-bg4 rounded-full overflow-hidden flex border border-textMuted/10 mt-1">
+            <div style={{ width: `${(data.buy / (data.buy + data.sell || 1)) * 100}%` }} className="h-full bg-primary relative transition-all duration-[3000ms]"></div>
+            <div className="h-full bg-bg13 relative flex-1"></div>
           </div>
         </div>
 
         {/* Public / Private */}
         <div className="flex flex-col gap-1 pl-1">
           <div className="flex justify-between items-center text-[10px] font-mono">
-            <span className="text-[#a4bbb0]">Pub:</span>
-            <span className="text-white">{isCurrency && "⏣ "}{format(data.public)}</span>
+            <span className="text-textMuted">Pub:</span>
+            <span className="text-white">
+              <AnimatedNumber value={data.public} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           <div className="flex justify-between items-center text-[10px] font-mono">
-            <span className="text-[#a4bbb0]">Priv:</span>
-            <span className="text-white">{isCurrency && "⏣ "}{format(data.private)}</span>
+            <span className="text-textMuted">Priv:</span>
+            <span className="text-white">
+              <AnimatedNumber value={data.private} formatFn={(val) => `${isCurrency ? "⏣ " : ""}${format(val)}`} />
+            </span>
           </div>
           {/* Progress bar Public vs Private */}
-          <div className="w-full h-1 bg-[#111816] rounded-full overflow-hidden flex border border-[#a4bbb0]/10 mt-1">
-            <div style={{ width: `${(data.public / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-[#6bff7a] relative"></div>
-            <div style={{ width: `${(data.private / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-[#3d7a4d] relative"></div>
+          <div className="w-full h-1 bg-bg4 rounded-full overflow-hidden flex border border-textMuted/10 mt-1">
+            <div style={{ width: `${(data.public / (data.public + data.private || 1)) * 100}%` }} className="h-full bg-primary relative transition-all duration-[3000ms]"></div>
+            <div className="h-full bg-bg13 relative flex-1"></div>
           </div>
         </div>
       </div>
@@ -62,7 +73,11 @@ const StatCategory = ({ title, data, isCurrency }) => {
 };
 
 const HomePageMobile = () => {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    trades: { total: 0, sell: 0, buy: 0, public: 0, private: 0 },
+    volume: { total: 0, sell: 0, buy: 0, public: 0, private: 0 },
+    count: { total: 0, sell: 0, buy: 0, public: 0, private: 0 }
+  });
 
   useEffect(() => {
 
@@ -108,29 +123,25 @@ const HomePageMobile = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#070e0c] relative overflow-hidden">
+    <div className="min-h-screen bg-bg0 relative overflow-hidden">
       <Navbar />
 
       {/* Hero Banner */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20 px-4" style={{ paddingTop: '64px' }}>
-        <div className="bg-[#111816]/70 backdrop-blur-md border border-[#a4bbb0]/20 p-5 rounded-2xl flex flex-col items-center text-center w-full max-w-sm pointer-events-auto max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-[#6bff7a]/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#6bff7a]/40">
-          <h1 className="text-3xl text-[#6bff7a] mb-3 font-audiowide flex items-center justify-center gap-3">
-            <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+        <div className="bg-bg4/70 backdrop-blur-md border border-textMuted/20 p-5 rounded-2xl flex flex-col items-center text-center w-full max-w-sm pointer-events-auto max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-primary/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/40">
+          <h1 className="text-3xl text-primary mb-3 font-audiowide flex items-center justify-center gap-3">
+            <div className="w-8 h-8 bg-primary" style={{ maskImage: `url(${logoUrl})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${logoUrl})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
             Dank Stats
           </h1>
-          <p className="text-[#a4bbb0] mb-6 font-mono text-xs max-w-xs leading-relaxed">
+          <p className="text-textMuted mb-6 font-mono text-xs max-w-xs leading-relaxed">
             Analytics Platform for Dank Memer. View market trends, visualizers, and data insights.
           </p>
 
-          {stats ? (
-            <div className="w-full flex flex-col gap-4">
-              <StatCategory title="Market Volume" data={stats.volume} isCurrency />
-              <StatCategory title="Trades Executed" data={stats.trades} />
-              <StatCategory title="Items Exchanged" data={stats.count} />
-            </div>
-          ) : (
-            <div className="text-[#6bff7a] font-mono animate-pulse py-8 text-sm tracking-widest">Loading global statistics...</div>
-          )}
+          <div className="w-full flex flex-col gap-4">
+            <StatCategory title="Market Volume" data={stats.volume} isCurrency />
+            <StatCategory title="Trades Executed" data={stats.trades} />
+            <StatCategory title="Items Exchanged" data={stats.count} />
+          </div>
         </div>
       </div>
     </div>

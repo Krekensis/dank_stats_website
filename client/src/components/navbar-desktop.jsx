@@ -121,21 +121,21 @@ const NavbarDesktop = () => {
 
   return (
     <nav className={`fixed top-0 left-0 w-full flex justify-center z-50 pointer-events-none transition-transform duration-500 ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}>
-      <div className="mt-4 z-50 relative bg-[#151f19]/70 backdrop-blur-[10px] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden" style={{ height: `${containerHeight}px` }}>
+      <div className="mt-4 z-50 relative bg-bg5/70 backdrop-blur-[10px] rounded-xl px-6 py-3 max-w-8xl w-full mx-12 pointer-events-auto flex flex-col transition-all duration-300 ease-in-out overflow-hidden" style={{ height: `${containerHeight}px` }}>
         <div className="flex justify-between items-center">
           {/* Logo + Text Grouped */}
           <Link to="/" className="flex items-center space-x-3">
-            <img src={logo} alt="Dank Stats Logo" className="w-10 h-10 object-contain" />
-            <div className="text-[#6bff7a] text-3xl font-audiowide select-none leading-none">
+            <div className="w-10 h-10 bg-primary" style={{ maskImage: `url(${logo})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${logo})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+            <div className="text-primary text-3xl font-audiowide select-none leading-none">
               Dank Stats
             </div>
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex-1 flex justify-center text-[#c6ffcc] font-mono font-medium space-x-8">
+          <div className="flex-1 flex justify-center text-textLight font-mono font-medium space-x-8">
             <a
               href="#"
-              className={`hover:text-[#6bff7a] transition cursor-pointer ${activeMenu === 'item' ? 'text-[#6bff7a]' : ''}`}
+              className={`hover:text-primary transition cursor-pointer ${activeMenu === 'item' ? 'text-primary' : ''}`}
               onMouseEnter={() => setHoveringItemTrigger(true)}
               onMouseLeave={() => setHoveringItemTrigger(false)}
             >
@@ -143,20 +143,20 @@ const NavbarDesktop = () => {
             </a>
             <a
               href="#"
-              className={`hover:text-[#6bff7a] transition cursor-pointer ${activeMenu === 'pet' ? 'text-[#6bff7a]' : ''}`}
+              className={`hover:text-primary transition cursor-pointer ${activeMenu === 'pet' ? 'text-primary' : ''}`}
               onMouseEnter={() => setHoveringPetTrigger(true)}
               onMouseLeave={() => setHoveringPetTrigger(false)}
             >
               Pet Statistics
             </a>
-            <Link to="/api-docs" className="hover:text-[#6bff7a] transition cursor-pointer">
+            <Link to="/api-docs" className="hover:text-primary transition cursor-pointer">
               API
             </Link>
           </div>
 
           {/* Settings Icon */}
           <div className="flex items-center">
-            <Link to="/settings" className="text-[#c6ffcc] hover:text-[#6bff7a] transition cursor-pointer" aria-label="Settings">
+            <Link to="/settings" className="text-textLight hover:text-primary transition cursor-pointer" aria-label="Settings">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
